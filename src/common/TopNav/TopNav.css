@@ -1,0 +1,21 @@
+.topNav{
+    display: flex;
+    justify-content: space-between;
+    color: black;
+    align-items: center;
+    width: 100vw;
+    background: #ffff;
+    height: 5rem;
+}
+.topNav img{
+    width: 3rem;
+    height: 3rem;
+    margin-right: 1rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.topNav h1{
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-left: 1rem;
+}

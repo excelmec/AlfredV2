@@ -1,0 +1,27 @@
+.campusAmbassador{
+    background-color: #f7f7f7;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: #000000;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    margin-bottom: 50px;
+    width: 100vw;
+    z-index: -10;
+    display: flex ;
+}
+.campusContent{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.campusContent h2{
+    font-size: 2rem;
+    font-weight: 900;
+    margin-top: 1rem;
+    margin-left: 1rem;
+    align-self: flex-start;
+}
