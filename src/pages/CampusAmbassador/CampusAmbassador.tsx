@@ -1,26 +1,57 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SideNav from '../../common/SideNav/SideNav';
 import TopNav from '../../common/TopNav/TopNav';
 import './CampusAmbassador.css';
 
 // Define a TypeScript interface for the campus ambassador data
 interface CampusAmbassadorData {
-  id: number;
+    ambassadorId: number;
+    id: number;
   name: string;
   email: string;
-  phone: string;
+  mobileNumber: number;
   group: string;
   referralPoints: number;
+  institutionName: string;
+  category: string;
+  freeMembership: number;
+  paidMembership: number;
+
   // Add more fields as needed
 }
 
 const CampusAmbassador: React.FC = () => {
+    var access_token = localStorage.getItem('access_token')
+  
   // State to manage the list of campus ambassadors and their information
-  const [campusAmbassadors, setCampusAmbassadors] = useState<CampusAmbassadorData[]>([
-    { id: 1, name: 'Joel K George', email: 'joel@example.com', phone: '123-456-7890', group: 'Group A', referralPoints: 50 },
-    { id: 2, name: 'Alan', email: 'alan@example.com', phone: '987-654-3210', group: 'Group B', referralPoints: 30 },
-    // Add more ambassadors as needed
-  ]);
+  const [campusAmbassadors, setCampusAmbassadors] = useState<CampusAmbassadorData[]>([]);
+  const [campusAmbassadorsFull, setCampusAmbassadorsFull] = useState<CampusAmbassadorData[]>([]);
+  useEffect(() => {
+    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador/list',{
+        headers: {
+            authorization: 'Bearer ' + access_token
+        }
+    }) 
+    .then(response => response.json())
+    .then(data => {
+      console.log(data)
+      setCampusAmbassadors(data)
+    })
+  },[])
+  useEffect(() => {
+    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador',{
+        headers: {
+            authorization: 'Bearer ' + access_token
+        }
+    }) 
+    .then(response => response.json())
+    .then(data => {
+       var newData = [data]
+       setCampusAmbassadorsFull(newData)
+    })
+  },[])
+  
+
 
   // State to manage the selected campus ambassador for the modal
   const [selectedAmbassador, setSelectedAmbassador] = useState<CampusAmbassadorData | null>(null);
@@ -28,13 +59,20 @@ const CampusAmbassador: React.FC = () => {
   // State to control the visibility of the modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // State to store the new group when changing/creating a group
-  const [newGroup, setNewGroup] = useState('');
 
   // Function to open the modal and display full data of a campus ambassador
-  const openModal = (ambassador: CampusAmbassadorData) => {
-    setSelectedAmbassador(ambassador);
-    setIsModalOpen(true);
+  const openModal = (ambassadorId: number) => {
+    console.log(campusAmbassadorsFull)
+    console.log(campusAmbassadors)
+    // Find the detailed ambassador information from the response
+    const detailedAmbassador = campusAmbassadorsFull.find((ambassador) => ambassador.ambassadorId === ambassadorId);
+    
+    if (detailedAmbassador) {
+      setSelectedAmbassador(detailedAmbassador);
+      setIsModalOpen(true);
+    } else {
+      console.log(`Detailed information for Ambassador ID ${ambassadorId} not found.`);
+    }
   };
 
   // Function to close the modal
@@ -58,7 +96,7 @@ const CampusAmbassador: React.FC = () => {
     }
 
     const updatedAmbassadors = campusAmbassadors.map((ambassador) => {
-      if (ambassador.id === ambassadorId) {
+      if (ambassador.ambassadorId === ambassadorId) {
         return { ...ambassador, referralPoints: ambassador.referralPoints + pointsToAdd };
       }
       return ambassador;
@@ -81,36 +119,50 @@ const CampusAmbassador: React.FC = () => {
               <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Phone</th>
+                <th>Free Membership</th>
+                <th>Paid Membership</th>
                 <th>Group</th>
-                <th>Referral Points</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {campusAmbassadors.map((ambassador) => (
-                <tr key={ambassador.id}>
+                <tr key={ambassador.ambassadorId}>
                   <td>{ambassador.name}</td>
                   <td>{ambassador.email}</td>
-                  <td>{ambassador.phone}</td>
+                  <td>{ambassador.freeMembership}</td>
+                  <td>{ambassador.paidMembership}</td>
                   <td>
                     <select
-                      onChange={(e) => setNewGroup(e.target.value)}
+                        value={ambassador.group}
+                      onChange={(e) => {
+                        const newGroupValue = e.target.value;
+
+                        // Update the ambassador's group in the campusAmbassadors array
+                        const updatedAmbassadors = campusAmbassadors.map((a) => {
+                          if (a.ambassadorId === ambassador.ambassadorId) {
+                            return { ...a, group: newGroupValue };
+                          }
+                          return a;
+                        });
+                    
+                        // Update the campusAmbassadors state with the modified array
+                        setCampusAmbassadors(updatedAmbassadors);
+                      }}
                     >
                       {campusAmbassadors.map((a) => (
-                        <option key={a.id} value={a.group}>
+                        <option key={a.ambassadorId} value={a.group}>
                           {a.group}
                         </option>
                       ))}
                       <option value="New Group">New Group</option>
                     </select>
                   </td>
-                  <td>{ambassador.referralPoints}</td>
                   <td>
-                    <button onClick={() => openModal(ambassador)}>
+                    <button onClick={() => openModal(ambassador.ambassadorId)}>
                       View Details
                     </button>
-                    <button onClick={() => addPoints(ambassador.id)}>
+                    <button onClick={() => addPoints(ambassador.ambassadorId)}>
                       Add Points
                     </button>
                   </td>
@@ -128,9 +180,10 @@ const CampusAmbassador: React.FC = () => {
             <h2>Full Details</h2>
             <p>Name: {selectedAmbassador.name}</p>
             <p>Email: {selectedAmbassador.email}</p>
-            <p>Phone: {selectedAmbassador.phone}</p>
+            <p>Phone: {selectedAmbassador.mobileNumber}</p>
             <p>Group: {selectedAmbassador.group}</p>
             <p>Referral Points: {selectedAmbassador.referralPoints}</p>
+            <p>Institution Name: {selectedAmbassador.institutionName}</p>
             {/* Add more fields as needed */}
             <button onClick={closeModal}>Close</button>
           </div>
