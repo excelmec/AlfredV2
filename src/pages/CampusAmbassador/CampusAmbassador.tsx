@@ -21,35 +21,49 @@ interface CampusAmbassadorData {
 }
 
 const CampusAmbassador: React.FC = () => {
-    var access_token = localStorage.getItem('access_token')
-  
-  // State to manage the list of campus ambassadors and their information
-  const [campusAmbassadors, setCampusAmbassadors] = useState<CampusAmbassadorData[]>([]);
+    const [campusAmbassadors, setCampusAmbassadors] = useState<CampusAmbassadorData[]>([]);
   const [campusAmbassadorsFull, setCampusAmbassadorsFull] = useState<CampusAmbassadorData[]>([]);
+  const [accessToken, setAccessToken] = useState<string>('');
+
   useEffect(() => {
-    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador/list',{
-        headers: {
-            authorization: 'Bearer ' + access_token
-        }
-    }) 
+    console.log('Component mounted');
+    // Fetch the access token from local storage
+    const access_token = localStorage.getItem('access_token');
+    console.log(access_token); // This should log the access token value
+    setAccessToken((prevAccessToken) => access_token || prevAccessToken);
+  }, []);
+  
+  // Combine both API calls into one useEffect
+  useEffect(() => {
+    if (!accessToken) {
+      return; // If accessToken is empty, skip the API calls
+    }
+  
+    // Fetch the list of campus ambassadors
+    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador/list', {
+      headers: {
+        authorization: 'Bearer ' + accessToken
+      }
+    })
     .then(response => response.json())
     .then(data => {
-      console.log(data)
-      setCampusAmbassadors(data)
+      console.log(data);
+      setCampusAmbassadors(data);
+    });
+  
+    // Fetch detailed campus ambassador data
+    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador', {
+      headers: {
+        authorization: 'Bearer ' + accessToken
+      }
     })
-  },[])
-  useEffect(() => {
-    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador',{
-        headers: {
-            authorization: 'Bearer ' + access_token
-        }
-    }) 
     .then(response => response.json())
     .then(data => {
-       var newData = [data]
-       setCampusAmbassadorsFull(newData)
-    })
-  },[])
+      var newData = [data];
+      setCampusAmbassadorsFull(newData);
+    });
+  }, [accessToken]);
+  
   
 
 

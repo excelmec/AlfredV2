@@ -48,6 +48,7 @@ function App() {
         localStorage.setItem('access_token', newAccessToken);
         console.log(newAccessToken)
         localStorage.setItem('access_token_expiration', expirationDate.toISOString());
+        window.location.reload();
     
         return newAccessToken;
       } catch (error) {
