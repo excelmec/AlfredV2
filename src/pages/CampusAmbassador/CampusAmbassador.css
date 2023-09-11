@@ -20,8 +20,48 @@
 }
 .campusContent h2{
     font-size: 2rem;
-    font-weight: 900;
+    font-weight: 700;
     margin-top: 1rem;
     margin-left: 1rem;
     align-self: flex-start;
+}
+table{
+    width: 98%;
+    border-radius: 1rem;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    table-layout: auto;
+    background: #fff;
+}
+th{
+    font-size: 1rem;
+    font-weight: 900;
+    padding: 1rem 0;
+    text-align: center;
+    color: #9b9b9b;
+    text-transform: lowercase;
+}
+td{
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 1rem 0;
+    text-align: center;
+}
+.modal{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #212121;
+    padding: 1rem;
+    border-radius: 1rem;
+    backdrop-filter: blur(100px);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: fit-content;
+    min-width: 40vw;
+    color: white;
+    min-height: 40vh;
+    z-index: 10000;
 }
