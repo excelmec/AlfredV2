@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 
 const Login: React.FC = () => {
   const handleLogin = () => {
-    window.location.href = 'https://auth.excelmec.org/auth/login?redirect_to=http://localhost:5173/';
+    window.location.href = `https://auth.excelmec.org/auth/login?redirect_to=${window.location.hostname}`;
   };
 
   useEffect(() => {

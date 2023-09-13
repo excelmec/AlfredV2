@@ -30,7 +30,7 @@ const CampusAmbassador: React.FC = () => {
   useEffect(() => {
     (async () => {
       const value = await getwithAT('/api/Ambassador/list');
-      console.log(value);
+      setCampusAmbassadors(value);
     }
     )();
 
