@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import SideNav from '../../common/SideNav/SideNav';
 import TopNav from '../../common/TopNav/TopNav';
 import './CampusAmbassador.css';
+import { getwithAT } from '../../utils/api';
 
 // Define a TypeScript interface for the campus ambassador data
 interface CampusAmbassadorData {
@@ -22,78 +23,24 @@ interface CampusAmbassadorData {
 
 const CampusAmbassador: React.FC = () => {
     const [campusAmbassadors, setCampusAmbassadors] = useState<CampusAmbassadorData[]>([]);
-  const [campusAmbassadorsFull, setCampusAmbassadorsFull] = useState<CampusAmbassadorData[]>([]);
-  const [accessToken, setAccessToken] = useState<string>('');
 
-  useEffect(() => {
-    console.log('Component mounted');
-    // Fetch the access token from local storage
-    const access_token = localStorage.getItem('access_token');
-    console.log(access_token); // This should log the access token value
-    setAccessToken((prevAccessToken) => access_token || prevAccessToken);
-  }, []);
+
   
   // Combine both API calls into one useEffect
   useEffect(() => {
-    if (!accessToken) {
-      return; // If accessToken is empty, skip the API calls
-    }
-  
-    // Fetch the list of campus ambassadors
-    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador/list', {
-      headers: {
-        authorization: 'Bearer ' + accessToken
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log(data);
-      setCampusAmbassadors(data);
-    });
-  
+   
+    const value = getwithAT('/api/Ambassador/list');
+    console.log(value);
+
     // Fetch detailed campus ambassador data
-    fetch('https://excel-accounts-backend-z5t623hcnq-el.a.run.app/api/Ambassador', {
-      headers: {
-        authorization: 'Bearer ' + accessToken
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      var newData = [data];
-      setCampusAmbassadorsFull(newData);
-    });
-  }, [accessToken]);
+  }, []);
   
   
 
 
-  // State to manage the selected campus ambassador for the modal
-  const [selectedAmbassador, setSelectedAmbassador] = useState<CampusAmbassadorData | null>(null);
-
-  // State to control the visibility of the modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-
-  // Function to open the modal and display full data of a campus ambassador
-  const openModal = (ambassadorId: number) => {
-    console.log(campusAmbassadorsFull)
-    console.log(campusAmbassadors)
-    // Find the detailed ambassador information from the response
-    const detailedAmbassador = campusAmbassadorsFull.find((ambassador) => ambassador.ambassadorId === ambassadorId);
-    
-    if (detailedAmbassador) {
-      setSelectedAmbassador(detailedAmbassador);
-      setIsModalOpen(true);
-    } else {
-      console.log(`Detailed information for Ambassador ID ${ambassadorId} not found.`);
-    }
-  };
 
   // Function to close the modal
-  const closeModal = () => {
-    setSelectedAmbassador(null);
-    setIsModalOpen(false);
-  };
+
 
   // Function to add referral points to a campus ambassador
   const addPoints = (ambassadorId: number) => {
@@ -173,9 +120,6 @@ const CampusAmbassador: React.FC = () => {
                     </select>
                   </td>
                   <td>
-                    <button onClick={() => openModal(ambassador.ambassadorId)}>
-                      View Details
-                    </button>
                     <button onClick={() => addPoints(ambassador.ambassadorId)}>
                       Add Points
                     </button>
@@ -187,22 +131,7 @@ const CampusAmbassador: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal */}
-      {isModalOpen && selectedAmbassador && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Full Details</h2>
-            <p>Name: {selectedAmbassador.name}</p>
-            <p>Email: {selectedAmbassador.email}</p>
-            <p>Phone: {selectedAmbassador.mobileNumber}</p>
-            <p>Group: {selectedAmbassador.group}</p>
-            <p>Referral Points: {selectedAmbassador.referralPoints}</p>
-            <p>Institution Name: {selectedAmbassador.institutionName}</p>
-            {/* Add more fields as needed */}
-            <button onClick={closeModal}>Close</button>
-          </div>
-        </div>
-      )}
+    
     </div>
   );
 };
