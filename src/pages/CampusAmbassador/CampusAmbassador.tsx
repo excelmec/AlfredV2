@@ -6,8 +6,8 @@ import { getwithAT } from '../../utils/api';
 
 // Define a TypeScript interface for the campus ambassador data
 interface CampusAmbassadorData {
-    ambassadorId: number;
-    id: number;
+  ambassadorId: number;
+  id: number;
   name: string;
   email: string;
   mobileNumber: number;
@@ -22,20 +22,23 @@ interface CampusAmbassadorData {
 }
 
 const CampusAmbassador: React.FC = () => {
-    const [campusAmbassadors, setCampusAmbassadors] = useState<CampusAmbassadorData[]>([]);
+  const [campusAmbassadors, setCampusAmbassadors] = useState<CampusAmbassadorData[]>([]);
 
 
-  
+
   // Combine both API calls into one useEffect
   useEffect(() => {
-   
-    const value = getwithAT('/api/Ambassador/list');
-    console.log(value);
+    (async () => {
+      const value = await getwithAT('/api/Ambassador/list');
+      console.log(value);
+    }
+    )();
+
 
     // Fetch detailed campus ambassador data
   }, []);
-  
-  
+
+
 
 
 
@@ -95,7 +98,7 @@ const CampusAmbassador: React.FC = () => {
                   <td>{ambassador.paidMembership}</td>
                   <td>
                     <select
-                        value={ambassador.group}
+                      value={ambassador.group}
                       onChange={(e) => {
                         const newGroupValue = e.target.value;
 
@@ -106,7 +109,7 @@ const CampusAmbassador: React.FC = () => {
                           }
                           return a;
                         });
-                    
+
                         // Update the campusAmbassadors state with the modified array
                         setCampusAmbassadors(updatedAmbassadors);
                       }}
@@ -131,7 +134,7 @@ const CampusAmbassador: React.FC = () => {
         </div>
       </div>
 
-    
+
     </div>
   );
 };

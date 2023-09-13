@@ -24,13 +24,13 @@ const axiosPrivate = axios.create({
 });
 
 //Axios without Access Token
-// export const axiosPublic = axios.create({
-//   baseURL: baseURL,
-//   headers: {
-//     "Content-type": "application/json-patch+json",
-//   },
-//   timeout: 5000,
-// });
+export const axiosPublic = axios.create({
+  baseURL: baseURL,
+  headers: {
+    "Content-type": "application/json-patch+json",
+  },
+  timeout: 5000,
+});
 
 // Attach Access Token to every request
 axiosPrivate.interceptors.request.use(
@@ -77,7 +77,7 @@ axiosPrivate.interceptors.response.use(
 export const refreshAccessToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
 
-  const response = await axios.post(
+  const response = await axiosPublic.post(
     "/api/Auth/refresh",
     JSON.stringify({ refreshToken: refreshToken }),
     {
