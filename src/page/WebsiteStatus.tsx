@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import Switch from "react-switch";
 import { getwithAT, postwithAT } from "../utils/api";
+import './WebsiteStatus.css'
 
 function WebsiteStatus() {
-  const [websiteStatus, setWebsiteStatus] = useState(true);
-  const [mascotStatus, setMascotStatus] = useState(true);
+  const [websiteStatus, setWebsiteStatus] = useState<boolean | null>(null);
+  const [mascotStatus, setMascotStatus] = useState<boolean | null>(null);
 
   useEffect(() => {
     getwithAT("https://launch-api.excelmec.org/launch/status")
@@ -21,34 +22,33 @@ function WebsiteStatus() {
 
     postwithAT('https://launch-api.excelmec.org/launch/website', data)
       .then(() => {
-        
         setWebsiteStatus(newStatus);
       })
       .catch((error) => {
-        console.error('Error updating mascot status:', error);
-      
+        console.error('Error updating website status:', error);
       });
   };
 
   const handleMascotStatusChange = (newStatus: boolean) => {
-
     const data = { mascotStatus: newStatus } as any;
 
     postwithAT('https://launch-api.excelmec.org/launch/mascot', data)
       .then(() => {
-        
         setMascotStatus(newStatus);
       })
       .catch((error) => {
         console.error('Error updating mascot status:', error);
-      
       });
   };
 
+  if (websiteStatus === null || mascotStatus === null) {
+    return <div className="centered">Loading...</div>;
+  }
+
   return (
-    <div>
+    <div className="centered">
       <h2>Website Status</h2>
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <div >
         <span>Off</span>
         <Switch
           onChange={handleWebsiteStatusChange}
@@ -65,7 +65,7 @@ function WebsiteStatus() {
       </div>
 
       <h2>Mascot Status</h2>
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <div >
         <span>Off</span>
         <Switch
           onChange={handleMascotStatusChange}
