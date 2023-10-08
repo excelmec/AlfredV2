@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Switch from "react-switch";
 import { getwithAT, postwithAT } from "../utils/api";
 
@@ -17,7 +17,7 @@ function WebsiteStatus() {
   }, []);
 
   const handleWebsiteStatusChange = (newStatus: boolean) => {
-    const data = { websiteStatus: newStatus };
+    const data = { websiteStatus: newStatus } as any;
 
     postwithAT('https://launch-api.excelmec.org/launch/website', data)
       .then(() => {
@@ -32,7 +32,7 @@ function WebsiteStatus() {
 
   const handleMascotStatusChange = (newStatus: boolean) => {
 
-    const data = { mascotStatus: newStatus };
+    const data = { mascotStatus: newStatus } as any;
 
     postwithAT('https://launch-api.excelmec.org/launch/mascot', data)
       .then(() => {

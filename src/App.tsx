@@ -9,11 +9,12 @@ import WebsiteStatus from "./page/WebsiteStatus";
 
 function App() {
   const authFrameRef = useRef<HTMLIFrameElement | null>(null);
-  const tokenInterval = useRef<number | undefined>(undefined);
-  const tokenGetRetryCount = useRef<number>(0);
+//   const tokenInterval = useRef<number | undefined>(undefined);
+//   const tokenGetRetryCount = useRef<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
+  
   function onAuthFrameLoad() {
     // window?.addEventListener('message', (event) => {
     // 	if (event.origin !== authBaseUrl) return;
@@ -47,6 +48,8 @@ function App() {
   useEffect(() => {
     try {
       const rt = localStorage.getItem("refreshToken");
+	  console.log(loading);
+	  
 
       if (rt) {
         setIsLoggedIn(true);
