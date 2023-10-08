@@ -1,28 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { authBaseUrl } from '../utils/url';
 
 const Login: React.FC = () => {
   const handleLogin = () => {
-    window.location.href = `https://auth.excelmec.org/auth/login?redirect_to=${window.location.hostname}`;
+    window.location.href = `${authBaseUrl}/auth/login?redirect_to=${window.location.href}`;
   };
-
-  useEffect(() => {
-   
-    const getParameterByName = (name: string, url?: string): string | null => {
-      if (!url) url = window.location.href;
-      name = name.replace(/[[\]]/g, '\\$&');
-      const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-      const results = regex.exec(url);
-      if (!results) return null;
-      if (!results[2]) return '';
-      return decodeURIComponent(results[2].replace(/\+/g, ' '));
-    };
-
-    const refreshToken = getParameterByName('refreshToken');
-
-    if (refreshToken) {
-      localStorage.setItem('refreshToken', refreshToken);
-    }
-  }, []); 
 
   return (
     <div>

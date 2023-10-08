@@ -1,10 +1,12 @@
-//const hostname = window.location.hostname === 'localhost' ? "staging.accounts.excelmec.org" : window.location.hostname;
-// const hostname = "excel-accounts-backend-ovhv32pszq-el.a.run.app";
-
-if (!import.meta.env.VITE_ACC_BACKEND_URL) {
-  throw new Error("VITE_ACC_BACKEND_URL env not set");
+if (!import.meta.env.VITE_ACC_BACKEND_BASE_URL) {
+	throw new Error('VITE_ACC_BACKEND_URL env not set');
 }
 
-const hostname = import.meta.env.VITE_ACC_BACKEND_URL;
+if (!import.meta.env.VITE_AUTH_BASE_URL) {
+	throw new Error('VITE_AUTH_BASE_URL env not set');
+}
 
-export const AccbaseURL = hostname;
+const accBaseUrl = import.meta.env.VITE_ACC_BACKEND_BASE_URL;
+const authBaseUrl = import.meta.env.VITE_AUTH_BASE_URL;
+
+export { accBaseUrl, authBaseUrl };

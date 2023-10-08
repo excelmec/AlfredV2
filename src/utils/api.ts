@@ -1,5 +1,5 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
-import { AccbaseURL as baseURL } from "./url";
+import { accBaseUrl } from "./url";
 
 //Get with Access Token
 export const getwithAT = async (url: string) => {
@@ -19,13 +19,13 @@ export const postwithAT = async (url: string, data: JSON) => {
 
 //Axios with Access Token
 const axiosPrivate = axios.create({
-  baseURL: baseURL,
+  baseURL: accBaseUrl,
   timeout: 5000,
 });
 
 //Axios without Access Token
 export const axiosPublic = axios.create({
-  baseURL: baseURL,
+  baseURL: accBaseUrl,
   headers: {
     "Content-type": "application/json-patch+json",
   },
@@ -35,7 +35,7 @@ export const axiosPublic = axios.create({
 // Attach Access Token to every request
 axiosPrivate.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = getJwtFromCookie();
+    const token = getJwtFromStorage();
     if (token.length > 0) {
       config.headers["Authorization"] = "Bearer " + token;
       return config;
@@ -89,27 +89,15 @@ export const refreshAccessToken = async () => {
 
   const { accessToken, refreshToken: newRefreshToken } = response.data;
   localStorage.setItem("refreshToken", newRefreshToken);
-  storeJwtInCookie(accessToken);
+  storeJwtToStorage(accessToken);
   return accessToken;
 };
 
-const storeJwtInCookie = (accessToken: string): void => {
-  const d = new Date();
-  d.setTime(d.getTime() + 15 * 60 * 1000); // cookie expires in 15 minutes from now.
-  const expires = "expires=" + d.toUTCString();
-  document.cookie = "token=" + accessToken + ";" + expires + ";path=/";
+const storeJwtToStorage = (accessToken: string): void => {
+  localStorage.setItem("accessToken", accessToken);
 };
 
-export const getJwtFromCookie = (): string => {
-  const cookies = document.cookie.split("; ");
-  for (let i = 0; i < cookies.length; i++) {
-    const cookie = cookies[i];
-    const eqPos = cookie.indexOf("=");
-    const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
-    if (name === "token") {
-      const token = cookie.substring(eqPos + 1);
-      return token;
-    }
-  }
-  return "";
+export const getJwtFromStorage = (): string => {
+  const accessToken = localStorage.getItem("accessToken");
+  return accessToken ? accessToken : "";
 };
