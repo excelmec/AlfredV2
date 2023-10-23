@@ -27,17 +27,16 @@ export default function Sidebar() {
 			<List>
 				<ListItemLink to='/' text='Home' icon={<HomeOutlinedIcon />} />
 				<ListItemLink
-					to='/about'
-					text='About'
+					to='/users'
+					text='Users'
 					icon={<InfoOutlinedIcon />}
-				/>
-				<ListItemLink
-					to='/contact'
-					text='Contact'
-					icon={<ContactsOutlinedIcon />}
 				/>
 
 				<ListItemButton
+
+					component={NavLink}
+					to={'/ca'}
+					className='list-item-link'
 					onClick={() => {
 						setCaOpen(!caOpen);
 					}}
@@ -50,14 +49,17 @@ export default function Sidebar() {
 				</ListItemButton>
 				<Collapse in={caOpen} timeout='auto' unmountOnExit>
 					<List>
-						<ListItemLink
-							to='/ca/list'
-							text='List'
-                            pl={2}
-						/>
+						<ListItemLink to='/ca/list' text='List' pl={2} />
 					</List>
 				</Collapse>
+
+				<ListItemLink
+					to='/contact'
+					text='Contact'
+					icon={<ContactsOutlinedIcon />}
+				/>
 			</List>
+
 			<Box sx={{ flexGrow: 1 }}></Box>
 			<UserLoginAvatarButton
 				userLoading={userLoading}
