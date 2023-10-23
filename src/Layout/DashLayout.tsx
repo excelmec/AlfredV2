@@ -1,4 +1,3 @@
-import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -12,8 +11,13 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import { NavLink, Outlet } from 'react-router-dom';
 import './DashLayout.css';
 import { Paper } from '@mui/material';
+import { useContext } from 'react';
+import UserContext from '../Contexts/User/UserContext';
+import UserLoginAvatarButton from '../Components/Login/UserLoginAvatarButton';
 
 export default function DashLayout() {
+	const { userData, userLoading, logout } = useContext(UserContext);
+
 	return (
 		<Box className='dash-wrapper'>
 			<Box
@@ -25,7 +29,6 @@ export default function DashLayout() {
 				<Typography variant='h6' noWrap component='div'>
 					Alfred - Excel Admin Dashboard
 				</Typography>
-				<Avatar>A</Avatar>
 			</Box>
 			<Box className='dash-body'>
 				<Box
@@ -45,7 +48,18 @@ export default function DashLayout() {
 							text='About'
 							icon={<HomeOutlinedIcon />}
 						/>
+						<ListItemLink
+							to='/contact'
+							text='Contact'
+							icon={<HomeOutlinedIcon />}
+						/>
 					</List>
+					<Box sx={{ flexGrow: 1 }}></Box>
+					<UserLoginAvatarButton
+						userLoading={userLoading}
+						userData={userData}
+						logout={logout}
+					/>
 				</Box>
 				<Box className='dash-content'>
 					<Outlet />
