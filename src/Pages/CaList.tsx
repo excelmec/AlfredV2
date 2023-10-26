@@ -1,34 +1,36 @@
 import { Typography } from '@mui/material';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
-import { CA, getCaList } from '../utils/api';
+import { useEffect } from 'react';
 import ProtectedRoute from '../Components/Protected/ProtectedRoute';
+import { CA, useCaList } from '../Hooks/useCaList';
+
+export default function CaListPage() {
+	return (
+		<ProtectedRoute>
+			<CaList />
+		</ProtectedRoute>
+	);
+}
 
 function getRowId(row: CA) {
 	return row.ambassadorId;
 }
 
-export default function CaList() {
-	const [caList, setCaList] = useState<CA[]>([]);
-	const [loading, setLoading] = useState<boolean>(true);
-
-	async function fetchCaList() {
-		try {
-			setLoading(true);
-			const list = await getCaList();
-			setCaList(list);
-		} catch (err) {
-			console.log(err);
-		} finally {
-			setLoading(false);
-		}
-	}
+function CaList() {
+	const { caList, fetchCaList, loading, error } = useCaList();
 
 	useEffect(() => {
 		fetchCaList();
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	if (error) {
+		return <Typography variant='h5'>{error}</Typography>;
+	}
+
 	return (
-		<ProtectedRoute>
+		<>
 			<Typography variant='h3' noWrap component='div'>
 				Campus Ambassadors List
 			</Typography>
@@ -50,7 +52,7 @@ export default function CaList() {
 					},
 				}}
 			/>
-		</ProtectedRoute>
+		</>
 	);
 }
 

@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
 import UserContext, { UserDatatype } from './UserContext';
-import { useLocalStorage } from 'usehooks-ts';
-import { getUserProfile } from '../../utils/api';
+import { ApiContext } from '../Api/ApiContext';
+import { useContext } from 'react';
+import jwt_decode from 'jwt-decode';
 
 interface IUserStateProps {
 	children: React.ReactNode;
 }
 
 function UserState({ children }: IUserStateProps) {
-	const [refreshToken, setRefreshToken] = useLocalStorage('refreshToken', '');
-
-	console.log('Refresh token in state', refreshToken);
+	const { accessToken } = useContext(ApiContext);
 
 	const [userLoading, setUserLoading] = useState<boolean>(true);
 	const [userError, setUserError] = useState<string>('');
@@ -22,31 +21,18 @@ function UserState({ children }: IUserStateProps) {
 		role: [],
 	});
 
-	function checkRefreshFromUrl() {
-		const currUrl = new URL(window.location.href);
-		let refreshToken: string | null =
-			currUrl.searchParams.get('refreshToken');
-		if (refreshToken) {
-			setRefreshToken(refreshToken);
-			currUrl.searchParams.delete('refreshToken');
-			window.history.replaceState({}, '', currUrl.toString());
-		}
-	}
-
-	useEffect(() => {
-		checkRefreshFromUrl();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
-
 	async function fetchUserData() {
 		try {
 			setUserLoading(true);
-			if (refreshToken) {
-				console.log(
-					'Fetchhing Access token using refresh token',
-					refreshToken
-				);
-				const userProfile = await getUserProfile();
+			if (accessToken) {
+				const userProfile = jwt_decode<IUserProfile>(accessToken);
+				interface IUserProfile {
+					user_id: string;
+					email: string;
+					name: string;
+					picture: string;
+					role: string[];
+				}
 
 				setUserData((userData) => {
 					return {
@@ -81,7 +67,7 @@ function UserState({ children }: IUserStateProps) {
 		fetchUserData();
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [refreshToken]);
+	}, [accessToken]);
 
 	function logout() {
 		setUserLoading(true);

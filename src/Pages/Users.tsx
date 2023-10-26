@@ -1,35 +1,32 @@
 import { Typography } from '@mui/material';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
-import { User, getUsersList } from '../utils/api';
+import { useEffect } from 'react';
 import ProtectedRoute from '../Components/Protected/ProtectedRoute';
+import { User, useUserList } from '../Hooks/useUserList';
 
-function getRowId(row: User) {
-	return row.email;
+export default function CaListPage() {
+	return (
+		<ProtectedRoute>
+			<CaList />
+		</ProtectedRoute>
+	);
 }
 
-export default function CaList() {
-	const [userList, setUserList] = useState<User[]>([]);
-	const [loading, setLoading] = useState<boolean>(true);
-
-	async function fetchUserList() {
-		try {
-			setLoading(true);
-			const list = await getUsersList();
-			console.log(list);
-			setUserList(list);
-		} catch (err) {
-			console.log(err);
-		} finally {
-			setLoading(false);
-		}
-	}
+function CaList() {
+	const { userList, loading, error, fetchUserList } = useUserList();
 
 	useEffect(() => {
 		fetchUserList();
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	if (error) {
+		return <Typography variant='h5'>{error}</Typography>;
+	}
+
 	return (
-		<ProtectedRoute>
+		<>
 			<Typography variant='h3' noWrap component='div'>
 				Users List
 			</Typography>
@@ -51,8 +48,11 @@ export default function CaList() {
 					},
 				}}
 			/>
-		</ProtectedRoute>
+		</>
 	);
+}
+function getRowId(row: User) {
+	return row.email;
 }
 
 const columns: GridColDef[] = [
