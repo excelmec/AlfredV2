@@ -30,21 +30,6 @@
     overflow: hidden;
 }
 
-.dash-sidebar {
-    width: 20%;
-    height: 100%;
-    min-width: 150px;
-    max-width: 250px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-.dash-sidebar .list-item-link.active {
-    background-color: #f1f1f1;
-}
-
 .dash-content {
     flex-grow: 1;
     height: 100%;

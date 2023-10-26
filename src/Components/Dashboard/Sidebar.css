@@ -1,0 +1,21 @@
+.dash-sidebar {
+	width: 20%;
+	height: 100%;
+	min-width: 150px;
+	max-width: 250px;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
+
+.dash-sidebar .list-item-link.active {
+	background-color: #f1f1f1;
+}
+
+.dash-sidebar .list-item-link.left-border {
+	border-left: 5px solid transparent; 
+}
+.dash-sidebar .list-item-link.left-border.active {
+	border-left: 5px solid #1976d2; 
+}
