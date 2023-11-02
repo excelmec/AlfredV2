@@ -31,7 +31,8 @@ function CaList() {
 
 	return (
 		<>
-			<Typography variant='h3' noWrap component='div'>
+			<br />
+			<Typography variant='h5' noWrap component='div'>
 				Campus Ambassadors List
 			</Typography>
 			<br />

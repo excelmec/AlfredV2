@@ -17,14 +17,20 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 
 import { NavLink } from 'react-router-dom';
 import { useContext, useState } from 'react';
-import UserContext from '../../Contexts/User/UserContext';
+import UserContext from '../../../Contexts/User/UserContext';
 import './Sidebar.css';
+import { Paper } from '@mui/material';
 
 export default function Sidebar() {
 	const { userData, userLoading, logout } = useContext(UserContext);
 	const [caOpen, setCaOpen] = useState(false);
 	return (
-		<>
+		<Box
+			className='dash-sidebar'
+			component={Paper}
+			elevation={1}
+			borderRadius={0}
+		>
 			<List>
 				<ListItemLink to='/' text='Home' icon={<HomeOutlinedIcon />} />
 				<ListItemLink
@@ -66,7 +72,7 @@ export default function Sidebar() {
 				userData={userData}
 				logout={logout}
 			/>
-		</>
+		</Box>
 	);
 }
 
@@ -82,13 +88,11 @@ function ListItemLink(props: ListItemLinkProps) {
 	const { icon, text, to, disablePadding = true, leftBorder = false } = props;
 
 	return (
-		<ListItem
-			disablePadding={disablePadding}
-		>
+		<ListItem disablePadding={disablePadding}>
 			<ListItemButton
 				component={NavLink}
 				to={to}
-				className={`list-item-link ${leftBorder ? 'left-border': ''}`}
+				className={`list-item-link ${leftBorder ? 'left-border' : ''}`}
 			>
 				<ListItemIcon>{icon}</ListItemIcon>
 				<ListItemText primary={text} />
