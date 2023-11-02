@@ -17,13 +17,20 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 
 import { NavLink } from 'react-router-dom';
 import { useContext, useState } from 'react';
-import UserContext from '../../Contexts/User/UserContext';
+import UserContext from '../../../Contexts/User/UserContext';
+import './Sidebar.css';
+import { Paper } from '@mui/material';
 
 export default function Sidebar() {
 	const { userData, userLoading, logout } = useContext(UserContext);
 	const [caOpen, setCaOpen] = useState(false);
 	return (
-		<>
+		<Box
+			className='dash-sidebar'
+			component={Paper}
+			elevation={1}
+			borderRadius={0}
+		>
 			<List>
 				<ListItemLink to='/' text='Home' icon={<HomeOutlinedIcon />} />
 				<ListItemLink
@@ -33,7 +40,6 @@ export default function Sidebar() {
 				/>
 
 				<ListItemButton
-
 					component={NavLink}
 					to={'/ca'}
 					className='list-item-link'
@@ -48,8 +54,8 @@ export default function Sidebar() {
 					{caOpen ? <ExpandLess /> : <ExpandMore />}
 				</ListItemButton>
 				<Collapse in={caOpen} timeout='auto' unmountOnExit>
-					<List>
-						<ListItemLink to='/ca/list' text='List' pl={2} />
+					<List disablePadding={true}>
+						<ListItemLink to='/ca/list' text='List' leftBorder />
 					</List>
 				</Collapse>
 
@@ -66,7 +72,7 @@ export default function Sidebar() {
 				userData={userData}
 				logout={logout}
 			/>
-		</>
+		</Box>
 	);
 }
 
@@ -75,23 +81,18 @@ interface ListItemLinkProps {
 	text: string;
 	to: string;
 	disablePadding?: boolean;
-	pl?: number;
+	leftBorder?: true;
 }
 
 function ListItemLink(props: ListItemLinkProps) {
-	const { icon, text, to, disablePadding = true, pl = 0 } = props;
+	const { icon, text, to, disablePadding = true, leftBorder = false } = props;
 
 	return (
-		<ListItem
-			disablePadding={disablePadding}
-			sx={{
-				pl: pl,
-			}}
-		>
+		<ListItem disablePadding={disablePadding}>
 			<ListItemButton
 				component={NavLink}
 				to={to}
-				className='list-item-link'
+				className={`list-item-link ${leftBorder ? 'left-border' : ''}`}
 			>
 				<ListItemIcon>{icon}</ListItemIcon>
 				<ListItemText primary={text} />

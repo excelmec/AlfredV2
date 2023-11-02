@@ -9,7 +9,7 @@ import {
 	Menu,
 	MenuItem,
 } from '@mui/material';
-import { UserDatatype } from '../../Contexts/User/UserContext';
+import { UserDatatype } from '../../../Contexts/User/UserContext';
 import { useState } from 'react';
 
 interface UserLoginAvatarButtonProps {
