@@ -15,6 +15,10 @@ export interface User {
 	categoryId: number;
 	category: string;
 
+	/**
+	 * Will be mapped from institutionId with extra apiCall
+	 */
+	institution: string | null;
 	// ambassador: null;
 	// referrerAmbassadorId: null;
 	// referrer: null;
@@ -45,6 +49,35 @@ export function useUserList() {
 					};
 				}>('/api/admin/users?PageNumber=1&PageSize=1000000');
 
+				const collegeInstitutions = await axiosAccPrivate.get<
+					{
+						id: number;
+						name: string;
+					}[]
+				>('/api/Institution/college/list');
+				const shcoolInstitutions = await axiosAccPrivate.get<
+					{
+						id: number;
+						name: string;
+					}[]
+				>('/api/Institution/school/list');
+
+				const institutionMap = new Map<number, string>();
+				collegeInstitutions.data.forEach((institution) => {
+					institutionMap.set(institution.id, institution.name);
+				});
+				shcoolInstitutions.data.forEach((institution) => {
+					institutionMap.set(institution.id, institution.name);
+				});
+
+				response.data.data.forEach((user) => {
+					if (user.institutionId) {
+						user.institution =
+							institutionMap.get(user.institutionId) ?? null;
+					}
+				});
+
+				console.log(response.data.data);
 				setUserList(response.data?.data);
 			} catch (error) {
 				setError(getErrMsg(error));
