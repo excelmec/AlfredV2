@@ -10,13 +10,15 @@ import UserLoginAvatarButton from '../Login/UserLoginAvatarButton';
 
 import ContactsOutlinedIcon from '@mui/icons-material/ContactsOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
+import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
+import EventIcon from '@mui/icons-material/Event';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 
-import { NavLink } from 'react-router-dom';
-import { useContext, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
 import UserContext from '../../../Contexts/User/UserContext';
 import './Sidebar.css';
 import { Paper } from '@mui/material';
@@ -24,6 +26,22 @@ import { Paper } from '@mui/material';
 export default function Sidebar() {
 	const { userData, userLoading, logout } = useContext(UserContext);
 	const [caOpen, setCaOpen] = useState(false);
+	const [eventsOpen, setEventsOpen] = useState(false);
+	const location = useLocation();
+	const [activeLink, setActiveLink] = useState<'none' | 'ca' | 'event'>(
+		'none'
+	);
+
+	useEffect(() => {
+		if (location.pathname.startsWith('/ca')) {
+			setActiveLink('ca');
+		} else if (location.pathname.startsWith('/event')) {
+			setActiveLink('event');
+		} else {
+			setActiveLink('none');
+		}
+	}, [location]);
+
 	return (
 		<Box
 			className='dash-sidebar'
@@ -39,10 +57,11 @@ export default function Sidebar() {
 					icon={<InfoOutlinedIcon />}
 				/>
 
+				{/* CA */}
 				<ListItemButton
-					component={NavLink}
-					to={'/ca'}
-					className='list-item-link'
+					className={`list-item-link ${
+						activeLink === 'ca' ? 'active' : ''
+					}`}
 					onClick={() => {
 						setCaOpen(!caOpen);
 					}}
@@ -55,7 +74,38 @@ export default function Sidebar() {
 				</ListItemButton>
 				<Collapse in={caOpen} timeout='auto' unmountOnExit>
 					<List disablePadding={true}>
-						<ListItemLink to='/ca/list' text='List' leftBorder />
+						<ListItemLink
+							to='/ca/list'
+							text='List'
+							leftBorder
+							icon={<FormatListNumberedIcon />}
+						/>
+					</List>
+				</Collapse>
+
+				{/* Events */}
+				<ListItemButton
+					className={`list-item-link ${
+						activeLink === 'event' ? 'active' : ''
+					}`}
+					onClick={() => {
+						setEventsOpen(!eventsOpen);
+					}}
+				>
+					<ListItemIcon>
+						<EventIcon />
+					</ListItemIcon>
+					<ListItemText primary='Events' />
+					{eventsOpen ? <ExpandLess /> : <ExpandMore />}
+				</ListItemButton>
+				<Collapse in={eventsOpen} timeout='auto' unmountOnExit>
+					<List disablePadding={true}>
+						<ListItemLink
+							to='/event/list'
+							text='List Events'
+							leftBorder
+							icon={<FormatListNumberedIcon />}
+						/>
 					</List>
 				</Collapse>
 

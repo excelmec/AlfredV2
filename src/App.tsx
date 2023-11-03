@@ -8,8 +8,9 @@ import { ApiState } from './Contexts/Api/ApiState';
 import Home from './Pages/Home';
 import Contact from './Pages/Contact';
 import NotFound from './Pages/NotFound';
-import CaList from './Pages/CaList';
+import CaListPage from './Pages/CaList';
 import Users from './Pages/Users';
+import EventListPage from './Pages/EventList';
 
 function App() {
 	return (
@@ -27,7 +28,18 @@ function App() {
 									path='/ca'
 									element={<Navigate to='/ca/list' />}
 								/>
-								<Route path='/ca/list' element={<CaList />} />
+								<Route
+									path='/ca/list'
+									element={<CaListPage />}
+								/>
+								<Route
+									path='/event'
+									element={<Navigate to='/event/list' />}
+								/>
+								<Route
+									path='/event/list'
+									element={<EventListPage />}
+								/>
 								<Route path='*' element={<NotFound />} />
 							</Route>
 						</Routes>
