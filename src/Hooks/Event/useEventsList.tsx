@@ -1,16 +1,13 @@
 import { useContext, useState } from 'react';
-import { ApiContext } from '../../Contexts/Api/ApiContext';
-import { getErrMsg } from '../errorParser';
+import { ApiContext } from 'Contexts/Api/ApiContext';
+import { getErrMsg } from 'Hooks/errorParser';
 import { IEventListItem } from './eventTypes';
-import {
-	GridActionsCellItem,
-	GridColDef,
-	GridRowParams,
-} from '@mui/x-data-grid';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
+import { TypeSafeColDef } from 'Hooks/gridColumType';
 
 export function useEventList() {
 	const [eventList, setEventList] = useState<IEventListItem[]>([]);
@@ -49,7 +46,6 @@ export function useEventList() {
 		}
 	}
 
-	type TypeSafeColDef<T> = GridColDef & { field: keyof T };
 	const columns: TypeSafeColDef<
 		IEventListItem & {
 			actions: null;

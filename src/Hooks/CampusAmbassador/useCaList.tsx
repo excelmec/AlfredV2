@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
-import { ApiContext } from '../Contexts/Api/ApiContext';
-import { getErrMsg } from './errorParser';
+import { ApiContext } from 'Contexts/Api/ApiContext';
+import { getErrMsg } from 'Hooks/errorParser';
 
 export interface CA {
 	ambassadorId: number;

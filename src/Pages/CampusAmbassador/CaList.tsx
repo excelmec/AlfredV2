@@ -1,8 +1,8 @@
 import { Typography } from '@mui/material';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { useEffect } from 'react';
-import ProtectedRoute from '../Components/Protected/ProtectedRoute';
-import { CA, useCaList } from '../Hooks/useCaList';
+import ProtectedRoute from 'Components/Protected/ProtectedRoute';
+import { CA, useCaList } from 'Hooks/CampusAmbassador/useCaList';
 
 export default function CaListPage() {
 	return (

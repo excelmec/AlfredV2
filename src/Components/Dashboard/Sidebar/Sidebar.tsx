@@ -8,6 +8,7 @@ import Collapse from '@mui/material/Collapse';
 
 import UserLoginAvatarButton from '../Login/UserLoginAvatarButton';
 
+import GroupIcon from '@mui/icons-material/Group';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import ContactsOutlinedIcon from '@mui/icons-material/ContactsOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
@@ -77,9 +78,15 @@ export default function Sidebar() {
 					<List disablePadding={true}>
 						<ListItemLink
 							to='/ca/list'
-							text='List'
+							text='CA List'
 							leftBorder
 							icon={<FormatListNumberedIcon />}
+						/>
+						<ListItemLink
+							to='/ca/team'
+							text='Team List'
+							leftBorder
+							icon={<GroupIcon />}
 						/>
 					</List>
 				</Collapse>

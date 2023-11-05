@@ -1,18 +1,19 @@
 import { CssBaseline } from '@mui/material';
-import './App.css';
-import DashLayout from './Layout/DashLayout';
+import 'App.css';
+import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import UserState from './Contexts/User/UserState';
-import { ApiState } from './Contexts/Api/ApiState';
+import UserState from 'Contexts/User/UserState';
+import { ApiState } from 'Contexts/Api/ApiState';
 
-import Home from './Pages/Home';
-import Contact from './Pages/Contact';
-import NotFound from './Pages/NotFound';
-import CaListPage from './Pages/CaList';
-import Users from './Pages/Users';
-import EventListPage from './Pages/EventList';
-import EventHeadsPage from './Pages/EventHeads';
-import EventDescPage from './Pages/EventDesc';
+import Home from 'Pages/Home';
+import Contact from 'Pages/Contact';
+import NotFound from 'Pages/NotFound';
+import CaListPage from 'Pages/CampusAmbassador/CaList';
+import Users from 'Pages/Users';
+import EventListPage from 'Pages/EventList';
+import EventHeadsPage from 'Pages/EventHeads';
+import EventDescPage from 'Pages/EventDesc';
+import CaTeamListPage from 'Pages/CampusAmbassador/CaTeamList';
 
 function App() {
 	return (
@@ -33,6 +34,10 @@ function App() {
 								<Route
 									path='/ca/list'
 									element={<CaListPage />}
+								/>
+								<Route
+									path='/ca/team'
+									element={<CaTeamListPage />}
 								/>
 								<Route
 									path='/events'
