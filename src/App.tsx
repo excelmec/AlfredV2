@@ -11,6 +11,8 @@ import NotFound from './Pages/NotFound';
 import CaListPage from './Pages/CaList';
 import Users from './Pages/Users';
 import EventListPage from './Pages/EventList';
+import EventHeadsPage from './Pages/EventHeads';
+import EventDescPage from './Pages/EventDesc';
 
 function App() {
 	return (
@@ -33,12 +35,16 @@ function App() {
 									element={<CaListPage />}
 								/>
 								<Route
-									path='/event'
-									element={<Navigate to='/event/list' />}
+									path='/events'
+									element={<EventListPage />}
 								/>
 								<Route
-									path='/event/list'
-									element={<EventListPage />}
+									path='/events/:id'
+									element={<EventDescPage />}
+								/>
+								<Route
+									path='/events/heads'
+									element={<EventHeadsPage />}
 								/>
 								<Route path='*' element={<NotFound />} />
 							</Route>

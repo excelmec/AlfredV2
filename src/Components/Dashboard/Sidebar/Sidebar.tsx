@@ -8,6 +8,7 @@ import Collapse from '@mui/material/Collapse';
 
 import UserLoginAvatarButton from '../Login/UserLoginAvatarButton';
 
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import ContactsOutlinedIcon from '@mui/icons-material/ContactsOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
@@ -28,15 +29,15 @@ export default function Sidebar() {
 	const [caOpen, setCaOpen] = useState(false);
 	const [eventsOpen, setEventsOpen] = useState(false);
 	const location = useLocation();
-	const [activeLink, setActiveLink] = useState<'none' | 'ca' | 'event'>(
+	const [activeLink, setActiveLink] = useState<'none' | 'ca' | 'events'>(
 		'none'
 	);
 
 	useEffect(() => {
 		if (location.pathname.startsWith('/ca')) {
 			setActiveLink('ca');
-		} else if (location.pathname.startsWith('/event')) {
-			setActiveLink('event');
+		} else if (location.pathname.startsWith('/events')) {
+			setActiveLink('events');
 		} else {
 			setActiveLink('none');
 		}
@@ -86,7 +87,7 @@ export default function Sidebar() {
 				{/* Events */}
 				<ListItemButton
 					className={`list-item-link ${
-						activeLink === 'event' ? 'active' : ''
+						activeLink === 'events' ? 'active' : ''
 					}`}
 					onClick={() => {
 						setEventsOpen(!eventsOpen);
@@ -101,10 +102,16 @@ export default function Sidebar() {
 				<Collapse in={eventsOpen} timeout='auto' unmountOnExit>
 					<List disablePadding={true}>
 						<ListItemLink
-							to='/event/list'
+							to='/events'
 							text='List Events'
 							leftBorder
 							icon={<FormatListNumberedIcon />}
+						/>
+						<ListItemLink
+							to='/events/heads'
+							text='Event Heads'
+							leftBorder
+							icon={<SupportAgentIcon />}
 						/>
 					</List>
 				</Collapse>
@@ -142,6 +149,7 @@ function ListItemLink(props: ListItemLinkProps) {
 			<ListItemButton
 				component={NavLink}
 				to={to}
+				end
 				className={`list-item-link ${leftBorder ? 'left-border' : ''}`}
 			>
 				<ListItemIcon>{icon}</ListItemIcon>
