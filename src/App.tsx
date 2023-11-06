@@ -14,6 +14,7 @@ import EventListPage from 'Pages/EventList';
 import EventHeadsPage from 'Pages/EventHeads';
 import EventDescPage from 'Pages/EventDesc';
 import CaTeamListPage from 'Pages/CampusAmbassador/CaTeamList';
+import CaTeamView from 'Pages/CampusAmbassador/CaTeamView';
 
 function App() {
 	return (
@@ -38,6 +39,10 @@ function App() {
 								<Route
 									path='/ca/team'
 									element={<CaTeamListPage />}
+								/>
+								<Route
+									path='/ca/team/:teamId/view'
+									element={<CaTeamView />}
 								/>
 								<Route
 									path='/events'

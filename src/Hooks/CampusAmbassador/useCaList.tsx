@@ -2,19 +2,22 @@ import { useContext, useState } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 
-export interface CA {
+export interface CAEvents {
 	ambassadorId: number;
 	caTeamId: number | null;
-	email: string;
-	image: string;
-	name: string;
 	referralPoints: number;
 	bonusPoints: number;
 	totalPoints: number;
 }
 
+export interface CaListRes extends CAEvents {
+	email: string;
+	image: string;
+	name: string;
+}
+
 export function useCaList() {
-	const [caList, setCaList] = useState<CA[]>([]);
+	const [caList, setCaList] = useState<CaListRes[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string>('');
 
@@ -23,7 +26,7 @@ export function useCaList() {
 		try {
 			setLoading(true);
 			setError('');
-			const response = await axiosEventsPrivate.get<CA[]>(
+			const response = await axiosEventsPrivate.get<CaListRes[]>(
 				'/api/ambassadors/list'
 			);
 
