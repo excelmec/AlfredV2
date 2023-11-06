@@ -107,7 +107,7 @@ export function useCaTeamList() {
 		}
 	}
 
-	const columns: TypeSafeColDef<CaTeam & { actions: never }>[] = [
+	const columns: TypeSafeColDef<CaTeam>[] = [
 		{
 			field: 'id',
 			headerName: 'Team ID',

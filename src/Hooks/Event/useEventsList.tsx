@@ -46,11 +46,7 @@ export function useEventList() {
 		}
 	}
 
-	const columns: TypeSafeColDef<
-		IEventListItem & {
-			actions: null;
-		}
-	>[] = [
+	const columns: TypeSafeColDef<IEventListItem>[] = [
 		{
 			field: 'id',
 			headerName: 'ID',

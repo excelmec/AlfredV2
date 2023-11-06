@@ -2,7 +2,8 @@ import { Typography } from '@mui/material';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { useEffect } from 'react';
 import ProtectedRoute from 'Components/Protected/ProtectedRoute';
-import { CAEvents, useCaList } from 'Hooks/CampusAmbassador/useCaList';
+import { CaListRes, useCaList } from 'Hooks/CampusAmbassador/useCaList';
+import { TypeSafeColDef } from 'Hooks/gridColumType';
 
 export default function CaListPage() {
 	return (
@@ -12,7 +13,7 @@ export default function CaListPage() {
 	);
 }
 
-function getRowId(row: CAEvents) {
+function getRowId(row: CaListRes) {
 	return row.ambassadorId;
 }
 
@@ -57,8 +58,20 @@ function CaList() {
 	);
 }
 
-const columns: GridColDef[] = [
-	{ field: 'name', headerName: 'Name', type: 'string', width: 150 },
+const columns: TypeSafeColDef<CaListRes>[] = [
+	{
+		field: 'ambassadorId',
+		headerName: 'Ambassador ID',
+		type: 'string',
+		width: 120,
+	},
+	{
+		field: 'name',
+		headerName: 'Name',
+		type: 'string',
+		minWidth: 150,
+		flex: 0.7,
+	},
 	{
 		field: 'referralPoints',
 		headerName: 'Referal Pts',
@@ -78,5 +91,11 @@ const columns: GridColDef[] = [
 		width: 100,
 	},
 	{ field: 'caTeamId', headerName: 'Team ID', type: 'number', width: 150 },
-	{ field: 'email', headerName: 'Email ID', type: 'string', width: 250 },
+	{
+		field: 'email',
+		headerName: 'Email ID',
+		type: 'string',
+		minWidth: 250,
+		flex: 0.7,
+	},
 ];
