@@ -7,14 +7,12 @@ import {
 	Table,
 	TableHead,
 	TableRow,
-	TableCell,
 	TableBody,
 	IconButton,
 	Button,
 	Autocomplete,
 	TextField,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SaveIcon from '@mui/icons-material/Save';
@@ -26,6 +24,7 @@ import { useCaTeam } from 'Hooks/CampusAmbassador/useCaTeam';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { maxCaTeamSize } from 'Hooks/CampusAmbassador/constants';
+import { StyledTableCell } from './TableCell';
 
 export default function ManageTeam() {
 	const { teamId } = useParams();
@@ -343,8 +342,3 @@ export default function ManageTeam() {
 		</Box>
 	);
 }
-
-const StyledTableCell = styled(TableCell)(() => ({
-	border: '1px solid rgba(224, 224, 224, 1) ',
-	textAlign: 'center',
-}));

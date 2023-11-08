@@ -1,9 +1,16 @@
 import { Typography } from '@mui/material';
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import {
+	DataGrid,
+	GridActionsCellItem,
+	GridRowParams,
+	GridToolbar,
+} from '@mui/x-data-grid';
 import { useEffect } from 'react';
 import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 import { CaListRes, useCaList } from 'Hooks/CampusAmbassador/useCaList';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useNavigate } from 'react-router-dom';
 
 export default function CaListPage() {
 	return (
@@ -19,6 +26,69 @@ function getRowId(row: CaListRes) {
 
 function CaList() {
 	const { caList, fetchCaList, loading, error } = useCaList();
+	const navigate = useNavigate();
+
+	const columns: TypeSafeColDef<CaListRes>[] = [
+		{
+			field: 'ambassadorId',
+			headerName: 'Ambassador ID',
+			type: 'string',
+			width: 120,
+		},
+		{
+			field: 'name',
+			headerName: 'Name',
+			type: 'string',
+			minWidth: 150,
+			flex: 0.7,
+		},
+		{
+			field: 'referralPoints',
+			headerName: 'Referal Pts',
+			type: 'number',
+			width: 100,
+		},
+		{
+			field: 'bonusPoints',
+			headerName: 'Bonus Pts',
+			type: 'number',
+			width: 100,
+		},
+		{
+			field: 'totalPoints',
+			headerName: 'Total Pts',
+			type: 'number',
+			width: 100,
+		},
+		{
+			field: 'caTeamId',
+			headerName: 'Team ID',
+			type: 'number',
+			width: 150,
+		},
+		{
+			field: 'email',
+			headerName: 'Email ID',
+			type: 'string',
+			minWidth: 250,
+			flex: 0.7,
+		},
+		{
+			field: 'actions',
+			headerName: 'Actions',
+			type: 'actions',
+			width: 150,
+			getActions: (params:GridRowParams<CaListRes>) => [
+				<GridActionsCellItem
+					icon={<VisibilityIcon color='primary' />}
+					label='View'
+					onClick={() => {
+						navigate(`/ca/${params.row.ambassadorId}`);
+					}}
+				/>,
+			],
+		},
+	];
 
 	useEffect(() => {
 		fetchCaList();
@@ -57,45 +127,3 @@ function CaList() {
 		</>
 	);
 }
-
-const columns: TypeSafeColDef<CaListRes>[] = [
-	{
-		field: 'ambassadorId',
-		headerName: 'Ambassador ID',
-		type: 'string',
-		width: 120,
-	},
-	{
-		field: 'name',
-		headerName: 'Name',
-		type: 'string',
-		minWidth: 150,
-		flex: 0.7,
-	},
-	{
-		field: 'referralPoints',
-		headerName: 'Referal Pts',
-		type: 'number',
-		width: 100,
-	},
-	{
-		field: 'bonusPoints',
-		headerName: 'Bonus Pts',
-		type: 'number',
-		width: 100,
-	},
-	{
-		field: 'totalPoints',
-		headerName: 'Total Pts',
-		type: 'number',
-		width: 100,
-	},
-	{ field: 'caTeamId', headerName: 'Team ID', type: 'number', width: 150 },
-	{
-		field: 'email',
-		headerName: 'Email ID',
-		type: 'string',
-		minWidth: 250,
-		flex: 0.7,
-	},
-];
