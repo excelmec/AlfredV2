@@ -1,0 +1,11 @@
+.ca-team-data-container {
+	width: 90%;
+	margin-bottom: 20px;
+	flex-grow: 0.5;
+	overflow-y: auto;
+}
+
+.ca-team-data-grid {
+	width: 100%;
+	padding: 20px;
+}

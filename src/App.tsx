@@ -1,16 +1,21 @@
 import { CssBaseline } from '@mui/material';
-import './App.css';
-import DashLayout from './Layout/DashLayout';
+import 'App.css';
+import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import UserState from './Contexts/User/UserState';
-import { ApiState } from './Contexts/Api/ApiState';
+import UserState from 'Contexts/User/UserState';
+import { ApiState } from 'Contexts/Api/ApiState';
 
-import Home from './Pages/Home';
-import Contact from './Pages/Contact';
-import NotFound from './Pages/NotFound';
-import CaListPage from './Pages/CaList';
-import Users from './Pages/Users';
-import EventListPage from './Pages/EventList';
+import Home from 'Pages/Home';
+import Contact from 'Pages/Contact';
+import NotFound from 'Pages/NotFound';
+import CaListPage from 'Pages/CampusAmbassador/CaList';
+import Users from 'Pages/Users';
+import EventListPage from 'Pages/EventList';
+import EventHeadsPage from 'Pages/EventHeads';
+import EventDescPage from 'Pages/EventDesc';
+import CaTeamListPage from 'Pages/CampusAmbassador/CaTeamList';
+import CaTeamView from 'Pages/CampusAmbassador/CaTeamView';
+import CaViewPage from 'Pages/CampusAmbassador/CaView';
 
 function App() {
 	return (
@@ -29,16 +34,32 @@ function App() {
 									element={<Navigate to='/ca/list' />}
 								/>
 								<Route
+									path='/ca/:ambassadorId'
+									element={<CaViewPage />}
+								/>
+								<Route
 									path='/ca/list'
 									element={<CaListPage />}
 								/>
 								<Route
-									path='/event'
-									element={<Navigate to='/event/list' />}
+									path='/ca/team'
+									element={<CaTeamListPage />}
 								/>
 								<Route
-									path='/event/list'
+									path='/ca/team/:teamId/view'
+									element={<CaTeamView />}
+								/>
+								<Route
+									path='/events'
 									element={<EventListPage />}
+								/>
+								<Route
+									path='/events/:id'
+									element={<EventDescPage />}
+								/>
+								<Route
+									path='/events/heads'
+									element={<EventHeadsPage />}
 								/>
 								<Route path='*' element={<NotFound />} />
 							</Route>
