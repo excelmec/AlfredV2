@@ -24,6 +24,9 @@ export function useCaTeam() {
 	const [savingAmbassador, setSavingAmbassador] = useState<boolean>(false);
 	const [savingTeamName, setSavingTeamName] = useState<boolean>(false);
 
+	const [removingAmbassador, setRemovingAmbassador] =
+		useState<boolean>(false);
+
 	const [error, setError] = useState<string>('');
 
 	const { axiosEventsPrivate, axiosAccPrivate } = useContext(ApiContext);
@@ -96,16 +99,36 @@ export function useCaTeam() {
 		}
 	}
 
+	async function removeAmbassador(teamId: number, ambassadorId: number) {
+		try {
+			setRemovingAmbassador(true);
+
+			await axiosEventsPrivate.delete<any, AxiosResponse<Boolean>>(
+				`/api/cateams/remove/${ambassadorId}`
+			);
+
+			setRemovingAmbassador(false);
+			/**
+			 * Reload Page
+			 */
+			fetchCaTeam(teamId);
+		} catch (error) {
+			setError(getErrMsg(error));
+		} finally {
+			setRemovingAmbassador(false);
+		}
+	}
+
 	async function updateTeamName(teamId: number, teamName: string) {
 		try {
 			setSavingTeamName(true);
-			await axiosEventsPrivate.put<
-				any,
-				AxiosResponse<CaTeamEvents>
-			>(`/api/cateams/edit`, {
-				id: teamId,
-				name: teamName?.trim(),
-			});
+			await axiosEventsPrivate.put<any, AxiosResponse<CaTeamEvents>>(
+				`/api/cateams/edit`,
+				{
+					id: teamId,
+					name: teamName?.trim(),
+				}
+			);
 
 			setSavingTeamName(false);
 			/**
@@ -125,9 +148,14 @@ export function useCaTeam() {
 		loading,
 		error,
 		fetchCaTeam,
+
 		addAmbassador,
 		savingAmbassador,
+
 		updateTeamName,
 		savingTeamName,
+
+		removeAmbassador,
+		removingAmbassador,
 	} as const;
 }
