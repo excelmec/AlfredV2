@@ -77,7 +77,7 @@ export function useCa() {
 		try {
 			setSavingNewPoint(true);
 
-			await axiosEventsPrivate.post<CaPointLog>(``, {
+			await axiosEventsPrivate.post<CaPointLog>(`/api/pointlogs/add`, {
 				ambassadorId: point.ambassadorId,
 				pointAwarded: point.pointAwarded,
 				dateTime: point.dateTime,

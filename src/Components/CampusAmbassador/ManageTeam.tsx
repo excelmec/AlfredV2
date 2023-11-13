@@ -43,6 +43,9 @@ export default function ManageTeam() {
 		savingAmbassador,
 		updateTeamName,
 		savingTeamName,
+
+		removeAmbassador,
+		removingAmbassador,
 	} = useCaTeam();
 
 	const [newTeamName, setNewTeamName] = useState<string>(caTeam.name);
@@ -122,8 +125,18 @@ export default function ManageTeam() {
 										aria-label='delete'
 										color='error'
 										onClick={() => {
-											alert('Coming Soon');
+											if (
+												window.confirm(
+													`Are you sure you want to remove "${row.name}" from the Team: "${caTeam.name}"?`
+												)
+											) {
+												removeAmbassador(
+													Number(teamId),
+													row.ambassadorId
+												);
+											}
 										}}
+										disabled={removingAmbassador}
 									>
 										<RemoveCircleIcon />
 									</IconButton>

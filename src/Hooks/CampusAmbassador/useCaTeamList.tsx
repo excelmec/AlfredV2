@@ -122,14 +122,14 @@ export function useCaTeamList() {
 		},
 		{
 			field: 'totalBonusPoints',
-			headerName: 'Total Bonus Points',
+			headerName: 'Bonus Points',
 			type: 'number',
 			align: 'center',
 			headerAlign: 'center',
 		},
 		{
 			field: 'totalRefPoints',
-			headerName: 'Total Referal Points',
+			headerName: 'Referal Points',
 			type: 'number',
 			align: 'center',
 			headerAlign: 'center',
