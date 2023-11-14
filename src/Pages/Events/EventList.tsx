@@ -1,23 +1,14 @@
 import { Typography } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useEffect } from 'react';
-import ProtectedRoute from '../Components/Protected/ProtectedRoute';
-import { useEventList } from '../Hooks/Event/useEventsList';
-import { IEventListItem } from '../Hooks/Event/eventTypes';
-
-export default function EventListPage() {
-	return (
-		<ProtectedRoute>
-			<EventList />
-		</ProtectedRoute>
-	);
-}
+import { useEventList } from '../../Hooks/Event/useEventsList';
+import { IEventListItem } from '../../Hooks/Event/eventTypes';
 
 function getRowId(row: IEventListItem) {
 	return row.id;
 }
 
-function EventList() {
+export default function EventListPage() {
 	const { eventList, fetchEventList, loading, error, columns } = useEventList();
 
 	useEffect(() => {

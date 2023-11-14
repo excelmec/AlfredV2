@@ -1,19 +1,10 @@
 import { Box, Typography } from '@mui/material';
 import CaDataView from 'Components/CampusAmbassador/CaData';
-import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 import { useCa } from 'Hooks/CampusAmbassador/useCa';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function CaViewPage() {
-	return (
-		<ProtectedRoute>
-			<CaView />
-		</ProtectedRoute>
-	);
-}
-
-function CaView() {
 	const { ambassadorId } = useParams();
 	const {
 		ca,

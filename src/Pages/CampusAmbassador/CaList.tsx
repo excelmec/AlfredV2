@@ -6,25 +6,17 @@ import {
 	GridToolbar,
 } from '@mui/x-data-grid';
 import { useEffect } from 'react';
-import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 import { CaListRes, useCaList } from 'Hooks/CampusAmbassador/useCaList';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 
-export default function CaListPage() {
-	return (
-		<ProtectedRoute>
-			<CaList />
-		</ProtectedRoute>
-	);
-}
 
 function getRowId(row: CaListRes) {
 	return row.ambassadorId;
 }
 
-function CaList() {
+export default function CaListPage() {
 	const { caList, fetchCaList, loading, error } = useCaList();
 	const navigate = useNavigate();
 
