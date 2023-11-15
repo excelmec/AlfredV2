@@ -7,12 +7,14 @@ export type UserContextType = {
 	logout: () => void;
 };
 
+export type UserRoles = 'User' | 'Admin' | 'CaVolunteer' | 'Core';
+
 export type UserDatatype = {
 	loggedIn: boolean;
 	name: string;
 	email: string;
 	profilePictureUrl: string;
-	role: string[];
+	roles: UserRoles[];
 };
 
 const UserContext = createContext<UserContextType>({
@@ -21,7 +23,7 @@ const UserContext = createContext<UserContextType>({
 		name: '',
 		email: '',
 		profilePictureUrl: '',
-		role: [],
+		roles: [],
 	},
 	userLoading: true,
 	userError: '',

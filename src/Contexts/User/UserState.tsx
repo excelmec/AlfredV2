@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import UserContext, { UserDatatype } from './UserContext';
+import UserContext, { UserDatatype, UserRoles } from './UserContext';
 import { ApiContext } from '../Api/ApiContext';
 import { useContext } from 'react';
 import jwt_decode from 'jwt-decode';
@@ -18,7 +18,7 @@ function UserState({ children }: IUserStateProps) {
 		name: '',
 		email: '',
 		profilePictureUrl: '',
-		role: [],
+		roles: [],
 	});
 
 	async function fetchUserData() {
@@ -31,17 +31,25 @@ function UserState({ children }: IUserStateProps) {
 					email: string;
 					name: string;
 					picture: string;
-					role: string[];
+					role: string | UserRoles[];
+				}
+
+				let roles: UserRoles[] = [];
+				if(typeof userProfile.role === 'string') {
+					userProfile.role?.split(',').forEach((role) => {
+						roles.push(role as UserRoles);
+					});
+				} else {
+					roles = userProfile.role as UserRoles[];
 				}
 
 				setUserData((userData) => {
 					return {
-						...userData,
 						email: userProfile.email,
 						name: userProfile.name,
 						profilePictureUrl: userProfile.picture,
 						loggedIn: true,
-						role: userProfile.role,
+						roles: roles,
 					};
 				});
 			} else {
@@ -51,7 +59,7 @@ function UserState({ children }: IUserStateProps) {
 						name: '',
 						email: '',
 						profilePictureUrl: '',
-						role: [],
+						roles: [],
 					};
 				});
 			}
@@ -76,7 +84,7 @@ function UserState({ children }: IUserStateProps) {
 			name: '',
 			email: '',
 			profilePictureUrl: '',
-			role: [],
+			roles: [],
 		});
 		setUserError('');
 		localStorage.removeItem('accessToken');

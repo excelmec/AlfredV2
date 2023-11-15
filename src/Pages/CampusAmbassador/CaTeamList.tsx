@@ -15,26 +15,17 @@ import {
 	GridToolbar,
 } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 import { CaTeam, useCaTeamList } from 'Hooks/CampusAmbassador/useCaTeamList';
 import { useNavigate } from 'react-router-dom';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
-export default function CaTeamListPage() {
-	return (
-		<ProtectedRoute>
-			<CaTeamList />
-		</ProtectedRoute>
-	);
-}
-
 function getRowId(row: CaTeam) {
 	return row.id;
 }
 
-function CaTeamList() {
+export default function CaTeamListPage() {
 	const {
 		caTeamList,
 		fetchCaTeamList,

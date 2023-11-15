@@ -6,18 +6,9 @@ import {
 	GridToolbar,
 } from '@mui/x-data-grid';
 import { useEffect } from 'react';
-import ProtectedRoute from '../Components/Protected/ProtectedRoute';
 import { User, useUserList } from '../Hooks/useUserList';
 
-export default function CaListPage() {
-	return (
-		<ProtectedRoute>
-			<CaList />
-		</ProtectedRoute>
-	);
-}
-
-function CaList() {
+export default function UserListPage() {
 	const { userList, loading, error, fetchUserList } = useUserList();
 
 	useEffect(() => {

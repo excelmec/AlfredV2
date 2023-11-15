@@ -9,13 +9,14 @@ import Home from 'Pages/Home';
 import Contact from 'Pages/Contact';
 import NotFound from 'Pages/NotFound';
 import CaListPage from 'Pages/CampusAmbassador/CaList';
-import Users from 'Pages/Users';
-import EventListPage from 'Pages/EventList';
-import EventHeadsPage from 'Pages/EventHeads';
-import EventDescPage from 'Pages/EventDesc';
+import UserListPage from 'Pages/Users';
+import EventListPage from 'Pages/Events/EventList';
+import EventHeadsPage from 'Pages/Events/EventHeads';
+import EventDescPage from 'Pages/Events/EventDesc';
 import CaTeamListPage from 'Pages/CampusAmbassador/CaTeamList';
 import CaTeamView from 'Pages/CampusAmbassador/CaTeamView';
 import CaViewPage from 'Pages/CampusAmbassador/CaView';
+import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 
 function App() {
 	return (
@@ -27,39 +28,112 @@ function App() {
 						<Routes>
 							<Route path='/' element={<DashLayout />}>
 								<Route path='/' element={<Home />} />
-								<Route path='/users' element={<Users />} />
-								<Route path='/contact' element={<Contact />} />
+								<Route
+									path='/users'
+									element={
+										<ProtectedRoute
+											allowedRoles={[
+												'Admin',
+												'CaVolunteer',
+											]}
+										>
+											<UserListPage />
+										</ProtectedRoute>
+									}
+								/>
+								<Route
+									path='/contact'
+									element={
+										<ProtectedRoute>
+											<Contact />
+										</ProtectedRoute>
+									}
+								/>
 								<Route
 									path='/ca'
 									element={<Navigate to='/ca/list' />}
 								/>
 								<Route
 									path='/ca/:ambassadorId'
-									element={<CaViewPage />}
+									element={
+										<ProtectedRoute
+											allowedRoles={[
+												'Admin',
+												'CaVolunteer',
+											]}
+										>
+											<CaViewPage />
+										</ProtectedRoute>
+									}
 								/>
 								<Route
 									path='/ca/list'
-									element={<CaListPage />}
+									element={
+										<ProtectedRoute
+											allowedRoles={[
+												'Admin',
+												'CaVolunteer',
+											]}
+										>
+											<CaListPage />
+										</ProtectedRoute>
+									}
 								/>
 								<Route
 									path='/ca/team'
-									element={<CaTeamListPage />}
+									element={
+										<ProtectedRoute
+											allowedRoles={[
+												'Admin',
+												'CaVolunteer',
+											]}
+										>
+											<CaTeamListPage />
+										</ProtectedRoute>
+									}
 								/>
 								<Route
 									path='/ca/team/:teamId/view'
-									element={<CaTeamView />}
+									element={
+										<ProtectedRoute
+											allowedRoles={[
+												'Admin',
+												'CaVolunteer',
+											]}
+										>
+											<CaTeamView />
+										</ProtectedRoute>
+									}
 								/>
 								<Route
 									path='/events'
-									element={<EventListPage />}
+									element={
+										<ProtectedRoute
+											allowedRoles={['Admin']}
+										>
+											<EventListPage />
+										</ProtectedRoute>
+									}
 								/>
 								<Route
 									path='/events/:id'
-									element={<EventDescPage />}
+									element={
+										<ProtectedRoute
+											allowedRoles={['Admin']}
+										>
+											<EventDescPage />
+										</ProtectedRoute>
+									}
 								/>
 								<Route
 									path='/events/heads'
-									element={<EventHeadsPage />}
+									element={
+										<ProtectedRoute
+											allowedRoles={['Admin']}
+										>
+											<EventHeadsPage />
+										</ProtectedRoute>
+									}
 								/>
 								<Route path='*' element={<NotFound />} />
 							</Route>
