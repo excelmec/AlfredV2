@@ -1,0 +1,12 @@
+.event-edit-container {
+	width: 90%;
+	margin-bottom: 20px;
+	flex-grow: 1;
+	overflow-y: auto;
+    
+}
+
+.event-edit-grid {
+	width: 100%;
+	padding: 20px;
+}

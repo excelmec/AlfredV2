@@ -88,7 +88,9 @@ export default function EventData({ event }: { event: IEvent }) {
 				</Grid>
 				<Grid item xs={6}>
 					<Typography>
-						{event?.day ? event?.day : 'Not Specified'}
+						{event?.day !== undefined && event?.day !== null
+							? event?.day
+							: 'Not Specified'}
 					</Typography>
 				</Grid>
 
@@ -141,7 +143,7 @@ export default function EventData({ event }: { event: IEvent }) {
 				</Grid>
 				<Grid item xs={6}>
 					<Typography>
-						{event?.registrationEndDate.toLocaleString([], {
+						{event?.registrationEndDate?.toLocaleString([], {
 							year: '2-digit',
 							month: 'numeric',
 							day: 'numeric',

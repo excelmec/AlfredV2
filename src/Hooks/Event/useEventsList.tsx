@@ -138,13 +138,16 @@ export function useEventList() {
 					icon={<VisibilityIcon color='primary' />}
 					label='View'
 					onClick={() => {
-						navigate(`/events/${params.row.id}`);
+						navigate(`/events/view/${params.row.id}`);
 					}}
 				/>,
 				<GridActionsCellItem
 					icon={<EditIcon />}
 					label='Edit'
 					color='secondary'
+					onClick={() => {
+						navigate(`/events/edit/${params.row.id}`);
+					}}
 				/>,
 				<GridActionsCellItem
 					icon={<DeleteIcon color='error' />}
