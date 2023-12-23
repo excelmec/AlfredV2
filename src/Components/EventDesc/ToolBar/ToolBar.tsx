@@ -6,7 +6,7 @@ import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import './ToolBar.css';
 import { useNavigate } from 'react-router-dom';
 
-export default function ToolBar() {
+export default function ToolBar({eventId}: {eventId: number}) {
 	const navigate = useNavigate();
 	return (
 		<Box
@@ -34,6 +34,9 @@ export default function ToolBar() {
 				color='primary'
 				startIcon={<EditIcon />}
 				className='toolbutton'
+				onClick={()=>{
+					navigate(`/events/edit/${eventId}`);
+				}}
 			>
 				Edit
 			</Button>

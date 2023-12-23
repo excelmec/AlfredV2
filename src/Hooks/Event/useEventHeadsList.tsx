@@ -9,12 +9,9 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { TypeSafeColDef } from "Hooks/gridColumType";
+import { IEventHead } from "./eventTypes";
 
-export interface IEventHeadsListItem {
-  id: number;
-  name: string;
-  email: string;
-  phoneNumber: string;
+export interface IEventHeadsListItem extends IEventHead {
   mode?: GridRowModes;
 }
 
@@ -31,7 +28,7 @@ export function useEventHeadsList() {
       setLoading(true);
       setError("");
 
-      const response = await axiosEventsPrivate.get<IEventHeadsListItem[]>(
+      const response = await axiosEventsPrivate.get<IEventHead[]>(
         "/api/eventhead"
       );
 

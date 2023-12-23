@@ -4,15 +4,23 @@ import EventEditToolBar from 'Components/EventEdit/ToolBar/EventEditToolBar';
 import { useEventDesc } from 'Hooks/Event/useEventDesc';
 import { useEventEdit } from 'Hooks/Event/useEventEdit';
 import axios from 'axios';
-import { useEffect } from 'react';
+import lodash from 'lodash';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function EventEditPage() {
 	const { event, fetchEvent, loading, error, setError } = useEventDesc();
-
-	const { newEvent, setNewEvent } = useEventEdit();
-
+	const {
+		newEvent,
+		setNewEvent,
+		updateEvent,
+		loading: savingEvent,
+		error: savingEventError,
+	} = useEventEdit();
 	const { id } = useParams<{ id: string }>();
+
+	const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+	const [currentIconFile, setCurrentIconFile] = useState<File | undefined>();
 
 	useEffect(() => {
 		if (!Number.isInteger(Number(id))) {
@@ -23,7 +31,6 @@ export default function EventEditPage() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-
 	async function initNewEvent() {
 		if (!event) return;
 
@@ -32,15 +39,15 @@ export default function EventEditPage() {
 		});
 
 		const icon = new File([imageRes.data], 'icon.png', {
-			type: imageRes.headers['content-type'] ?? 'image/png' ,
+			type: imageRes.headers['content-type'] ?? 'image/png',
 		});
-
-		console.log(icon);
 
 		setNewEvent({
 			...event,
 			icon,
 		});
+
+		setCurrentIconFile(icon);
 	}
 
 	useEffect(() => {
@@ -49,6 +56,27 @@ export default function EventEditPage() {
 		initNewEvent();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [event]);
+
+	useEffect(() => {
+		if (!currentIconFile) {
+			/**
+			 * The new and old event loading completes when the icon of old event loads as a file
+			 * Else this will falsely trigger the event changed
+			 */
+			return;
+		}
+
+		const oldEvent = {
+			...event,
+			icon: currentIconFile,
+		};
+
+		if (lodash.isEqual(oldEvent, newEvent)) {
+			setHasUnsavedChanges(false);
+		} else {
+			setHasUnsavedChanges(true);
+		}
+	}, [newEvent, currentIconFile, event]);
 
 	if (error) {
 		return <Typography variant='h5'>{error}</Typography>;
@@ -81,9 +109,18 @@ export default function EventEditPage() {
 			</Box>
 			<br />
 
-			<EventEditToolBar />
+			<EventEditToolBar
+				updateEvent={updateEvent}
+				hasUnsavedChanges={hasUnsavedChanges}
+				savingEvent={savingEvent}
+			/>
 
-			<EventEdit newEvent={newEvent!} setNewEvent={setNewEvent} />
+			<EventEdit
+				newEvent={newEvent!}
+				setNewEvent={setNewEvent}
+				savingEvent={savingEvent}
+				savingEventError={savingEventError}
+			/>
 		</>
 	);
 }

@@ -3,10 +3,41 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 import './EventEditToolBar.css';
-// import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function EventEditToolBar() {
-	// const navigate = useNavigate();
+export default function EventEditToolBar({
+	updateEvent,
+	hasUnsavedChanges,
+	savingEvent,
+}: {
+	updateEvent: () => void;
+	hasUnsavedChanges: boolean;
+	savingEvent: boolean;
+}) {
+	const navigate = useNavigate();
+
+	async function showUnsavedChangesPopup() {
+		return window.confirm('You have unsaved changes. Do you want to exit?');
+	}
+
+	const handler = (event: BeforeUnloadEvent) => {
+		event.preventDefault();
+		event.returnValue = '';
+	};
+
+	useEffect(() => {
+		if (hasUnsavedChanges) {
+			window.addEventListener('beforeunload', handler);
+		} else {
+			window.removeEventListener('beforeunload', handler);
+		}
+
+		return () => {
+			window.removeEventListener('beforeunload', handler);
+		};
+	}, [hasUnsavedChanges]);
+
 	return (
 		<Box
 			className='event-edit-toolbar'
@@ -22,14 +53,27 @@ export default function EventEditToolBar() {
 				color='secondary'
 				startIcon={<SaveIcon />}
 				className='toolbutton'
+				onClick={updateEvent}
+				disabled={savingEvent}
 			>
-				Save
+				{savingEvent ? 'Saving...' : 'Save'}
 			</Button>
 			<Button
 				variant='contained'
 				color='error'
 				startIcon={<CancelIcon />}
 				className='toolbutton'
+				disabled={savingEvent}
+				onClick={async () => {
+					if (hasUnsavedChanges) {
+						const confirmExit = await showUnsavedChangesPopup();
+						console.log(confirmExit);
+						if (!confirmExit) return;
+					}
+
+					console.log('navigating');
+					navigate(-1);
+				}}
 			>
 				Cancel
 			</Button>

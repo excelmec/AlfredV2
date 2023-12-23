@@ -23,8 +23,6 @@ export function useEventDesc() {
 				`/api/events/${eventId}`
 			);
 
-			console.log(response.data);
-
 			const eventData: IEvent = {
 				...response.data,
 				datetime: new Date(response.data?.datetime),

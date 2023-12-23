@@ -31,19 +31,21 @@ export default function EventDescPage() {
 	return (
 		<>
 			<br />
-			<Box sx={{
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
-				width: '100%',
-			}}>
+			<Box
+				sx={{
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					width: '100%',
+				}}
+			>
 				<Typography variant='h5' noWrap>
 					Event Description
 				</Typography>
 			</Box>
 			<br />
 
-			<ToolBar />
+			<ToolBar eventId={event!.id} />
 			<EventData event={event!} />
 		</>
 	);

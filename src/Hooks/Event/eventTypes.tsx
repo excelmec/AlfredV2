@@ -91,5 +91,4 @@ export const EventStatusIdToString: {
 	2: 'finished',
 };
 
-export type TEventButton = 'Form';
-export const EventButtons: TEventButton[] = ['Form'];
+export type TEventButton = string | undefined;

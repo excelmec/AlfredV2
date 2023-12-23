@@ -22,7 +22,6 @@ export default function ProtectedRoute(props: IProtectedRouteProps) {
 		return <Typography variant='h5'>Not logged in</Typography>;
 	}
 
-	console.log(userData.roles);
 	if (
 		props.allowedRoles &&
 		props.allowedRoles.length > 0 &&

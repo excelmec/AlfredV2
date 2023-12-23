@@ -3,12 +3,10 @@ import { ApiContext } from '../../Contexts/Api/ApiContext';
 import { getErrMsg } from '../errorParser';
 import {
 	CategoryIds,
-	EventButtons,
 	EventStatusIds,
 	EventTypeIds,
 	IEvent,
 	TCategoryId,
-	TEventButton,
 	TEventStatusId,
 	TEventTypeId,
 } from './eventTypes';
@@ -63,7 +61,7 @@ const eventValidationSchema: ObjectSchema<
 	currentRound: number().default(undefined).positive(),
 	registrationOpen: boolean(),
 	registrationEndDate: date().default(undefined),
-	button: mixed<TEventButton>().oneOf(EventButtons).required(),
+	button: string().default(undefined),
 	registrationLink: string()
 		.url('Invalid Registration Link URL')
 		.default(undefined),
@@ -95,30 +93,94 @@ export function useEventEdit() {
 		about: '',
 		format: '',
 		rules: '',
-		entryFee: 0,
-		prizeMoney: 0,
+		entryFee: undefined,
+		prizeMoney: undefined,
 		eventHead1Id: 0,
 
 		eventHead2Id: 0,
 		isTeam: false,
-		teamSize: 0,
+		teamSize: undefined,
 		eventStatusId: 0,
-		numberOfRounds: 0,
-		currentRound: 0,
+		numberOfRounds: undefined,
+		currentRound: undefined,
 		registrationOpen: false,
-		registrationEndDate: new Date(),
-		button: 'Form',
-		registrationLink: '',
+		registrationEndDate: undefined,
+		button: undefined,
+		registrationLink: undefined,
 		venue: '',
 		needRegistration: false,
 		day: 0,
 		datetime: new Date(),
 	});
-	
-	const [loading, setLoading] = useState<boolean>(true);
+
+	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string>('');
 
 	const { axiosEventsPrivate } = useContext(ApiContext);
 
-	return { newEvent, setNewEvent, loading, error, setError } as const;
+	async function updateEvent() {
+		try {
+			setLoading(true);
+			if (!newEvent) return;
+
+			const newEventFormData = new FormData();
+
+			Object.keys(newEvent).forEach((key) => {
+				const objectKey = key as keyof typeof newEvent;
+				if (!objectKey) return;
+
+				const value = newEvent[objectKey];
+
+				if (!value) return;
+
+				const firstCharUpperKey =
+					key.charAt(0).toUpperCase() + key.slice(1);
+
+				if (value instanceof Date) {
+					newEventFormData.append(
+						firstCharUpperKey,
+						value.toISOString()
+					);
+					return;
+				} else if (value instanceof File) {
+					newEventFormData.append(firstCharUpperKey, value);
+					return;
+				} else if (!value.toString()) {
+					return;
+				} else {
+					newEventFormData.append(
+						firstCharUpperKey,
+						value.toString()
+					);
+				}
+			});
+
+			console.log([...newEventFormData]);
+
+			const res = await axiosEventsPrivate.put(
+				`/api/events`,
+				newEventFormData,
+				{
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				}
+			);
+			console.log(res);
+		} catch (err) {
+			console.log(err);
+			setError(getErrMsg(err));
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	return {
+		newEvent,
+		setNewEvent,
+		loading,
+		error,
+		setError,
+		updateEvent,
+	} as const;
 }

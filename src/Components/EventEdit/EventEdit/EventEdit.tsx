@@ -10,6 +10,7 @@ import {
 	Switch,
 	Checkbox,
 	Button,
+	Autocomplete,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
@@ -23,6 +24,7 @@ import {
 	EventTypeIdToString,
 	CategoryIdToString,
 	EventStatusIdToString,
+	IEventHead,
 } from '../../../Hooks/Event/eventTypes';
 
 import './EventEdit.css';
@@ -31,22 +33,46 @@ import { DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { TnewEventModify } from 'Hooks/Event/useEventEdit';
+import { useEventHeadsList } from 'Hooks/Event/useEventHeadsList';
+import { StyledTableCell } from 'Components/CampusAmbassador/TableCell';
 
 export default function EventEdit({
 	newEvent,
 	setNewEvent,
+	savingEvent,
+	savingEventError,
 }: {
 	newEvent: TnewEventModify;
 	setNewEvent: React.Dispatch<React.SetStateAction<TnewEventModify>>;
+	savingEvent: boolean;
+	savingEventError: string;
 }) {
+	const [selectedIconUrl, setSelectedIconUrl] = useState<string>('');
+
+	const {
+		eventHeadsList,
+		fetchEventHeadsList,
+		error: eventHeadListError,
+		loading: eventHeadListLoading,
+	} = useEventHeadsList();
+
 	function handleTextChange(e: React.ChangeEvent<HTMLInputElement>) {
 		setNewEvent((prev) => {
 			if (!prev) return prev;
+			if (!e.target.name) {
+				console.error('No name in target');
+			}
+			if (e.target.value === undefined || e.target.value === null) {
+				return { ...prev, [e.target.name]: '' };
+			}
 			return { ...prev, [e.target.name]: e.target.value };
 		});
 	}
+	useEffect(() => {
+		fetchEventHeadsList();
 
-	const [selectedIconUrl, setSelectedIconUrl] = useState<string>('');
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	useEffect(() => {
 		if (!newEvent.icon) return;
@@ -57,10 +83,20 @@ export default function EventEdit({
 		};
 		reader.onerror = (e) => {
 			console.error(e);
-		}
+		};
 		reader.readAsDataURL(newEvent.icon);
-
 	}, [newEvent.icon]);
+
+	if (eventHeadListError) {
+		return (
+			<>
+				<Typography variant='h4'>
+					{'Something went wrong while fetching eventHeads'}
+				</Typography>
+				<Typography variant='h5'>{eventHeadListError}</Typography>
+			</>
+		);
+	}
 
 	return (
 		<Box
@@ -69,6 +105,12 @@ export default function EventEdit({
 			elevation={1}
 			borderRadius={0}
 		>
+			<div
+				className='event-edit-overlay'
+				style={{
+					display: savingEvent ? 'block' : 'none',
+				}}
+			></div>
 			<Grid
 				container
 				spacing={2}
@@ -91,7 +133,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent?.name}
+						value={newEvent?.name ?? ''}
 						name='name'
 						onChange={handleTextChange}
 						fullWidth
@@ -136,7 +178,8 @@ export default function EventEdit({
 										if (!prev) return prev;
 										if (!e.target.files) return prev;
 
-										if(e.target.files.length === 0) return prev;
+										if (e.target.files.length === 0)
+											return prev;
 
 										return {
 											...prev,
@@ -164,7 +207,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<Select
-						value={newEvent.eventTypeId}
+						value={newEvent.eventTypeId ?? ''}
 						fullWidth
 						name='eventTypeId'
 						onChange={(e) => {
@@ -192,7 +235,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<Select
-						value={newEvent.categoryId}
+						value={newEvent.categoryId ?? ''}
 						fullWidth
 						name='categoryId'
 						onChange={(e) => {
@@ -220,7 +263,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.venue}
+						value={newEvent.venue ?? ''}
 						name='venue'
 						onChange={handleTextChange}
 						fullWidth
@@ -281,7 +324,7 @@ export default function EventEdit({
 						</Grid>
 						<Grid item xs={6}>
 							<TextField
-								value={newEvent.teamSize}
+								value={newEvent.teamSize ?? ''}
 								name='teamSize'
 								onChange={handleTextChange}
 								type='number'
@@ -296,7 +339,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.button}
+						value={newEvent.button ?? ''}
 						name='button'
 						onChange={handleTextChange}
 						fullWidth
@@ -308,7 +351,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.registrationLink}
+						value={newEvent.registrationLink ?? ''}
 						name='registrationLink'
 						onChange={handleTextChange}
 						fullWidth
@@ -327,7 +370,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.day}
+						value={newEvent.day ?? ''}
 						name='day'
 						onChange={handleTextChange}
 						type='number'
@@ -339,38 +382,38 @@ export default function EventEdit({
 					<Typography>Event DateTime</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<Typography>
-						<DateTimePicker
-							value={dayjs(newEvent.datetime)}
-							sx={{
-								width: '100%',
-							}}
-							onChange={(e) => {
-								setNewEvent((prev) => {
-									if (!prev) return prev;
+					<DateTimePicker
+						value={
+							newEvent.datetime ? dayjs(newEvent.datetime) : ''
+						}
+						sx={{
+							width: '100%',
+						}}
+						onChange={(e) => {
+							setNewEvent((prev) => {
+								if (!prev) return prev;
 
-									if (!e) {
-										return {
-											...prev,
-											datetime: new Date(),
-										};
-									}
-
+								if (!e) {
 									return {
 										...prev,
-										datetime: new Date(e.toString()),
+										datetime: new Date(),
 									};
-								});
-							}}
-						/>
-					</Typography>
+								}
+
+								return {
+									...prev,
+									datetime: new Date(e.toString()),
+								};
+							});
+						}}
+					/>
 				</Grid>
 				<Grid item xs={6}>
 					<Typography>Event Status</Typography>
 				</Grid>
 				<Grid item xs={6}>
 					<Select
-						value={newEvent.eventStatusId}
+						value={newEvent.eventStatusId ?? ''}
 						fullWidth
 						name='eventStatusId'
 						onChange={(e) => {
@@ -399,7 +442,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.numberOfRounds}
+						value={newEvent.numberOfRounds ?? ''}
 						name='numberOfRounds'
 						onChange={handleTextChange}
 						type='number'
@@ -412,7 +455,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.currentRound}
+						value={newEvent.currentRound ?? ''}
 						name='currentRound'
 						onChange={handleTextChange}
 						type='number'
@@ -425,7 +468,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<Switch
-						checked={newEvent.registrationOpen}
+						checked={newEvent.registrationOpen ?? false}
 						onChange={(e) => {
 							setNewEvent((prev) => {
 								if (!prev) return prev;
@@ -443,7 +486,11 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<DateTimePicker
-						value={dayjs(newEvent.registrationEndDate)}
+						value={
+							newEvent.registrationEndDate
+								? dayjs(newEvent.registrationEndDate)
+								: ''
+						}
 						sx={{
 							width: '100%',
 						}}
@@ -478,7 +525,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.entryFee}
+						value={newEvent.entryFee ?? ''}
 						name='entryFee'
 						onChange={handleTextChange}
 						type='number'
@@ -491,7 +538,7 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.prizeMoney}
+						value={newEvent.prizeMoney ?? ''}
 						name='prizeMoney'
 						onChange={handleTextChange}
 						type='number'
@@ -510,63 +557,122 @@ export default function EventEdit({
 					<Typography>Event Head 1</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					{/* <Autocomplete
-						sx={{ width: '100%' }}
-						options={choosableCaList}
-						autoHighlight
-						getOptionLabel={(option) => option.name}
-						onChange={(event, newValue) => {
-							if (newValue) {
-								setChosenAmbassadorId(newValue.ambassadorId);
-							}
-						}}
-						disabled={savingAmbassador}
-						value={choosableCaList.find((CA) => {
-							return CA.ambassadorId === chosenAmbassadorId;
-						})}
-						renderOption={(props, ca) => (
-							<Box component='li' {...props}>
-								<StyledTableCell
-									sx={{
-										width: '50%',
-										overflow: 'hidden',
+					{eventHeadListLoading ? (
+						'EventHeads Loading...'
+					) : (
+						<Autocomplete
+							sx={{ width: '100%' }}
+							options={eventHeadsList}
+							autoHighlight
+							getOptionLabel={(option: IEventHead) => option.name}
+							onChange={(event, newValue) => {
+								if (newValue) {
+									setNewEvent((prev) => {
+										if (!prev) return prev;
+										return {
+											...prev,
+											eventHead1Id: newValue.id,
+										};
+									});
+								}
+							}}
+							disabled={eventHeadListLoading}
+							value={eventHeadsList.find((eventHead) => {
+								return eventHead.id === newEvent.eventHead1Id;
+							})}
+							renderOption={(props, eventHead) => (
+								<Box component='li' {...props}>
+									<StyledTableCell
+										sx={{
+											width: '50%',
+											overflow: 'hidden',
+										}}
+									>
+										{eventHead.name}
+									</StyledTableCell>
+									<StyledTableCell
+										sx={{
+											width: '50%',
+											overflow: 'hidden',
+										}}
+									>
+										{eventHead.phoneNumber}
+									</StyledTableCell>
+								</Box>
+							)}
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									label='Choose an Event Head'
+									inputProps={{
+										...params.inputProps,
+										autoComplete: 'new-password', // disable autocomplete and autofill
 									}}
-								>
-									{ca.name}
-								</StyledTableCell>
-								<StyledTableCell
-									sx={{
-										width: '50%',
-										overflow: 'hidden',
-									}}
-								>
-									{ca.email}
-								</StyledTableCell>
-							</Box>
-						)}
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								label='Choose a Ambassador'
-								inputProps={{
-									...params.inputProps,
-									autoComplete: 'new-password', // disable autocomplete and autofill
-								}}
-							/>
-						)}
-					/> */}
-					{/* <Typography>{newEvent?.eventHead1?.name}</Typography>
-					<Typography>{newEvent?.eventHead1?.phoneNumber}</Typography>
-					<Typography>{newEvent?.eventHead1?.email}</Typography> */}
+								/>
+							)}
+						/>
+					)}
 				</Grid>
 
 				<Grid item xs={6}>
 					<Typography>Event Head 2</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					{/* <Typography>{newEvent?.eventHead2?.name}</Typography>
-					<Typography>{newEvent?.eventHead2?.phoneNumber}</Typography>
-					<Typography>{newEvent?.eventHead2?.email}</Typography> */}
+					{eventHeadListLoading ? (
+						'EventHeads Loading...'
+					) : (
+						<Autocomplete
+							sx={{ width: '100%' }}
+							options={eventHeadsList}
+							autoHighlight
+							getOptionLabel={(option: IEventHead) => option.name}
+							onChange={(event, newValue) => {
+								if (newValue) {
+									setNewEvent((prev) => {
+										if (!prev) return prev;
+										return {
+											...prev,
+											eventHead2Id: newValue.id,
+										};
+									});
+								}
+							}}
+							disabled={eventHeadListLoading}
+							value={eventHeadsList.find((eventHead) => {
+								return eventHead.id === newEvent.eventHead2Id;
+							})}
+							renderOption={(props, eventHead) => (
+								<Box component='li' {...props}>
+									<StyledTableCell
+										sx={{
+											width: '50%',
+											overflow: 'hidden',
+										}}
+									>
+										{eventHead.name}
+									</StyledTableCell>
+									<StyledTableCell
+										sx={{
+											width: '50%',
+											overflow: 'hidden',
+										}}
+									>
+										{eventHead.phoneNumber}
+									</StyledTableCell>
+								</Box>
+							)}
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									label='Choose an Event Head'
+									inputProps={{
+										...params.inputProps,
+										autoComplete: 'new-password', // disable autocomplete and autofill
+									}}
+								/>
+							)}
+						/>
+					)}
 				</Grid>
 
 				<Grid item xs={12}>
@@ -582,11 +688,11 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.about}
+						value={newEvent.about ?? ''}
 						name='about'
 						onChange={handleTextChange}
 						multiline
-						
+						maxRows={30}
 						sx={{
 							width: '100%',
 						}}
@@ -598,11 +704,11 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.format}
+						value={newEvent.format ?? ''}
 						name='format'
 						onChange={handleTextChange}
 						multiline
-
+						maxRows={30}
 						sx={{
 							width: '100%',
 						}}
@@ -614,11 +720,11 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<TextField
-						value={newEvent.rules}
+						value={newEvent.rules ?? ''}
 						name='rules'
 						onChange={handleTextChange}
 						multiline
-
+						maxRows={30}
 						sx={{
 							width: '100%',
 						}}
