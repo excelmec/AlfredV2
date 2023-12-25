@@ -5,15 +5,19 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import './EventEditToolBar.css';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { TupdateFnReturn } from 'Hooks/errorParser';
 
 export default function EventEditToolBar({
 	updateEvent,
 	hasUnsavedChanges,
 	savingEvent,
+	eventId,
 }: {
-	updateEvent: () => void;
+	updateEvent: () => Promise<TupdateFnReturn>;
 	hasUnsavedChanges: boolean;
 	savingEvent: boolean;
+	eventId: number;
 }) {
 	const navigate = useNavigate();
 
@@ -25,6 +29,28 @@ export default function EventEditToolBar({
 		event.preventDefault();
 		event.returnValue = '';
 	};
+
+	async function saveEvent() {
+		try {
+			const res = await updateEvent();
+
+			if (res.success) {
+				toast.success('Event Saved.');
+				navigate(`/events/view/${eventId}`, {
+					replace: true,
+				});
+				return;
+			}
+
+			if (res.validationError) {
+				toast.error('Validation Error');
+				return;
+			}
+		} catch (error: any) {
+			console.log(error);
+			toast.error(`Error saving event: ${error?.message}`);
+		}
+	}
 
 	useEffect(() => {
 		if (hasUnsavedChanges) {
@@ -53,7 +79,7 @@ export default function EventEditToolBar({
 				color='secondary'
 				startIcon={<SaveIcon />}
 				className='toolbutton'
-				onClick={updateEvent}
+				onClick={saveEvent}
 				disabled={savingEvent}
 			>
 				{savingEvent ? 'Saving...' : 'Save'}

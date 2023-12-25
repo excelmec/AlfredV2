@@ -16,8 +16,8 @@ export interface IEvent extends IEventListItem {
 	about: string;
 	format: string;
 	rules: string;
-	entryFee?: number;
-	prizeMoney?: number;
+	entryFee: number;
+	prizeMoney: number;
 	eventHead1Id: number;
 	eventHead1: IEventHead;
 	eventHead2Id: number;

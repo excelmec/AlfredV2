@@ -16,6 +16,8 @@ export default function EventEditPage() {
 		updateEvent,
 		loading: savingEvent,
 		error: savingEventError,
+		validateEvent,
+		validationErrors,
 	} = useEventEdit();
 	const { id } = useParams<{ id: string }>();
 
@@ -113,6 +115,7 @@ export default function EventEditPage() {
 				updateEvent={updateEvent}
 				hasUnsavedChanges={hasUnsavedChanges}
 				savingEvent={savingEvent}
+				eventId={event.id}
 			/>
 
 			<EventEdit
@@ -120,6 +123,8 @@ export default function EventEditPage() {
 				setNewEvent={setNewEvent}
 				savingEvent={savingEvent}
 				savingEventError={savingEventError}
+				validateEvent={validateEvent}
+				validationErrors={validationErrors}
 			/>
 		</>
 	);

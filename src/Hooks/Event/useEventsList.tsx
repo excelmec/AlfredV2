@@ -2,18 +2,14 @@ import { useContext, useState } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import { IEventListItem } from './eventTypes';
-import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import { useNavigate } from 'react-router-dom';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 
 export function useEventList() {
 	const [eventList, setEventList] = useState<IEventListItem[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string>('');
-	const navigate = useNavigate();
+
+	const [eventIsDeleting, setEventIsDeleting] = useState<boolean>(false);
 
 	const { axiosEventsPrivate } = useContext(ApiContext);
 
@@ -43,6 +39,26 @@ export function useEventList() {
 			setError(getErrMsg(error));
 		} finally {
 			setLoading(false);
+		}
+	}
+
+	async function deleteEvent(eventId: number, eventName: string) {
+		try {
+			setEventIsDeleting(true);
+			setError('');
+
+			await axiosEventsPrivate.delete(`/api/events/`, {
+				data: {
+					id: eventId,
+					name: eventName,
+				},
+			});
+
+			await fetchEventList();
+		} catch (error) {
+			setError(getErrMsg(error));
+		} finally {
+			setEventIsDeleting(false);
 		}
 	}
 
@@ -127,35 +143,15 @@ export function useEventList() {
 				});
 			},
 		},
-
-		{
-			field: 'actions',
-			headerName: 'Actions',
-			type: 'actions',
-			width: 150,
-			getActions: (params: GridRowParams) => [
-				<GridActionsCellItem
-					icon={<VisibilityIcon color='primary' />}
-					label='View'
-					onClick={() => {
-						navigate(`/events/view/${params.row.id}`);
-					}}
-				/>,
-				<GridActionsCellItem
-					icon={<EditIcon />}
-					label='Edit'
-					color='secondary'
-					onClick={() => {
-						navigate(`/events/edit/${params.row.id}`);
-					}}
-				/>,
-				<GridActionsCellItem
-					icon={<DeleteIcon color='error' />}
-					label='Delete'
-				/>,
-			],
-		},
 	];
 
-	return { eventList, loading, error, fetchEventList, columns } as const;
+	return {
+		eventList,
+		loading,
+		error,
+		fetchEventList,
+		columns,
+		deleteEvent,
+		eventIsDeleting,
+	} as const;
 }

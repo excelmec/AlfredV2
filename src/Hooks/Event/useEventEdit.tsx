@@ -1,6 +1,12 @@
 import { useContext, useState } from 'react';
 import { ApiContext } from '../../Contexts/Api/ApiContext';
-import { getErrMsg } from '../errorParser';
+import {
+	IUpdateNetworkError,
+	IUpdateSuccess,
+	IUpdateValidationError,
+	TupdateFnReturn,
+	getErrMsg,
+} from '../errorParser';
 import {
 	CategoryIds,
 	EventStatusIds,
@@ -13,6 +19,7 @@ import {
 import {
 	InferType,
 	ObjectSchema,
+	ValidationError,
 	boolean,
 	date,
 	mixed,
@@ -21,7 +28,7 @@ import {
 	string,
 } from 'yup';
 
-const eventValidationSchema: ObjectSchema<
+export const eventValidationSchema: ObjectSchema<
 	Omit<
 		IEvent,
 		| 'eventStatus'
@@ -40,8 +47,19 @@ const eventValidationSchema: ObjectSchema<
 		.max(50, 'Event Name can be maximum 50 characters'),
 
 	venue: string().required().min(2, 'Venue must be minimum 2 characters'),
-	needRegistration: boolean().required(),
-	day: number().required(),
+	needRegistration: boolean()
+		.required()
+		.default(false)
+		.transform((val) => {
+			if (val === null || val === undefined) return false;
+			return val;
+		}),
+	day: number()
+		.required()
+		.transform((val) => {
+			if (val === null || val === undefined) return 1;
+			return val;
+		}),
 	datetime: date().required(),
 
 	categoryId: mixed<TCategoryId>().oneOf(CategoryIds).required(),
@@ -50,21 +68,85 @@ const eventValidationSchema: ObjectSchema<
 	about: string().required().min(2, 'About must be minimum 2 characters'),
 	format: string().required().min(2, 'Format must be minimum 2 characters'),
 	rules: string().required().min(2, 'Rules must be minimum 2 characters'),
-	entryFee: number().default(undefined),
-	prizeMoney: number().default(undefined),
+	entryFee: number()
+		.required()
+		.transform((val) => {
+			if (val === null || val === undefined) return 0;
+			return val;
+		}),
+	prizeMoney: number()
+		.required()
+		.transform((val) => {
+			if (val === null || val === undefined) return 0;
+			return val;
+		}),
 	eventHead1Id: number().required(),
 	eventHead2Id: number().required(),
 	isTeam: boolean().required(),
-	teamSize: number().default(undefined).positive(),
+	teamSize: number()
+		.default(undefined)
+		.transform((val) => {
+			if (val === null || val === undefined) return 0;
+			return val;
+		})
+		.integer()
+		.when('isTeam', {
+			is: true,
+			then: (schema) => schema.min(1),
+			otherwise: (schema) => schema.is([0]),
+		}),
 	eventStatusId: mixed<TEventStatusId>().oneOf(EventStatusIds).required(),
-	numberOfRounds: number().default(undefined).positive(),
-	currentRound: number().default(undefined).positive(),
-	registrationOpen: boolean(),
+	numberOfRounds: number()
+		.default(undefined)
+		.moreThan(-1, 'Number of Rounds must be positive')
+		.transform((val) => {
+			if (val === null || val === undefined) return 0;
+			return val;
+		}),
+
+	currentRound: number()
+		.default(undefined)
+		.transform((val) => {
+			if (val === null || val === undefined) return 0;
+			return val;
+		})
+		.when('numberOfRounds', {
+			is: (val: number) => val > 0,
+			then: (schema) =>
+				schema.moreThan(0, 'Current Round must be positive'),
+			otherwise: (schema) => schema.is([0]),
+		})
+		.test(
+			'currentRound',
+			'Current Round must be less than or equal to Number of Rounds',
+			function (val) {
+				if (val === null || val === undefined) return true;
+				if (this.parent.numberOfRounds === undefined) return true;
+				return val <= this.parent.numberOfRounds;
+			}
+		),
+
+	registrationOpen: boolean()
+		.required()
+		.default(false)
+		.transform((val) => {
+			if (val === null || val === undefined) return false;
+			return val;
+		}),
 	registrationEndDate: date().default(undefined),
-	button: string().default(undefined),
+	button: string()
+		.default(undefined)
+		.transform((val) => {
+			if (val === null || val === undefined) return undefined;
+			return val;
+		}),
 	registrationLink: string()
 		.url('Invalid Registration Link URL')
-		.default(undefined),
+		.default(undefined)
+		.transform((val) => {
+			if (val === null || val === undefined) return undefined;
+			return val;
+		}),
 
 	icon: mixed<File>()
 		.required()
@@ -93,8 +175,8 @@ export function useEventEdit() {
 		about: '',
 		format: '',
 		rules: '',
-		entryFee: undefined,
-		prizeMoney: undefined,
+		entryFee: 0,
+		prizeMoney: 0,
 		eventHead1Id: 0,
 
 		eventHead2Id: 0,
@@ -103,7 +185,7 @@ export function useEventEdit() {
 		eventStatusId: 0,
 		numberOfRounds: undefined,
 		currentRound: undefined,
-		registrationOpen: false,
+		registrationOpen: undefined,
 		registrationEndDate: undefined,
 		button: undefined,
 		registrationLink: undefined,
@@ -115,13 +197,43 @@ export function useEventEdit() {
 
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string>('');
+	const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+		[]
+	);
 
 	const { axiosEventsPrivate } = useContext(ApiContext);
 
-	async function updateEvent() {
+	function validateEvent(): boolean {
 		try {
+			eventValidationSchema.validateSync(newEvent, {
+				abortEarly: false,
+				stripUnknown: true,
+			});
+			setValidationErrors([]);
+			return true;
+		} catch (err: any) {
+			if (err instanceof ValidationError) {
+				setValidationErrors(err.inner);
+				console.log(err.inner);
+			} else {
+				console.log(err);
+				setError(err?.message);
+			}
+			return false;
+		}
+	}
+
+	async function updateEvent(): Promise<TupdateFnReturn> {
+		try {
+			console.log({ newEvent });
 			setLoading(true);
-			if (!newEvent) return;
+
+			if (!validateEvent()) {
+				return {
+					success: false,
+					validationError: validationErrors,
+				} as IUpdateValidationError;
+			}
 
 			const newEventFormData = new FormData();
 
@@ -167,9 +279,18 @@ export function useEventEdit() {
 				}
 			);
 			console.log(res);
+
+			return {
+				success: true,
+			} as IUpdateSuccess;
 		} catch (err) {
 			console.log(err);
-			setError(getErrMsg(err));
+			const errMsg = getErrMsg(err);
+			setError(errMsg);
+			return {
+				success: false,
+				networkError: errMsg,
+			} as IUpdateNetworkError;
 		} finally {
 			setLoading(false);
 		}
@@ -182,5 +303,8 @@ export function useEventEdit() {
 		error,
 		setError,
 		updateEvent,
+
+		validateEvent,
+		validationErrors,
 	} as const;
 }

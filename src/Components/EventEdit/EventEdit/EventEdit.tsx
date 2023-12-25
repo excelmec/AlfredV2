@@ -11,6 +11,7 @@ import {
 	Checkbox,
 	Button,
 	Autocomplete,
+	TextFieldProps,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
@@ -35,20 +36,28 @@ import { useEffect, useState } from 'react';
 import { TnewEventModify } from 'Hooks/Event/useEventEdit';
 import { useEventHeadsList } from 'Hooks/Event/useEventHeadsList';
 import { StyledTableCell } from 'Components/CampusAmbassador/TableCell';
+import { useNavigate } from 'react-router-dom';
+import { ValidationError } from 'yup';
+
+import { debounce } from 'lodash';
 
 export default function EventEdit({
 	newEvent,
 	setNewEvent,
 	savingEvent,
 	savingEventError,
+	validateEvent,
+	validationErrors,
 }: {
 	newEvent: TnewEventModify;
 	setNewEvent: React.Dispatch<React.SetStateAction<TnewEventModify>>;
 	savingEvent: boolean;
 	savingEventError: string;
+	validateEvent: () => boolean;
+	validationErrors: ValidationError[];
 }) {
 	const [selectedIconUrl, setSelectedIconUrl] = useState<string>('');
-
+	const navigate = useNavigate();
 	const {
 		eventHeadsList,
 		fetchEventHeadsList,
@@ -56,18 +65,6 @@ export default function EventEdit({
 		loading: eventHeadListLoading,
 	} = useEventHeadsList();
 
-	function handleTextChange(e: React.ChangeEvent<HTMLInputElement>) {
-		setNewEvent((prev) => {
-			if (!prev) return prev;
-			if (!e.target.name) {
-				console.error('No name in target');
-			}
-			if (e.target.value === undefined || e.target.value === null) {
-				return { ...prev, [e.target.name]: '' };
-			}
-			return { ...prev, [e.target.name]: e.target.value };
-		});
-	}
 	useEffect(() => {
 		fetchEventHeadsList();
 
@@ -87,6 +84,12 @@ export default function EventEdit({
 		reader.readAsDataURL(newEvent.icon);
 	}, [newEvent.icon]);
 
+	useEffect(() => {
+		debounce(validateEvent, 300)();
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [newEvent]);
+
 	if (eventHeadListError) {
 		return (
 			<>
@@ -95,6 +98,130 @@ export default function EventEdit({
 				</Typography>
 				<Typography variant='h5'>{eventHeadListError}</Typography>
 			</>
+		);
+	}
+
+	function EventHeadChoose({
+		eventHeadIdField,
+	}: {
+		eventHeadIdField: Exclude<keyof TnewEventModify, undefined | null>;
+	}) {
+		if (eventHeadListLoading) {
+			return <Typography>EventHeads Loading...</Typography>;
+		}
+
+		if (!eventHeadsList) {
+			return (
+				<>
+					<Typography>
+						Please Create an Event Head first to assign them to
+						events as Heads
+					</Typography>
+					<Button
+						variant='contained'
+						color='primary'
+						onClick={() => {
+							navigate('/events/heads/create');
+						}}
+					/>
+				</>
+			);
+		}
+
+		return (
+			<Autocomplete
+				sx={{ width: '100%' }}
+				options={eventHeadsList}
+				autoHighlight
+				getOptionLabel={(option: IEventHead) => option.name}
+				onChange={(event, newValue) => {
+					if (newValue) {
+						console.log({ newValue });
+						setNewEvent((prev) => {
+							if (!prev) return prev;
+							return {
+								...prev,
+								[eventHeadIdField]: newValue.id,
+							};
+						});
+					}
+				}}
+				disabled={eventHeadListLoading}
+				value={eventHeadsList.find((eventHead) => {
+					return eventHead.id === newEvent[eventHeadIdField];
+				})}
+				renderOption={(props, eventHead) => (
+					<Box component='li' {...props}>
+						<StyledTableCell
+							sx={{
+								width: '50%',
+								overflow: 'hidden',
+							}}
+						>
+							{eventHead.name}
+						</StyledTableCell>
+						<StyledTableCell
+							sx={{
+								width: '50%',
+								overflow: 'hidden',
+							}}
+						>
+							{eventHead.phoneNumber}
+						</StyledTableCell>
+					</Box>
+				)}
+				renderInput={(params) => (
+					<TextField
+						{...params}
+						label='Choose an Event Head'
+						inputProps={{
+							...params.inputProps,
+							autoComplete: 'new-password', // disable autocomplete and autofill
+						}}
+					/>
+				)}
+			/>
+		);
+	}
+
+	function CustomTextField({
+		fieldName,
+		TextFieldProps,
+		onChange,
+	}: {
+		fieldName: Exclude<keyof TnewEventModify, undefined | null>;
+		TextFieldProps?: TextFieldProps;
+		onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	}) {
+		function handleTextChange(e: React.ChangeEvent<HTMLInputElement>) {
+			setNewEvent((prev) => {
+				if (!prev) return prev;
+				if (!e.target.name) {
+					console.error('No name in target');
+				}
+				if (e.target.value === undefined || e.target.value === null) {
+					return { ...prev, [e.target.name]: '' };
+				}
+				return { ...prev, [e.target.name]: e.target.value };
+			});
+		}
+
+		return (
+			<TextField
+				value={newEvent[fieldName] ?? ''}
+				name={fieldName}
+				onChange={onChange ? onChange : handleTextChange}
+				fullWidth
+				error={validationErrors.some((error) => {
+					return error.path === fieldName;
+				})}
+				helperText={
+					validationErrors.find((error) => {
+						return error.path === fieldName;
+					})?.message ?? ''
+				}
+				{...TextFieldProps}
+			/>
 		);
 	}
 
@@ -121,23 +248,22 @@ export default function EventEdit({
 				<Grid item xs={12}>
 					<Typography variant='h5'>Event Basic Details</Typography>
 				</Grid>
-				<Grid item xs={6}>
-					<Typography>ID</Typography>
-				</Grid>
-				<Grid item xs={6}>
-					<Typography>{newEvent.id}</Typography>
-				</Grid>
+				{newEvent.id && (
+					<>
+						<Grid item xs={6}>
+							<Typography>ID</Typography>
+						</Grid>
+						<Grid item xs={6}>
+							<Typography>{newEvent.id}</Typography>
+						</Grid>
+					</>
+				)}
 
 				<Grid item xs={6}>
 					<Typography>Name</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent?.name ?? ''}
-						name='name'
-						onChange={handleTextChange}
-						fullWidth
-					/>
+					{CustomTextField({ fieldName: 'name' })}
 				</Grid>
 
 				<Grid item xs={6}>
@@ -163,7 +289,9 @@ export default function EventEdit({
 								alt='Event Logo'
 							/>
 						) : (
-							<Typography>No Icon Uploaded</Typography>
+							<Typography color={'error'}>
+								No Icon Uploaded
+							</Typography>
 						)}
 					</Grid>
 					<Grid item xs={6}>
@@ -262,12 +390,7 @@ export default function EventEdit({
 					<Typography>Event Venue</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.venue ?? ''}
-						name='venue'
-						onChange={handleTextChange}
-						fullWidth
-					/>
+					{CustomTextField({ fieldName: 'venue' })}
 				</Grid>
 
 				<Grid item xs={12}>
@@ -285,7 +408,7 @@ export default function EventEdit({
 				<Grid item xs={6}>
 					<Typography>
 						<Checkbox
-							checked={newEvent.needRegistration}
+							checked={newEvent.needRegistration ?? false}
 							onChange={(e) => {
 								setNewEvent((prev) => {
 									if (!prev) return prev;
@@ -304,13 +427,14 @@ export default function EventEdit({
 				</Grid>
 				<Grid item xs={6}>
 					<Checkbox
-						checked={newEvent.isTeam}
+						checked={newEvent.isTeam ?? false}
 						onChange={(e) => {
 							setNewEvent((prev) => {
 								if (!prev) return prev;
 								return {
 									...prev,
 									isTeam: e.target.checked,
+									teamSize: e.target.checked ? 1 : 0,
 								};
 							});
 						}}
@@ -323,13 +447,12 @@ export default function EventEdit({
 							<Typography>Team Size</Typography>
 						</Grid>
 						<Grid item xs={6}>
-							<TextField
-								value={newEvent.teamSize ?? ''}
-								name='teamSize'
-								onChange={handleTextChange}
-								type='number'
-								fullWidth
-							/>
+							{CustomTextField({
+								fieldName: 'teamSize',
+								TextFieldProps: {
+									type: 'number',
+								},
+							})}
 						</Grid>
 					</>
 				)}
@@ -338,24 +461,16 @@ export default function EventEdit({
 					<Typography>Register Button Text</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.button ?? ''}
-						name='button'
-						onChange={handleTextChange}
-						fullWidth
-					/>
+					{CustomTextField({ fieldName: 'button' })}
 				</Grid>
 
 				<Grid item xs={6}>
 					<Typography>Registration Link</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.registrationLink ?? ''}
-						name='registrationLink'
-						onChange={handleTextChange}
-						fullWidth
-					/>
+					{CustomTextField({
+						fieldName: 'registrationLink',
+					})}
 				</Grid>
 
 				<Grid item xs={12}>
@@ -369,13 +484,12 @@ export default function EventEdit({
 					<Typography>Event Day</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.day ?? ''}
-						name='day'
-						onChange={handleTextChange}
-						type='number'
-						fullWidth
-					/>
+					{CustomTextField({
+						fieldName: 'day',
+						TextFieldProps: {
+							type: 'number',
+						},
+					})}
 				</Grid>
 
 				<Grid item xs={6}>
@@ -441,27 +555,48 @@ export default function EventEdit({
 					<Typography>Number of Rounds</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.numberOfRounds ?? ''}
-						name='numberOfRounds'
-						onChange={handleTextChange}
-						type='number'
-						fullWidth
-					/>
+					{CustomTextField({
+						fieldName: 'numberOfRounds',
+						TextFieldProps: {
+							type: 'number',
+						},
+						onChange: (e) => {
+							setNewEvent((prev) => {
+								if (!prev) return prev;
+								const newNumberOfRounds = parseInt(
+									e.target.value
+								);
+								let newCurrentRound = prev.currentRound;
+
+								if (newNumberOfRounds === 0) {
+									newCurrentRound = 0;
+								}
+
+								return {
+									...prev,
+									numberOfRounds: newNumberOfRounds,
+									currentRound: newCurrentRound,
+								};
+							});
+						},
+					})}
 				</Grid>
 
-				<Grid item xs={6}>
-					<Typography>Current Round</Typography>
-				</Grid>
-				<Grid item xs={6}>
-					<TextField
-						value={newEvent.currentRound ?? ''}
-						name='currentRound'
-						onChange={handleTextChange}
-						type='number'
-						fullWidth
-					/>
-				</Grid>
+				{newEvent?.numberOfRounds && newEvent.numberOfRounds > 0 ? (
+					<>
+						<Grid item xs={6}>
+							<Typography>Current Round</Typography>
+						</Grid>
+						<Grid item xs={6}>
+							{CustomTextField({
+								fieldName: 'currentRound',
+								TextFieldProps: {
+									type: 'number',
+								},
+							})}
+						</Grid>
+					</>
+				) : null}
 
 				<Grid item xs={6}>
 					<Typography>Registrations Open?</Typography>
@@ -524,26 +659,24 @@ export default function EventEdit({
 					<Typography>Entry Fee</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.entryFee ?? ''}
-						name='entryFee'
-						onChange={handleTextChange}
-						type='number'
-						fullWidth
-					/>
+					{CustomTextField({
+						fieldName: 'entryFee',
+						TextFieldProps: {
+							type: 'number',
+						},
+					})}
 				</Grid>
 
 				<Grid item xs={6}>
 					<Typography>Prize Money</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.prizeMoney ?? ''}
-						name='prizeMoney'
-						onChange={handleTextChange}
-						type='number'
-						fullWidth
-					/>
+					{CustomTextField({
+						fieldName: 'prizeMoney',
+						TextFieldProps: {
+							type: 'number',
+						},
+					})}
 				</Grid>
 
 				<Grid item xs={12}>
@@ -557,122 +690,14 @@ export default function EventEdit({
 					<Typography>Event Head 1</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					{eventHeadListLoading ? (
-						'EventHeads Loading...'
-					) : (
-						<Autocomplete
-							sx={{ width: '100%' }}
-							options={eventHeadsList}
-							autoHighlight
-							getOptionLabel={(option: IEventHead) => option.name}
-							onChange={(event, newValue) => {
-								if (newValue) {
-									setNewEvent((prev) => {
-										if (!prev) return prev;
-										return {
-											...prev,
-											eventHead1Id: newValue.id,
-										};
-									});
-								}
-							}}
-							disabled={eventHeadListLoading}
-							value={eventHeadsList.find((eventHead) => {
-								return eventHead.id === newEvent.eventHead1Id;
-							})}
-							renderOption={(props, eventHead) => (
-								<Box component='li' {...props}>
-									<StyledTableCell
-										sx={{
-											width: '50%',
-											overflow: 'hidden',
-										}}
-									>
-										{eventHead.name}
-									</StyledTableCell>
-									<StyledTableCell
-										sx={{
-											width: '50%',
-											overflow: 'hidden',
-										}}
-									>
-										{eventHead.phoneNumber}
-									</StyledTableCell>
-								</Box>
-							)}
-							renderInput={(params) => (
-								<TextField
-									{...params}
-									label='Choose an Event Head'
-									inputProps={{
-										...params.inputProps,
-										autoComplete: 'new-password', // disable autocomplete and autofill
-									}}
-								/>
-							)}
-						/>
-					)}
+					<EventHeadChoose eventHeadIdField='eventHead1Id' />
 				</Grid>
 
 				<Grid item xs={6}>
 					<Typography>Event Head 2</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					{eventHeadListLoading ? (
-						'EventHeads Loading...'
-					) : (
-						<Autocomplete
-							sx={{ width: '100%' }}
-							options={eventHeadsList}
-							autoHighlight
-							getOptionLabel={(option: IEventHead) => option.name}
-							onChange={(event, newValue) => {
-								if (newValue) {
-									setNewEvent((prev) => {
-										if (!prev) return prev;
-										return {
-											...prev,
-											eventHead2Id: newValue.id,
-										};
-									});
-								}
-							}}
-							disabled={eventHeadListLoading}
-							value={eventHeadsList.find((eventHead) => {
-								return eventHead.id === newEvent.eventHead2Id;
-							})}
-							renderOption={(props, eventHead) => (
-								<Box component='li' {...props}>
-									<StyledTableCell
-										sx={{
-											width: '50%',
-											overflow: 'hidden',
-										}}
-									>
-										{eventHead.name}
-									</StyledTableCell>
-									<StyledTableCell
-										sx={{
-											width: '50%',
-											overflow: 'hidden',
-										}}
-									>
-										{eventHead.phoneNumber}
-									</StyledTableCell>
-								</Box>
-							)}
-							renderInput={(params) => (
-								<TextField
-									{...params}
-									label='Choose an Event Head'
-									inputProps={{
-										...params.inputProps,
-										autoComplete: 'new-password', // disable autocomplete and autofill
-									}}
-								/>
-							)}
-						/>
-					)}
+					<EventHeadChoose eventHeadIdField='eventHead2Id' />
 				</Grid>
 
 				<Grid item xs={12}>
@@ -687,48 +712,42 @@ export default function EventEdit({
 					<Typography>About</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.about ?? ''}
-						name='about'
-						onChange={handleTextChange}
-						multiline
-						maxRows={30}
-						sx={{
-							width: '100%',
-						}}
-					/>
+					{CustomTextField({
+						fieldName: 'about',
+						TextFieldProps: {
+							multiline: true,
+							rows: 20,
+							fullWidth: true,
+						},
+					})}
 				</Grid>
 
 				<Grid item xs={6}>
 					<Typography>Format</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.format ?? ''}
-						name='format'
-						onChange={handleTextChange}
-						multiline
-						maxRows={30}
-						sx={{
-							width: '100%',
-						}}
-					/>
+					{CustomTextField({
+						fieldName: 'format',
+						TextFieldProps: {
+							multiline: true,
+							rows: 20,
+							fullWidth: true,
+						},
+					})}
 				</Grid>
 
 				<Grid item xs={6}>
 					<Typography>Rules</Typography>
 				</Grid>
 				<Grid item xs={6}>
-					<TextField
-						value={newEvent.rules ?? ''}
-						name='rules'
-						onChange={handleTextChange}
-						multiline
-						maxRows={30}
-						sx={{
-							width: '100%',
-						}}
-					/>
+					{CustomTextField({
+						fieldName: 'rules',
+						TextFieldProps: {
+							multiline: true,
+							rows: 20,
+							fullWidth: true,
+						},
+					})}
 				</Grid>
 			</Grid>
 		</Box>

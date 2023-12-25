@@ -3,6 +3,8 @@ import Typography from '@mui/material/Typography';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { Outlet } from 'react-router-dom';
 import './DashLayout.css';
@@ -48,6 +50,7 @@ export default function DashLayout() {
 				<Box className='dash-content'>
 					<Outlet />
 				</Box>
+				<ToastContainer />
 			</Box>
 		</Box>
 	);

@@ -127,16 +127,22 @@ export function ApiState({ children }: IApiStateProps) {
 		async (err: any) => {
 			const originalConfig = err.config;
 
-			if (err.response.status === 401 && !originalConfig._retry) {
+			if (
+				!originalConfig._retry &&
+				(err.response?.status === 401 || // For expired token
+					err?.code === 'ECONNABORTED') // For cold start timeouts
+			) {
+				console.log('Token Expired, Retrying');
 				originalConfig._retry = true;
 
 				try {
+					const newAccessToken = await refreshAccessToken();
 					axiosAccPrivate.defaults.headers.common['Authorization'] =
-						'Bearer ' + accessToken;
+						'Bearer ' + newAccessToken;
 					originalConfig.headers['Authorization'] =
-						'Bearer ' + accessToken;
+						'Bearer ' + newAccessToken;
 
-					return axiosAccPrivate(originalConfig);
+					return await axios(originalConfig);
 				} catch (_error) {
 					return Promise.reject(_error);
 				}

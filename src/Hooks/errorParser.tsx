@@ -1,4 +1,5 @@
 import { AxiosError } from 'axios';
+import { ValidationError } from 'yup';
 
 export function getErrMsg(error: any): string {
 	console.log({ error });
@@ -16,3 +17,26 @@ export function getErrMsg(error: any): string {
 		return 'Something went wrong';
 	}
 }
+
+
+export interface IUpdateSuccess {
+	success: true;
+	validationError: never;
+	networkError: never;
+}
+
+export interface IUpdateValidationError{
+	success: false;
+	validationError: ValidationError[];
+	networkError: never;
+}
+
+export interface IUpdateNetworkError {
+	success: false;
+	validationError: never;
+	networkError: string;
+}
+export type TupdateFnReturn =
+	| IUpdateSuccess
+	| IUpdateValidationError
+	| IUpdateNetworkError;
