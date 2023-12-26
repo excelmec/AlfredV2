@@ -1,5 +1,5 @@
 import { Grid, Box, Typography, Paper, Divider } from '@mui/material';
-import { IEvent } from '../../../Hooks/Event/eventTypes';
+import { IEvent } from 'Hooks/Event/eventTypes';
 
 import './EventData.css';
 

@@ -1,14 +1,15 @@
 import { Box, Typography } from '@mui/material';
-import EventEdit from 'Components/EventEdit/EventEdit/EventEdit';
-import EventEditToolBar from 'Components/EventEdit/ToolBar/EventEditToolBar';
+import EventEdit from 'Components/Events/EventCreateUpdate/EventEdit/EventEdit';
+import EventEditToolBar from 'Components/Events/EventCreateUpdate/ToolBar/EventEditToolBar';
 import { useEventDesc } from 'Hooks/Event/useEventDesc';
-import { useEventEdit } from 'Hooks/Event/useEventEdit';
+import { useEventEdit } from 'Hooks/Event/create-update/useEventEdit';
 import axios from 'axios';
 import lodash from 'lodash';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function EventEditPage() {
+	const { id } = useParams<{ id: string }>();
 	const { event, fetchEvent, loading, error, setError } = useEventDesc();
 	const {
 		newEvent,
@@ -18,8 +19,7 @@ export default function EventEditPage() {
 		error: savingEventError,
 		validateEvent,
 		validationErrors,
-	} = useEventEdit();
-	const { id } = useParams<{ id: string }>();
+	} = useEventEdit(id);
 
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
 	const [currentIconFile, setCurrentIconFile] = useState<File | undefined>();
@@ -112,13 +112,13 @@ export default function EventEditPage() {
 			<br />
 
 			<EventEditToolBar
-				updateEvent={updateEvent}
+				saveChanges={updateEvent}
 				hasUnsavedChanges={hasUnsavedChanges}
 				savingEvent={savingEvent}
-				eventId={event.id}
 			/>
 
 			<EventEdit
+				id={event.id}
 				newEvent={newEvent!}
 				setNewEvent={setNewEvent}
 				savingEvent={savingEvent}

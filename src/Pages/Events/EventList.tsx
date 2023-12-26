@@ -113,6 +113,14 @@ export default function EventListPage() {
 				Event List
 			</Typography>
 			<br />
+			<Button
+				size='small'
+				variant='contained'
+				onClick={() => navigate('/events/create')}
+			>
+				Create New Event
+			</Button>
+			<br />
 			<DataGrid
 				density='compact'
 				getRowId={getRowId}
@@ -146,7 +154,10 @@ export default function EventListPage() {
 					<Button
 						autoFocus
 						onClick={() => {
-							handleDelete(eventToDelete?.id as number, eventToDelete?.name as string);
+							handleDelete(
+								eventToDelete?.id as number,
+								eventToDelete?.name as string
+							);
 						}}
 						disabled={eventIsDeleting}
 					>

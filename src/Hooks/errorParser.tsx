@@ -21,6 +21,7 @@ export function getErrMsg(error: any): string {
 
 export interface IUpdateSuccess {
 	success: true;
+	eventId: number;
 	validationError: never;
 	networkError: never;
 }
@@ -28,12 +29,14 @@ export interface IUpdateSuccess {
 export interface IUpdateValidationError{
 	success: false;
 	validationError: ValidationError[];
+	eventId: never;
 	networkError: never;
 }
 
 export interface IUpdateNetworkError {
 	success: false;
 	validationError: never;
+	eventId: never;
 	networkError: string;
 }
 export type TupdateFnReturn =

@@ -9,15 +9,13 @@ import { toast } from 'react-toastify';
 import { TupdateFnReturn } from 'Hooks/errorParser';
 
 export default function EventEditToolBar({
-	updateEvent,
+	saveChanges,
 	hasUnsavedChanges,
 	savingEvent,
-	eventId,
 }: {
-	updateEvent: () => Promise<TupdateFnReturn>;
+	saveChanges: () => Promise<TupdateFnReturn>;
 	hasUnsavedChanges: boolean;
 	savingEvent: boolean;
-	eventId: number;
 }) {
 	const navigate = useNavigate();
 
@@ -32,11 +30,11 @@ export default function EventEditToolBar({
 
 	async function saveEvent() {
 		try {
-			const res = await updateEvent();
+			const res = await saveChanges();
 
 			if (res.success) {
 				toast.success('Event Saved.');
-				navigate(`/events/view/${eventId}`, {
+				navigate(`/events/view/${res.eventId}`, {
 					replace: true,
 				});
 				return;

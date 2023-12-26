@@ -20,6 +20,7 @@ import CaTeamView from 'Pages/CampusAmbassador/CaTeamView';
 import CaViewPage from 'Pages/CampusAmbassador/CaView';
 import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 import EventEditPage from 'Pages/Events/EventEdit';
+import EventCreatePage from 'Pages/Events/EventCreate';
 
 function App() {
 	return (
@@ -136,6 +137,16 @@ function App() {
 												allowedRoles={['Admin']}
 											>
 												<EventEditPage />
+											</ProtectedRoute>
+										}
+									/>
+									<Route
+										path='/events/create'
+										element={
+											<ProtectedRoute
+												allowedRoles={['Admin']}
+											>
+												<EventCreatePage />
 											</ProtectedRoute>
 										}
 									/>

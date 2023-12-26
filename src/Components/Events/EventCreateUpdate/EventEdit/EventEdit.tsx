@@ -26,20 +26,36 @@ import {
 	CategoryIdToString,
 	EventStatusIdToString,
 	IEventHead,
-} from '../../../Hooks/Event/eventTypes';
+} from '../../../../Hooks/Event/eventTypes';
 
 import './EventEdit.css';
 
 import { DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
-import { TnewEventModify } from 'Hooks/Event/useEventEdit';
+import {
+	IValidateCreateEvent,
+	IValidateUpdateEvent,
+} from 'Hooks/Event/create-update/eventValidation';
 import { useEventHeadsList } from 'Hooks/Event/useEventHeadsList';
 import { StyledTableCell } from 'Components/CampusAmbassador/TableCell';
 import { useNavigate } from 'react-router-dom';
 import { ValidationError } from 'yup';
 
 import { debounce } from 'lodash';
+
+type IEventDataForEdit = IValidateCreateEvent | IValidateUpdateEvent;
+
+interface IEventEditProps {
+	newEvent: IEventDataForEdit;
+	setNewEvent: React.Dispatch<React.SetStateAction<IEventDataForEdit>>;
+	savingEvent: boolean;
+	savingEventError: string;
+	validateEvent: () => boolean;
+	validationErrors: ValidationError[];
+
+	id?: number;
+}
 
 export default function EventEdit({
 	newEvent,
@@ -48,14 +64,8 @@ export default function EventEdit({
 	savingEventError,
 	validateEvent,
 	validationErrors,
-}: {
-	newEvent: TnewEventModify;
-	setNewEvent: React.Dispatch<React.SetStateAction<TnewEventModify>>;
-	savingEvent: boolean;
-	savingEventError: string;
-	validateEvent: () => boolean;
-	validationErrors: ValidationError[];
-}) {
+	id,
+}: IEventEditProps) {
 	const [selectedIconUrl, setSelectedIconUrl] = useState<string>('');
 	const navigate = useNavigate();
 	const {
@@ -104,7 +114,7 @@ export default function EventEdit({
 	function EventHeadChoose({
 		eventHeadIdField,
 	}: {
-		eventHeadIdField: Exclude<keyof TnewEventModify, undefined | null>;
+		eventHeadIdField: Exclude<keyof IValidateUpdateEvent, undefined | null>;
 	}) {
 		if (eventHeadListLoading) {
 			return <Typography>EventHeads Loading...</Typography>;
@@ -189,7 +199,7 @@ export default function EventEdit({
 		TextFieldProps,
 		onChange,
 	}: {
-		fieldName: Exclude<keyof TnewEventModify, undefined | null>;
+		fieldName: Exclude<keyof IValidateUpdateEvent, undefined | null>;
 		TextFieldProps?: TextFieldProps;
 		onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	}) {
@@ -248,13 +258,13 @@ export default function EventEdit({
 				<Grid item xs={12}>
 					<Typography variant='h5'>Event Basic Details</Typography>
 				</Grid>
-				{newEvent.id && (
+				{id && (
 					<>
 						<Grid item xs={6}>
 							<Typography>ID</Typography>
 						</Grid>
 						<Grid item xs={6}>
-							<Typography>{newEvent.id}</Typography>
+							<Typography>{id}</Typography>
 						</Grid>
 					</>
 				)}

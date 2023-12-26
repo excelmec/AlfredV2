@@ -1,12 +1,3 @@
-import { useContext, useState } from 'react';
-import { ApiContext } from '../../Contexts/Api/ApiContext';
-import {
-	IUpdateNetworkError,
-	IUpdateSuccess,
-	IUpdateValidationError,
-	TupdateFnReturn,
-	getErrMsg,
-} from '../errorParser';
 import {
 	CategoryIds,
 	EventStatusIds,
@@ -15,11 +6,10 @@ import {
 	TCategoryId,
 	TEventStatusId,
 	TEventTypeId,
-} from './eventTypes';
+} from '../eventTypes';
 import {
 	InferType,
 	ObjectSchema,
-	ValidationError,
 	boolean,
 	date,
 	mixed,
@@ -37,10 +27,9 @@ export const eventValidationSchema: ObjectSchema<
 		| 'eventHead1'
 		| 'eventHead2'
 		| 'icon'
+		| 'id'
 	> & { icon: File | undefined }
-> = object({
-	id: number().required(),
-
+> = object().shape({
 	name: string()
 		.required()
 		.min(2, 'Event Name must be minimum 2 characters')
@@ -163,148 +152,71 @@ export const eventValidationSchema: ObjectSchema<
 		),
 });
 
-export type TnewEventModify = InferType<typeof eventValidationSchema>;
+interface IEventValidate extends InferType<typeof eventValidationSchema> {}
 
-export function useEventEdit() {
-	const [newEvent, setNewEvent] = useState<TnewEventModify>({
-		id: 0,
-		name: '',
-		icon: undefined,
-		categoryId: 0,
-		eventTypeId: 0,
-		about: '',
-		format: '',
-		rules: '',
-		entryFee: 0,
-		prizeMoney: 0,
-		eventHead1Id: 0,
+export interface IValidateUpdateEvent extends IEventValidate {}
 
-		eventHead2Id: 0,
-		isTeam: false,
-		teamSize: undefined,
-		eventStatusId: 0,
-		numberOfRounds: undefined,
-		currentRound: undefined,
-		registrationOpen: undefined,
-		registrationEndDate: undefined,
-		button: undefined,
-		registrationLink: undefined,
-		venue: '',
-		needRegistration: false,
-		day: 0,
-		datetime: new Date(),
+export interface IValidateCreateEvent extends IEventValidate {}
+
+export const updateEventValidationSchema = eventValidationSchema;
+
+export const createEventValidationSchema = eventValidationSchema;
+
+export const defaultDummyEvent: IValidateUpdateEvent = {
+	name: '',
+	icon: undefined,
+	categoryId: 0,
+	eventTypeId: 0,
+	about: '',
+	format: '',
+	rules: '',
+	entryFee: 0,
+	prizeMoney: 0,
+	eventHead1Id: 0,
+
+	eventHead2Id: 0,
+	isTeam: false,
+	teamSize: undefined,
+	eventStatusId: 0,
+	numberOfRounds: undefined,
+	currentRound: undefined,
+	registrationOpen: undefined,
+	registrationEndDate: undefined,
+	button: undefined,
+	registrationLink: undefined,
+	venue: '',
+	needRegistration: false,
+	day: 0,
+	datetime: new Date(),
+};
+
+export function objectToFormData(
+	event: IValidateCreateEvent | IValidateUpdateEvent
+) {
+	const eventFormData = new FormData();
+
+	Object.keys(event).forEach((key) => {
+		const objectKey = key as keyof typeof event;
+		if (!objectKey) return;
+
+		const value = event[objectKey];
+
+		if (!value) return;
+
+		const firstCharUpperKey = key.charAt(0).toUpperCase() + key.slice(1);
+
+		if (value instanceof Date) {
+			eventFormData.append(firstCharUpperKey, value.toISOString());
+			return;
+		} else if (value instanceof File) {
+			eventFormData.append(firstCharUpperKey, value);
+			return;
+		} else if (!value.toString()) {
+			return;
+		} else {
+			eventFormData.append(firstCharUpperKey, value.toString());
+		}
 	});
 
-	const [loading, setLoading] = useState<boolean>(false);
-	const [error, setError] = useState<string>('');
-	const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
-		[]
-	);
-
-	const { axiosEventsPrivate } = useContext(ApiContext);
-
-	function validateEvent(): boolean {
-		try {
-			eventValidationSchema.validateSync(newEvent, {
-				abortEarly: false,
-				stripUnknown: true,
-			});
-			setValidationErrors([]);
-			return true;
-		} catch (err: any) {
-			if (err instanceof ValidationError) {
-				setValidationErrors(err.inner);
-				console.log(err.inner);
-			} else {
-				console.log(err);
-				setError(err?.message);
-			}
-			return false;
-		}
-	}
-
-	async function updateEvent(): Promise<TupdateFnReturn> {
-		try {
-			console.log({ newEvent });
-			setLoading(true);
-
-			if (!validateEvent()) {
-				return {
-					success: false,
-					validationError: validationErrors,
-				} as IUpdateValidationError;
-			}
-
-			const newEventFormData = new FormData();
-
-			Object.keys(newEvent).forEach((key) => {
-				const objectKey = key as keyof typeof newEvent;
-				if (!objectKey) return;
-
-				const value = newEvent[objectKey];
-
-				if (!value) return;
-
-				const firstCharUpperKey =
-					key.charAt(0).toUpperCase() + key.slice(1);
-
-				if (value instanceof Date) {
-					newEventFormData.append(
-						firstCharUpperKey,
-						value.toISOString()
-					);
-					return;
-				} else if (value instanceof File) {
-					newEventFormData.append(firstCharUpperKey, value);
-					return;
-				} else if (!value.toString()) {
-					return;
-				} else {
-					newEventFormData.append(
-						firstCharUpperKey,
-						value.toString()
-					);
-				}
-			});
-
-			console.log([...newEventFormData]);
-
-			const res = await axiosEventsPrivate.put(
-				`/api/events`,
-				newEventFormData,
-				{
-					headers: {
-						'Content-Type': 'multipart/form-data',
-					},
-				}
-			);
-			console.log(res);
-
-			return {
-				success: true,
-			} as IUpdateSuccess;
-		} catch (err) {
-			console.log(err);
-			const errMsg = getErrMsg(err);
-			setError(errMsg);
-			return {
-				success: false,
-				networkError: errMsg,
-			} as IUpdateNetworkError;
-		} finally {
-			setLoading(false);
-		}
-	}
-
-	return {
-		newEvent,
-		setNewEvent,
-		loading,
-		error,
-		setError,
-		updateEvent,
-
-		validateEvent,
-		validationErrors,
-	} as const;
+	return eventFormData;
 }

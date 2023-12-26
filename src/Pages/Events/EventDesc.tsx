@@ -2,8 +2,8 @@ import { Box, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { useEventDesc } from '../../Hooks/Event/useEventDesc';
 import { useParams } from 'react-router-dom';
-import ToolBar from '../../Components/EventDesc/ToolBar/ToolBar';
-import EventData from '../../Components/EventDesc/EventData/EventData';
+import ToolBar from '../../Components/Events/EventDesc/ToolBar/ToolBar';
+import EventData from '../../Components/Events/EventDesc/EventData/EventData';
 
 export default function EventDescPage() {
 	const { event, fetchEvent, loading, error, setError } = useEventDesc();
