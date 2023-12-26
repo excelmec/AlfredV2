@@ -18,6 +18,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 
 import { NavLink, useLocation } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
@@ -119,6 +120,12 @@ export default function Sidebar() {
 							text='Event Heads'
 							leftBorder
 							icon={<SupportAgentIcon />}
+						/>
+						<ListItemLink
+							to='/events/schedule'
+							text='Event Schedule'
+							leftBorder
+							icon={<ScheduleIcon />}
 						/>
 					</List>
 				</Collapse>
