@@ -43,7 +43,21 @@ export default function EventEditToolBar({
 			}
 
 			if (res.validationError) {
-				toast.error('Validation Error');
+				toast.error('Please fix the errors to continue.');
+
+				const firstErrorName = res.validationError[0]?.path;
+				if (!firstErrorName) return;
+
+				const firstErrorElem =
+					document.getElementsByName(firstErrorName)[0];
+
+				if (!firstErrorElem) return;
+
+				firstErrorElem.scrollIntoView({
+					behavior: 'smooth',
+					block: 'start',
+				});
+
 				return;
 			}
 		} catch (error: any) {
