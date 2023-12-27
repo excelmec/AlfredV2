@@ -1,0 +1,28 @@
+.item-data-container {
+	width: 90%;
+	margin-bottom: 20px;
+	flex-grow: 1;
+	overflow-y: auto;
+    
+}
+
+.item-data-grid {
+	width: 100%;
+	padding: 20px;
+}
+
+.slick-arrow::before {
+	opacity: 1;
+	background-color: rgb(107, 107, 114) !important;
+	border-radius: 50%;
+}
+
+.slick-arrow {
+	opacity: 1;
+	background-color: rgb(107, 107, 114) !important;
+	border-radius: 50%;
+}
+
+.item-image {
+	padding-right: 50px !important;
+}

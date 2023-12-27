@@ -3,7 +3,7 @@ import 'App.css';
 import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import UserState from 'Contexts/User/UserState';
-import { ApiState } from 'Contexts/Api/ApiState';
+import { ApiState, merchBaseUrl } from 'Contexts/Api/ApiState';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
@@ -21,6 +21,9 @@ import CaViewPage from 'Pages/CampusAmbassador/CaView';
 import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 import EventEditPage from 'Pages/Events/EventEdit';
 import EventCreatePage from 'Pages/Events/EventCreate';
+import ErrorPage from 'Pages/Error';
+import MerchItemListPage from 'Pages/Merchandise/ItemList';
+import MerchItemViewPage from 'Pages/Merchandise/itemView';
 
 function App() {
 	return (
@@ -43,6 +46,8 @@ function App() {
 									)}
 
 									{EventsRoutes().map((route) => route)}
+
+									{MerchRoutes().map((route) => route)}
 
 									<Route path='*' element={<NotFound />} />
 								</Route>
@@ -145,6 +150,39 @@ function EventsRoutes() {
 			element={
 				<ProtectedRoute allowedRoles={['Admin']}>
 					<EventHeadsPage />
+				</ProtectedRoute>
+			}
+		/>,
+	];
+}
+
+function MerchRoutes() {
+	if (!merchBaseUrl)
+		return [
+			<Route
+				path='/merch/*'
+				element={
+					<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+						<ErrorPage errMsg='Merch Features are disabled as merch backend url is not set' />
+					</ProtectedRoute>
+				}
+			/>,
+		];
+
+	return [
+		<Route
+			path='/merch/items'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+					<MerchItemListPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/merch/items/view/:itemId'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+					<MerchItemViewPage />
 				</ProtectedRoute>
 			}
 		/>,

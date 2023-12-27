@@ -7,7 +7,12 @@ export type UserContextType = {
 	logout: () => void;
 };
 
-export type UserRoles = 'User' | 'Admin' | 'CaVolunteer' | 'Core';
+export type UserRoles =
+	| 'User'
+	| 'Admin'
+	| 'CaVolunteer'
+	| 'Core'
+	| 'MerchManage';
 
 export type UserDatatype = {
 	loggedIn: boolean;

@@ -7,10 +7,15 @@ interface IApiStateProps {
 	children: React.ReactNode;
 }
 
+const accBaseUrl = process.env.REACT_APP_ACC_BACKEND_BASE_URL;
+const eventsBaseUrl = process.env.REACT_APP_EVENTS_BACKEND_BASE_URL;
+
+/**
+ * Not setting this will disable the merch API in the dashboard
+ */
+export const merchBaseUrl = process.env.REACT_APP_MERCH_BACKEND_BASE_URL;
+
 export function ApiState({ children }: IApiStateProps) {
-	const accBaseUrl = process.env.REACT_APP_ACC_BACKEND_BASE_URL;
-	const eventsBaseUrl = process.env.REACT_APP_EVENTS_BACKEND_BASE_URL;
-	const merchBaseUrl = process.env.REACT_APP_MERCH_BACKEND_BASE_URL;
 
 	if (!accBaseUrl) {
 		throw new Error('REACT_APP_ACC_BACKEND_BASE_URL is undefined');
