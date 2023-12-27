@@ -19,6 +19,7 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import StoreIcon from '@mui/icons-material/Store';
 
 import { NavLink, useLocation } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
@@ -28,18 +29,23 @@ import { Paper } from '@mui/material';
 
 export default function Sidebar() {
 	const { userData, userLoading, logout } = useContext(UserContext);
+
 	const [caOpen, setCaOpen] = useState(false);
 	const [eventsOpen, setEventsOpen] = useState(false);
+	const [merchOpen, setMerchOpen] = useState(false);
+
 	const location = useLocation();
-	const [activeLink, setActiveLink] = useState<'none' | 'ca' | 'events'>(
-		'none'
-	);
+	const [activeLink, setActiveLink] = useState<
+		'none' | 'ca' | 'events' | 'merch'
+	>('none');
 
 	useEffect(() => {
 		if (location.pathname.startsWith('/ca')) {
 			setActiveLink('ca');
 		} else if (location.pathname.startsWith('/events')) {
 			setActiveLink('events');
+		} else if (location.pathname.startsWith('/merch')) {
+			setActiveLink('merch');
 		} else {
 			setActiveLink('none');
 		}
@@ -127,6 +133,33 @@ export default function Sidebar() {
 							leftBorder
 							icon={<ScheduleIcon />}
 						/>
+					</List>
+				</Collapse>
+
+				{/* Merch */}
+				<ListItemButton
+					className={`list-item-link ${
+						activeLink === 'merch' ? 'active' : ''
+					}`}
+					onClick={() => {
+						setMerchOpen(!merchOpen);
+					}}
+				>
+					<ListItemIcon>
+						<StoreIcon />
+					</ListItemIcon>
+					<ListItemText primary='Merchandise' />
+					{merchOpen ? <ExpandLess /> : <ExpandMore />}
+				</ListItemButton>
+				<Collapse in={merchOpen} timeout='auto' unmountOnExit>
+					<List disablePadding={true}>
+						<ListItemLink
+							to='/merch/items'
+							text='List Items'
+							leftBorder
+							icon={<FormatListNumberedIcon />}
+						/>
+						
 					</List>
 				</Collapse>
 

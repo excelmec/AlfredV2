@@ -33,133 +33,17 @@ function App() {
 							<Routes>
 								<Route path='/' element={<DashLayout />}>
 									<Route path='/' element={<Home />} />
-									<Route
-										path='/users'
-										element={
-											<ProtectedRoute
-												allowedRoles={[
-													'Admin',
-													'CaVolunteer',
-												]}
-											>
-												<UserListPage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/contact'
-										element={
-											<ProtectedRoute>
-												<Contact />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/ca'
-										element={<Navigate to='/ca/list' />}
-									/>
-									<Route
-										path='/ca/:ambassadorId'
-										element={
-											<ProtectedRoute
-												allowedRoles={[
-													'Admin',
-													'CaVolunteer',
-												]}
-											>
-												<CaViewPage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/ca/list'
-										element={
-											<ProtectedRoute
-												allowedRoles={[
-													'Admin',
-													'CaVolunteer',
-												]}
-											>
-												<CaListPage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/ca/team'
-										element={
-											<ProtectedRoute
-												allowedRoles={[
-													'Admin',
-													'CaVolunteer',
-												]}
-											>
-												<CaTeamListPage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/ca/team/:teamId/view'
-										element={
-											<ProtectedRoute
-												allowedRoles={[
-													'Admin',
-													'CaVolunteer',
-												]}
-											>
-												<CaTeamView />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/events'
-										element={
-											<ProtectedRoute
-												allowedRoles={['Admin']}
-											>
-												<EventListPage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/events/view/:id'
-										element={
-											<ProtectedRoute
-												allowedRoles={['Admin']}
-											>
-												<EventDescPage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/events/edit/:id'
-										element={
-											<ProtectedRoute
-												allowedRoles={['Admin']}
-											>
-												<EventEditPage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/events/create'
-										element={
-											<ProtectedRoute
-												allowedRoles={['Admin']}
-											>
-												<EventCreatePage />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/events/heads'
-										element={
-											<ProtectedRoute
-												allowedRoles={['Admin']}
-											>
-												<EventHeadsPage />
-											</ProtectedRoute>
-										}
-									/>
+
+									{UserRoutes().map((route) => route)}
+
+									{ContactRoutes().map((route) => route)}
+
+									{CampusAmbassadorRoutes().map(
+										(route) => route
+									)}
+
+									{EventsRoutes().map((route) => route)}
+
 									<Route path='*' element={<NotFound />} />
 								</Route>
 							</Routes>
@@ -169,6 +53,115 @@ function App() {
 			</ApiState>
 		</div>
 	);
+}
+
+function UserRoutes() {
+	return [
+		<Route
+			path='/users'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
+					<UserListPage />
+				</ProtectedRoute>
+			}
+		/>,
+	];
+}
+
+function CampusAmbassadorRoutes() {
+	return [
+		<Route path='/ca' element={<Navigate to='/ca/list' />} />,
+		<Route
+			path='/ca/:ambassadorId'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
+					<CaViewPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/ca/list'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
+					<CaListPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/ca/team'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
+					<CaTeamListPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/ca/team/:teamId/view'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
+					<CaTeamView />
+				</ProtectedRoute>
+			}
+		/>,
+	];
+}
+
+function EventsRoutes() {
+	return [
+		<Route
+			path='/events'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventListPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/view/:id'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventDescPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/edit/:id'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventEditPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/create'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventCreatePage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/heads'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventHeadsPage />
+				</ProtectedRoute>
+			}
+		/>,
+	];
+}
+
+function ContactRoutes() {
+	return [
+		<Route
+			path='/contact'
+			element={
+				<ProtectedRoute>
+					<Contact />
+				</ProtectedRoute>
+			}
+		/>,
+	];
 }
 
 export default App;
