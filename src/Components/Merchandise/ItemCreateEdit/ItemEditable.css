@@ -1,0 +1,13 @@
+.item-editable-data-container {
+	width: 90%;
+	margin-bottom: 20px;
+	flex-grow: 1;
+	overflow-y: auto;
+    
+}
+
+.item-editable-data-grid {
+	width: 100%;
+	padding: 20px;
+}
+

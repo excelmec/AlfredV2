@@ -24,6 +24,7 @@ import EventCreatePage from 'Pages/Events/EventCreate';
 import ErrorPage from 'Pages/Error';
 import MerchItemListPage from 'Pages/Merchandise/ItemList';
 import MerchItemViewPage from 'Pages/Merchandise/itemView';
+import MerchItemEditPage from 'Pages/Merchandise/itemEdit';
 
 function App() {
 	return (
@@ -183,6 +184,14 @@ function MerchRoutes() {
 			element={
 				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
 					<MerchItemViewPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/merch/items/edit/:itemId'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+					<MerchItemEditPage />
 				</ProtectedRoute>
 			}
 		/>,

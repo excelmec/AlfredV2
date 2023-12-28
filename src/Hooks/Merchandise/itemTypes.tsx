@@ -1,4 +1,4 @@
-enum ESize {
+export enum ESize {
 	S = 'S',
 	M = 'M',
 	L = 'L',
@@ -6,11 +6,19 @@ enum ESize {
 	XXL = 'XXL',
 }
 
-enum EMediaObjectType {
+export const sizeOptions: ESize[] = [
+	ESize.S,
+	ESize.M,
+	ESize.L,
+	ESize.XL,
+	ESize.XXL,
+];
+
+export enum EMediaObjectType {
 	image = 'image',
 }
 
-interface IMediaObject {
+export interface IMediaObject {
 	id: string;
 	type: EMediaObjectType;
 	url: string;
@@ -22,7 +30,7 @@ interface IMediaObject {
 export interface IStockCount {
 	itemId: number;
 	colorOption: string;
-	sizeOption: string;
+	sizeOption: ESize;
 	count: number;
 }
 

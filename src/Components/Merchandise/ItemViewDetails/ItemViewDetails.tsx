@@ -21,20 +21,6 @@ import 'slick-carousel/slick/slick-theme.css';
 import { ReactElement } from 'react';
 
 export default function ItemDetails({ item }: { item: IItem }) {
-	// const stockByColor = lodash.groupBy(item.stockCount, 'colorOption');
-	// console.log(stockByColor);
-
-	// new Map<string, IStockCount[]>();
-	// item.stockCount.forEach((stock) => {
-	// 	const currentStock = stockByColor.get(stock.colorOption);
-
-	// 	if (!currentStock) {
-	// 		stockByColor.set(stock.colorOption, []);
-	// 	} else {
-	// 		currentStock.push(stock);
-	// 		stockByColor.set(stock.colorOption, currentStock);
-	// 	}
-	// });
 
 	function StockRow({ color }: { color: string }) {
 		const tableCells: ReactElement[] = [];
