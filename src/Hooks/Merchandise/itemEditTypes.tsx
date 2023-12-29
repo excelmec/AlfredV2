@@ -1,7 +1,10 @@
 import { IItem, IMediaObject, IStockCount } from './itemTypes';
 
 export interface IMediaObjectEdit
-	extends Pick<IMediaObject, 'colorOption' | 'type' | 'viewOrdering'> {
+	extends Pick<
+		IMediaObject,
+		'colorOption' | 'type' | 'viewOrdering' | 'url'
+	> {
 	fileName: string;
 }
 

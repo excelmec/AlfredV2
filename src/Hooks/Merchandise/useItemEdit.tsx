@@ -1,5 +1,8 @@
-import { useContext, useState } from 'react';
-import { ApiContext } from 'Contexts/Api/ApiContext';
+import {
+	// useContext,
+	useState,
+} from 'react';
+// import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import { IItemEditWithFile, dummyEditItemWithFile } from './itemEditTypes';
 
@@ -8,7 +11,7 @@ export function useItemEdit() {
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string>('');
 
-	const { axiosMerchPrivate } = useContext(ApiContext);
+	// const { axiosMerchPrivate } = useContext(ApiContext);
 
 	async function updateItem(itemId: number) {
 		try {

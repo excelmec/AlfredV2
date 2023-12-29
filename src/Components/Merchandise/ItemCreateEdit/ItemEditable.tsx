@@ -19,13 +19,24 @@ import {
 	TextField,
 } from '@mui/material';
 
+import {
+	DragDropContext,
+	Droppable,
+	Draggable,
+	DroppableProps,
+	DropResult,
+} from '@hello-pangea/dnd';
+
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 
 import './ItemEditable.css';
 
-import { ReactElement, useState } from 'react';
-import { IItemEditWithFile } from 'Hooks/Merchandise/itemEditTypes';
+import { ReactElement, useEffect, useState } from 'react';
+import {
+	IItemEditWithFile,
+	IMediaObjectEditWithFile,
+} from 'Hooks/Merchandise/itemEditTypes';
 import { sizeOptions } from 'Hooks/Merchandise/itemTypes';
 
 const ITEM_HEIGHT = 48;
@@ -38,6 +49,47 @@ const MenuProps = {
 		},
 	},
 };
+
+/**DRAG START */
+
+const grid = 8;
+
+const getItemStyle = (isDragging: any, draggableStyle: any) => ({
+	userSelect: 'none',
+	padding: grid * 2,
+	margin: `0 ${grid}px 0 0`,
+	background: isDragging ? 'lightgreen' : 'grey',
+	...draggableStyle,
+});
+
+const getListStyle = (isDraggingOver: any) => ({
+	background: isDraggingOver ? 'lightblue' : 'lightgrey',
+	display: 'flex',
+	padding: grid,
+	overflow: 'auto',
+	width: 'fit-content',
+});
+
+export const StrictModeDroppable = ({ children, ...props }: DroppableProps) => {
+	const [enabled, setEnabled] = useState(false);
+
+	useEffect(() => {
+		const animation = requestAnimationFrame(() => setEnabled(true));
+
+		return () => {
+			cancelAnimationFrame(animation);
+			setEnabled(false);
+		};
+	}, []);
+
+	if (!enabled) {
+		return null;
+	}
+
+	return <Droppable {...props}>{children}</Droppable>;
+};
+
+/** DRAG END */
 
 export default function ItemEditable({
 	itemId,
@@ -185,6 +237,98 @@ export default function ItemEditable({
 			</Select>
 		);
 	}
+
+	/**DRAG START */
+
+	const onDragEnd = (result: DropResult) => {
+		if (!result.destination) {
+			return;
+		}
+
+		const color = result.destination.droppableId;
+		const sourceIndex = result.source.index;
+		const destinationIndex = result.destination.index;
+
+		const thisColorMediaObjects: IMediaObjectEditWithFile[] = [];
+		const otherColorMediaObjects: IMediaObjectEditWithFile[] = [];
+
+		item.mediaObjects.forEach((mediaObject) => {
+			if (mediaObject.colorOption === color) {
+				thisColorMediaObjects.push(mediaObject);
+			} else {
+				otherColorMediaObjects.push(mediaObject);
+			}
+		});
+
+		const [deleted] = thisColorMediaObjects.splice(sourceIndex, 1);
+		thisColorMediaObjects.splice(destinationIndex, 0, deleted);
+
+		const viewOrderUpdatedMediaObjects = thisColorMediaObjects.map(
+			(mediaObject, index) => ({
+				...mediaObject,
+				viewOrdering: index,
+			})
+		);
+
+		const newMediaObjects = [
+			...viewOrderUpdatedMediaObjects,
+			...otherColorMediaObjects,
+		];
+
+		setItem({
+			...item,
+			mediaObjects: newMediaObjects,
+		});
+	};
+
+	function DraggableColorImages({ color }: { color: string }) {
+		if (imagesLoading) {
+			return <Typography>Loading Images...</Typography>;
+		}
+
+		const colorMediaItems = item.mediaObjects
+			.filter((mediaObject) => mediaObject.colorOption === color)
+			.sort((a, b) => a.viewOrdering - b.viewOrdering);
+
+		return (
+			<DragDropContext onDragEnd={onDragEnd}>
+				<Droppable droppableId={color} direction='horizontal'>
+					{(provided, snapshot) => (
+						<div
+							ref={provided.innerRef}
+							style={getListStyle(snapshot.isDraggingOver)}
+							{...provided.droppableProps}
+						>
+							{colorMediaItems.map((mediaObject, index) => (
+								<Draggable
+									key={mediaObject.fileName}
+									draggableId={mediaObject.fileName}
+									index={index}
+								>
+									{(provided, snapshot) => (
+										<img
+											width={200}
+											ref={provided.innerRef}
+											{...provided.draggableProps}
+											{...provided.dragHandleProps}
+											style={getItemStyle(
+												snapshot.isDragging,
+												provided.draggableProps.style
+											)}
+											src={mediaObject.url}
+										/>
+									)}
+								</Draggable>
+							))}
+							{provided.placeholder}
+						</div>
+					)}
+				</Droppable>
+			</DragDropContext>
+		);
+	}
+
+	/**DRAG END */
 
 	return (
 		<Box
@@ -434,9 +578,27 @@ export default function ItemEditable({
 				<Grid item xs={12}>
 					<Divider />
 				</Grid>
-				<Grid item xs={12}>
-					<Typography variant='h5'>Item Images</Typography>
-				</Grid>
+
+				{item.colorOptions.length === 0 ? (
+					<Grid item xs={12}>
+						<Typography color='error'>
+							No Color Options Created
+						</Typography>
+					</Grid>
+				) : (
+					item.colorOptions.map((color) => (
+						<>
+							<Grid item xs={12}>
+								<Typography variant='h5'>
+									Images for color: {color}
+								</Typography>
+							</Grid>
+							<Grid item xs={12}>
+								<DraggableColorImages color={color} />
+							</Grid>
+						</>
+					))
+				)}
 			</Grid>
 		</Box>
 	);

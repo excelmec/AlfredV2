@@ -4,10 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
 import { useItemView } from '../../Hooks/Merchandise/useItemView';
-import {
-	IMediaObjectEdit,
-	IMediaObjectEditWithFile,
-} from 'Hooks/Merchandise/itemEditTypes';
+import { IMediaObjectEditWithFile } from 'Hooks/Merchandise/itemEditTypes';
 import axios from 'axios';
 import { useItemEdit } from 'Hooks/Merchandise/useItemEdit';
 import ItemEditable from 'Components/Merchandise/ItemCreateEdit/ItemEditable';
@@ -54,6 +51,7 @@ export default function MerchItemEditPage() {
 				const mediaObject = item.mediaObjects[index];
 
 				return {
+					url: mediaObject.url,
 					type: mediaObject.type,
 					colorOption: mediaObject.colorOption,
 					viewOrdering: mediaObject.viewOrdering,
@@ -80,9 +78,10 @@ export default function MerchItemEditPage() {
 			...item,
 			mediaObjects: [],
 		});
-		
+
 		loadImages();
 
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [item]);
 
 	if (error) {
