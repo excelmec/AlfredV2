@@ -18,6 +18,8 @@ export enum EMediaObjectType {
 	image = 'image',
 }
 
+export const mediaObjectTypes: EMediaObjectType[] = [EMediaObjectType.image];
+
 export interface IMediaObject {
 	id: string;
 	type: EMediaObjectType;

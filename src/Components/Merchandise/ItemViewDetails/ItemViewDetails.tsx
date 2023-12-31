@@ -21,7 +21,6 @@ import 'slick-carousel/slick/slick-theme.css';
 import { ReactElement } from 'react';
 
 export default function ItemDetails({ item }: { item: IItem }) {
-
 	function StockRow({ color }: { color: string }) {
 		const tableCells: ReactElement[] = [];
 
@@ -53,6 +52,36 @@ export default function ItemDetails({ item }: { item: IItem }) {
 				</TableCell>
 				{tableCells}
 			</TableRow>
+		);
+	}
+
+	function MediaColorRow({ color }: { color: string }) {
+		const mediaObjects = item.mediaObjects?.filter(
+			(mediaObject) => mediaObject.colorOption === color
+		);
+		if (!mediaObjects || mediaObjects.length === 0) {
+			return <Typography>No Images Available for this color</Typography>;
+		}
+		return (
+			<div className='item-view-media-row'>
+				{mediaObjects.map((mediaObject, index) => {
+					return (
+						<div className='item-view-media-container'>
+							<img
+								src={mediaObject.url}
+								referrerPolicy='no-referrer'
+								alt={`Item ${mediaObject.colorOption} ${
+									index + 1
+								}`}
+								className='item-view-media-image'
+							/>
+							<span className='item-view-media-index'>
+								<span>{index + 1}</span>
+							</span>
+						</div>
+					);
+				})}
+			</div>
 		);
 	}
 
@@ -167,11 +196,25 @@ export default function ItemDetails({ item }: { item: IItem }) {
 				<Grid item xs={12}>
 					<Divider />
 				</Grid>
-				<Grid item xs={12}>
-					<Typography variant='h5'>Item Images</Typography>
-				</Grid>
 
-				<Grid item xs={6}>
+				{item?.colorOptions?.length === 0
+					? 'No Images Available as no color options have been added'
+					: item.colorOptions?.map((color) => {
+							return (
+								<>
+									<Grid item xs={12}>
+										<Typography variant='h5'>
+											Item {color} Images
+										</Typography>
+									</Grid>
+									<Grid item xs={12}>
+										<MediaColorRow color={color} />
+									</Grid>
+								</>
+							);
+					  })}
+
+				{/* <Grid item xs={6}>
 					<Slider
 						dots
 						arrows
@@ -198,7 +241,7 @@ export default function ItemDetails({ item }: { item: IItem }) {
 							);
 						})}
 					</Slider>
-				</Grid>
+				</Grid> */}
 			</Grid>
 		</Box>
 	);

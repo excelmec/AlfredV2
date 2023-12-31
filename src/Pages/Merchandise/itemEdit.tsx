@@ -4,15 +4,24 @@ import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
 import { useItemView } from '../../Hooks/Merchandise/useItemView';
-import { IMediaObjectEditWithFile } from 'Hooks/Merchandise/itemEditTypes';
+import { IMediaObjectEditWithFile } from 'Hooks/Merchandise/create-update/itemEditTypes';
 import axios from 'axios';
-import { useItemEdit } from 'Hooks/Merchandise/useItemEdit';
-import ItemEditable from 'Components/Merchandise/ItemCreateEdit/ItemEditable';
+import { useItemEdit } from 'Hooks/Merchandise/create-update/useItemEdit';
+import ItemEditable from 'Components/Merchandise/ItemCreateEdit/Editable/ItemEditable';
+import MerchEditToolbar from 'Components/Merchandise/ItemCreateEdit/Toolbar/MerchEditToolbar';
 
 export default function MerchItemEditPage() {
 	const { item, fetchItem, loading, error } = useItemView();
 
-	const { item: modifiedItem, setItem: setModifiedItem } = useItemEdit();
+	const {
+		item: modifiedItem,
+		setItem: setModifiedItem,
+		updateItem,
+		loading: savingItem,
+
+		validationErrors,
+		validateEvent,
+	} = useItemEdit();
 
 	const { itemId: itemIdStr } = useParams();
 	const itemId = parseInt(itemIdStr ?? '');
@@ -114,11 +123,20 @@ export default function MerchItemEditPage() {
 				</Box>
 				<br />
 
+				<MerchEditToolbar
+					itemId={itemId}
+					saveChanges={updateItem}
+					hasUnsavedChanges={false}
+					savingChanges={savingItem}
+				/>
+
 				<ItemEditable
+					validationErrors={validationErrors}
 					item={modifiedItem}
 					setItem={setModifiedItem}
 					imagesLoading={imagesLoading}
 					itemId={itemId}
+					validateEvent={validateEvent}
 				/>
 			</>
 		</>

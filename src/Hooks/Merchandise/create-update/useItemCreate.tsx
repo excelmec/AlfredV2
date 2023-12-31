@@ -1,37 +1,31 @@
 import { useContext, useState } from 'react';
-import { ApiContext } from '../../../Contexts/Api/ApiContext';
+import { ApiContext } from 'Contexts/Api/ApiContext';
 import {
 	IUpdateNetworkError,
 	IUpdateSuccess,
 	IUpdateValidationError,
 	TupdateFnReturn,
 	getErrMsg,
-} from '../../errorParser';
-import { ValidationError } from 'yup';
-import {
-	IValidateCreateEvent,
-	defaultDummyEvent,
-	objectToFormData,
-	createEventValidationSchema,
-} from './eventValidation';
+} from 'Hooks/errorParser';
+import { IItemEditWithFile, dummyEditItemWithFile } from './itemEditTypes';
 import { AxiosResponse } from 'axios';
-import { IEvent } from '../eventTypes';
+import { IItem } from '../itemTypes';
+import { itemValidationSchema } from './itemEditValidation';
+import { ValidationError } from 'yup';
 
-export function useEventCreate() {
-	const [newEvent, setNewEvent] =
-		useState<IValidateCreateEvent>(defaultDummyEvent);
-
+export function useItemCreate() {
+	const [item, setItem] = useState<IItemEditWithFile>(dummyEditItemWithFile);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string>('');
 	const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
 		[]
 	);
 
-	const { axiosEventsPrivate } = useContext(ApiContext);
+	const { axiosMerchPrivate } = useContext(ApiContext);
 
 	function validateEvent(): boolean {
 		try {
-			createEventValidationSchema.validateSync(newEvent, {
+			itemValidationSchema.validateSync(item, {
 				abortEarly: false,
 				stripUnknown: true,
 			});
@@ -49,9 +43,8 @@ export function useEventCreate() {
 		}
 	}
 
-	async function createEvent(): Promise<TupdateFnReturn> {
+	async function createItem(): Promise<TupdateFnReturn> {
 		try {
-			console.log({ newEvent });
 			setLoading(true);
 
 			if (!validateEvent()) {
@@ -61,30 +54,37 @@ export function useEventCreate() {
 				} as IUpdateValidationError;
 			}
 
-			const newEventFormData = objectToFormData(newEvent);
+			const payloadForm = new FormData();
+			payloadForm.append('data', JSON.stringify(item));
+			item.mediaObjects.forEach((mediaObject) => {
+				console.log(mediaObject, mediaObject.file.arrayBuffer());
+				payloadForm.append(
+					'media',
+					mediaObject.file,
+					mediaObject.file.name
+				);
+			});
 
-			const createRes = await axiosEventsPrivate.post<
+			const response = await axiosMerchPrivate.post<
 				any,
-				AxiosResponse<IEvent>
-			>(`/api/events`, newEventFormData, {
+				AxiosResponse<{
+					message: string;
+					item: IItem;
+				}>
+			>(`/admin/item`, payloadForm, {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
 			});
-			if (!createRes.data?.id) {
-				setError(
-					'Something went wrong when creating event. Event ID not found'
-				);
-			}
 
 			return {
 				success: true,
-				id: createRes.data?.id,
+				id: response.data.item.id,
 			} as IUpdateSuccess;
 		} catch (err) {
-			console.log(err);
 			const errMsg = getErrMsg(err);
 			setError(errMsg);
+
 			return {
 				success: false,
 				networkError: errMsg,
@@ -95,14 +95,13 @@ export function useEventCreate() {
 	}
 
 	return {
-		newEvent,
-		setNewEvent,
+		item,
+		setItem,
 		loading,
 		error,
-		setError,
-		createEvent,
-
-		validateEvent,
 		validationErrors,
+		
+		validateEvent,
+		createItem,
 	} as const;
 }

@@ -1,4 +1,4 @@
-import { IItem, IMediaObject, IStockCount } from './itemTypes';
+import { IItem, IMediaObject, IStockCount } from '../itemTypes';
 
 export interface IMediaObjectEdit
 	extends Pick<

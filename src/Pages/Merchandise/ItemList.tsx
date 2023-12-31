@@ -109,7 +109,7 @@ export default function MerchItemListPage() {
 			<Button
 				size='small'
 				variant='contained'
-				onClick={() => navigate('/merch/create')}
+				onClick={() => navigate('/merch/items/create')}
 			>
 				Create New Item
 			</Button>

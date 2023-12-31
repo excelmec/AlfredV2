@@ -1,11 +1,9 @@
 import { Box, Typography } from '@mui/material';
-
 import { useEffect } from 'react';
-
 import { useItemView } from '../../Hooks/Merchandise/useItemView';
-
 import { useParams } from 'react-router-dom';
 import ItemDetails from 'Components/Merchandise/ItemViewDetails/ItemViewDetails';
+import ItemViewToolBar from 'Components/Merchandise/ItemViewDetails/ToolBar/ItemViewToolBar';
 
 export default function MerchItemViewPage() {
 	const { item, fetchItem, loading, error } = useItemView();
@@ -51,7 +49,7 @@ export default function MerchItemViewPage() {
 				</Box>
 				<br />
 
-				{/* <ToolBar eventId={event!.id} /> */}
+				<ItemViewToolBar itemId={itemId} />
 
 				<ItemDetails item={item} key={itemId} />
 			</>

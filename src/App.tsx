@@ -25,6 +25,7 @@ import ErrorPage from 'Pages/Error';
 import MerchItemListPage from 'Pages/Merchandise/ItemList';
 import MerchItemViewPage from 'Pages/Merchandise/itemView';
 import MerchItemEditPage from 'Pages/Merchandise/itemEdit';
+import MerchItemCreatePage from 'Pages/Merchandise/itemCreate';
 
 function App() {
 	return (
@@ -176,6 +177,14 @@ function MerchRoutes() {
 			element={
 				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
 					<MerchItemListPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/merch/items/create'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+					<MerchItemCreatePage />
 				</ProtectedRoute>
 			}
 		/>,

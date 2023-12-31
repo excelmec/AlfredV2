@@ -2,21 +2,34 @@ import { Box, Button, Paper } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-import './EventEditToolBar.css';
+import './MerchEditToolbar.css';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { TupdateFnReturn } from 'Hooks/errorParser';
 
-export default function EventEditToolBar({
-	saveChanges,
-	hasUnsavedChanges,
-	savingEvent,
-}: {
+type SaveChangesWithParam = {
+	itemId: number;
+	saveChanges(itemId: number): Promise<TupdateFnReturn>;
+	hasUnsavedChanges: boolean;
+	savingChanges: boolean;
+};
+
+type SaveChangesWithoutParam = {
+	itemId: undefined;
 	saveChanges: () => Promise<TupdateFnReturn>;
 	hasUnsavedChanges: boolean;
-	savingEvent: boolean;
-}) {
+	savingChanges: boolean;
+};
+
+type TProps = SaveChangesWithParam | SaveChangesWithoutParam;
+
+export default function MerchEditToolbar({
+	itemId,
+	saveChanges,
+	hasUnsavedChanges,
+	savingChanges,
+}: TProps) {
 	const navigate = useNavigate();
 
 	async function showUnsavedChangesPopup() {
@@ -28,13 +41,18 @@ export default function EventEditToolBar({
 		event.returnValue = '';
 	};
 
-	async function saveEvent() {
+	async function saveItem() {
 		try {
-			const res = await saveChanges();
+			let res;
+			if (itemId !== undefined) {
+				res = await saveChanges(itemId);
+			} else {
+				res = await saveChanges();
+			}
 
 			if (res.success) {
-				toast.success('Event Saved.');
-				navigate(`/events/view/${res.id}`, {
+				toast.success('Item Saved.');
+				navigate(`/merch/items/view/${res.id}`, {
 					replace: true,
 				});
 				return;
@@ -60,7 +78,7 @@ export default function EventEditToolBar({
 			}
 		} catch (error: any) {
 			console.log(error);
-			toast.error(`Error saving event: ${error?.message}`);
+			toast.error(`Error saving item: ${error?.message}`);
 		}
 	}
 
@@ -78,7 +96,7 @@ export default function EventEditToolBar({
 
 	return (
 		<Box
-			className='event-edit-toolbar'
+			className='item-edit-toolbar'
 			component={Paper}
 			elevation={2}
 			borderRadius={0}
@@ -91,17 +109,17 @@ export default function EventEditToolBar({
 				color='secondary'
 				startIcon={<SaveIcon />}
 				className='toolbutton'
-				onClick={saveEvent}
-				disabled={savingEvent}
+				onClick={saveItem}
+				disabled={savingChanges}
 			>
-				{savingEvent ? 'Saving...' : 'Save'}
+				{savingChanges ? 'Saving...' : 'Save'}
 			</Button>
 			<Button
 				variant='contained'
 				color='error'
 				startIcon={<CancelIcon />}
 				className='toolbutton'
-				disabled={savingEvent}
+				disabled={savingChanges}
 				onClick={async () => {
 					if (hasUnsavedChanges) {
 						const confirmExit = await showUnsavedChangesPopup();

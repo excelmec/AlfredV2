@@ -76,7 +76,7 @@ export function useEventEdit(id: string | undefined) {
 
 			return {
 				success: true,
-				eventId: eventId,
+				id: eventId,
 			} as IUpdateSuccess;
 		} catch (err) {
 			console.log(err);

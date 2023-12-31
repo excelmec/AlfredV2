@@ -18,25 +18,24 @@ export function getErrMsg(error: any): string {
 	}
 }
 
-
 export interface IUpdateSuccess {
 	success: true;
-	eventId: number;
+	id: number;
 	validationError: never;
 	networkError: never;
 }
 
-export interface IUpdateValidationError{
+export interface IUpdateValidationError {
 	success: false;
 	validationError: ValidationError[];
-	eventId: never;
+	id: never;
 	networkError: never;
 }
 
 export interface IUpdateNetworkError {
 	success: false;
 	validationError: never;
-	eventId: never;
+	id: never;
 	networkError: string;
 }
 export type TupdateFnReturn =
