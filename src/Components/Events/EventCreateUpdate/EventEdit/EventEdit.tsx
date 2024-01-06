@@ -37,7 +37,7 @@ import {
 	IValidateCreateEvent,
 	IValidateUpdateEvent,
 } from 'Hooks/Event/create-update/eventValidation';
-import { useEventHeadsList } from 'Hooks/Event/useEventHeadsList';
+import { useEventHeadsList } from 'Hooks/Event/eventHeads/useEventHeadsList';
 import { StyledTableCell } from 'Components/CampusAmbassador/TableCell';
 import { useNavigate } from 'react-router-dom';
 import { ValidationError } from 'yup';
@@ -120,7 +120,7 @@ export default function EventEdit({
 			return <Typography>EventHeads Loading...</Typography>;
 		}
 
-		if (!eventHeadsList) {
+		if (Array.isArray(eventHeadsList) && eventHeadsList.length === 0) {
 			return (
 				<>
 					<Typography>
