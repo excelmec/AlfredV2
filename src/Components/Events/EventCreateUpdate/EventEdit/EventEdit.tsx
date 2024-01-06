@@ -133,7 +133,9 @@ export default function EventEdit({
 						onClick={() => {
 							navigate('/events/heads/create');
 						}}
-					/>
+					>
+						Create Event Head
+					</Button>
 				</>
 			);
 		}

@@ -155,6 +155,14 @@ function EventsRoutes() {
 				</ProtectedRoute>
 			}
 		/>,
+		<Route
+			path='/events/heads/create'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventHeadsPage />
+				</ProtectedRoute>
+			}
+		/>,
 	];
 }
 
