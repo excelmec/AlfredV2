@@ -14,7 +14,7 @@ import {
 import { IItem } from 'Hooks/Merchandise/itemTypes';
 
 import './ItemViewDetails.css';
-import Slider from 'react-slick';
+// import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 

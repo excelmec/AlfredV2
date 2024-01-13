@@ -159,6 +159,12 @@ export default function Sidebar() {
 							leftBorder
 							icon={<FormatListNumberedIcon />}
 						/>
+						<ListItemLink
+							to='/merch/order/testpayment'
+							text='Test Payment'
+							leftBorder
+							icon={<FormatListNumberedIcon />}
+						/>
 						
 					</List>
 				</Collapse>

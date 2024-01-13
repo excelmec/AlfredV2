@@ -10,7 +10,7 @@ import {
 	TableRow,
 	TableCell,
 	TableBody,
-	Input,
+	// Input,
 	Select,
 	OutlinedInput,
 	Chip,
@@ -557,6 +557,8 @@ export default function ItemEditable({
 
 	useEffect(() => {
 		debounce(validateEvent, 300)();
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [item]);
 
 	return (
