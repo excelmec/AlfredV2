@@ -206,7 +206,26 @@ export function objectToFormData(
 		const firstCharUpperKey = key.charAt(0).toUpperCase() + key.slice(1);
 
 		if (value instanceof Date) {
-			eventFormData.append(firstCharUpperKey, value.toISOString());
+			function padTwoDigit(num: number) {
+				return (num < 10 ? '0' : '') + num;
+			}
+
+			/**
+			 * The date time format expected by the backend is YYYY-MM-DDTHH:MM:SS.
+			 * We cannot use toISOString() because it returns the date time in UTC
+			 * with 'Z' at the end.
+			 * The Backend will parse the date time string in the local timezone
+			 * Thus we need to convert the date time to local timezone and then 
+			 * mimic the ISO format.
+			 */
+			const year = value.getFullYear();
+			const month = padTwoDigit(value.getMonth() + 1);
+			const day = padTwoDigit(value.getDate());
+			const hour = padTwoDigit(value.getHours());
+			const minute = padTwoDigit(value.getMinutes());
+			const second = padTwoDigit(value.getSeconds());
+			const formattedDate = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+			eventFormData.append(firstCharUpperKey, formattedDate);
 			return;
 		} else if (value instanceof File) {
 			eventFormData.append(firstCharUpperKey, value);
