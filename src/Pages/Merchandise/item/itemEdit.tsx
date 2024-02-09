@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { Box, Typography } from '@mui/material';
 
-import { useItemView } from '../../Hooks/Merchandise/useItemView';
+import { useItemView } from '../../../Hooks/Merchandise/useItemView';
 import { IMediaObjectEditWithFile } from 'Hooks/Merchandise/create-update/itemEditTypes';
 import axios from 'axios';
 import { useItemEdit } from 'Hooks/Merchandise/create-update/useItemEdit';

@@ -22,10 +22,10 @@ import ProtectedRoute from 'Components/Protected/ProtectedRoute';
 import EventEditPage from 'Pages/Events/EventEdit';
 import EventCreatePage from 'Pages/Events/EventCreate';
 import ErrorPage from 'Pages/Error';
-import MerchItemListPage from 'Pages/Merchandise/ItemList';
-import MerchItemViewPage from 'Pages/Merchandise/itemView';
-import MerchItemEditPage from 'Pages/Merchandise/itemEdit';
-import MerchItemCreatePage from 'Pages/Merchandise/itemCreate';
+import MerchItemListPage from 'Pages/Merchandise/item/ItemList';
+import MerchItemViewPage from 'Pages/Merchandise/item/itemView';
+import MerchItemEditPage from 'Pages/Merchandise/item/itemEdit';
+import MerchItemCreatePage from 'Pages/Merchandise/item/itemCreate';
 import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
 
 function App() {

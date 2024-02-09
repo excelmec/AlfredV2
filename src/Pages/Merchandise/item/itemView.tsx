@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { useEffect } from 'react';
-import { useItemView } from '../../Hooks/Merchandise/useItemView';
+import { useItemView } from '../../../Hooks/Merchandise/useItemView';
 import { useParams } from 'react-router-dom';
 import ItemDetails from 'Components/Merchandise/ItemViewDetails/ItemViewDetails';
 import ItemViewToolBar from 'Components/Merchandise/ItemViewDetails/ToolBar/ItemViewToolBar';

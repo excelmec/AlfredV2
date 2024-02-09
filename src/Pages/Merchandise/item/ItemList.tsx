@@ -17,7 +17,7 @@ import {
 
 import { useEffect } from 'react';
 
-import { useItemList } from '../../Hooks/Merchandise/useItemList';
+import { useItemList } from '../../../Hooks/Merchandise/useItemList';
 import { IItem } from 'Hooks/Merchandise/itemTypes';
 
 import { useNavigate } from 'react-router-dom';
