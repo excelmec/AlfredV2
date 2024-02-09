@@ -3,6 +3,7 @@ import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import { IEventListItem } from './eventTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
+import { GridRenderCellParams, GridValueGetterParams } from '@mui/x-data-grid';
 
 export function useEventList() {
 	const [eventList, setEventList] = useState<IEventListItem[]>([]);
@@ -83,7 +84,7 @@ export function useEventList() {
 			type: 'string',
 			width: 100,
 			align: 'center',
-			renderCell: (params) => {
+			renderCell: (params: GridRenderCellParams<IEventListItem>) => {
 				return (
 					<img
 						src={params.value}
@@ -133,7 +134,7 @@ export function useEventList() {
 			headerName: 'DateTime',
 			type: 'string',
 			width: 150,
-			valueGetter: (params) => {
+			valueGetter: (params: GridValueGetterParams<IEventListItem>) => {
 				return params.row.datetime.toLocaleString([], {
 					year: '2-digit',
 					month: 'numeric',
