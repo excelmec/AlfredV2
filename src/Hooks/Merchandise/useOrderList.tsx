@@ -3,7 +3,7 @@ import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { IOrder } from './orderTypes';
-import { GridRenderCellParams } from '@mui/x-data-grid';
+import { GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
 
 export function useOrderList() {
 	const [orderList, setOrderList] = useState<IOrder[]>([]);
@@ -59,7 +59,10 @@ export function useOrderList() {
 			width: 170,
 			valueGetter: (params: GridRenderCellParams<IOrder>) => {
 				let dateVal: Date = typeof params.value.getMonth === 'function' ? params.value : new Date(params.value);
-				return dateVal.toLocaleString('en-IN', {
+				return dateVal;
+			},
+			valueFormatter: (params: GridValueFormatterParams<Date>) => {
+				return params.value.toLocaleString('en-IN', {
 					year: '2-digit',
 					month: 'short',
 					day: 'numeric',
@@ -107,8 +110,11 @@ export function useOrderList() {
 			field: 'totalAmountInRs',
 			headerName: 'Total Amt.',
 			type: 'number',
-			width: 80,
+			width: 100,
 			align: 'center',
+			valueFormatter: (params: GridValueFormatterParams<number>) => {
+				return `₹${params.value}`
+			},
 		},
 		{
 			field: 'itemCount',
