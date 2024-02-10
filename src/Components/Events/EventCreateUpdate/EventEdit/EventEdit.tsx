@@ -38,7 +38,7 @@ import {
 	IValidateUpdateEvent,
 } from 'Hooks/Event/create-update/eventValidation';
 import { useEventHeadsList } from 'Hooks/Event/eventHeads/useEventHeadsList';
-import { StyledTableCell } from 'Components/CampusAmbassador/TableCell';
+import { StyledTableCell } from 'Components/Commons/TableCell';
 import { useNavigate } from 'react-router-dom';
 import { ValidationError } from 'yup';
 

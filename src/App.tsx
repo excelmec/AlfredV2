@@ -28,6 +28,7 @@ import MerchItemEditPage from 'Pages/Merchandise/item/itemEdit';
 import MerchItemCreatePage from 'Pages/Merchandise/item/itemCreate';
 import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
 import OrdersListPage from 'Pages/Merchandise/Orders/orderList';
+import OrderViewPage from 'Pages/Merchandise/Orders/orderView';
 
 function App() {
 	return (
@@ -228,6 +229,14 @@ function MerchRoutes() {
 			element={
 				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
 					<OrdersListPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/merch/orders/view/:orderId'
+			element={
+				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+					<OrderViewPage />
 				</ProtectedRoute>
 			}
 		/>,

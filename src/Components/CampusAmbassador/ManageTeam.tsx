@@ -24,7 +24,7 @@ import { useCaTeam } from 'Hooks/CampusAmbassador/useCaTeam';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { maxCaTeamSize } from 'Hooks/CampusAmbassador/constants';
-import { StyledTableCell } from './TableCell';
+import { StyledTableCell } from '../Commons/TableCell';
 
 export default function ManageTeam() {
 	const { teamId } = useParams();

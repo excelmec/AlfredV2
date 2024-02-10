@@ -13,7 +13,7 @@ import {
 	Typography,
 } from '@mui/material';
 import { CaData, CaPointLog } from 'Hooks/CampusAmbassador/useCa';
-import { StyledTableCell } from './TableCell';
+import { StyledTableCell } from '../Commons/TableCell';
 
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';

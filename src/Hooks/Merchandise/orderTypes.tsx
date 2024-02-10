@@ -26,7 +26,7 @@ export interface IOrder {
 	orderId: string;
 	userId: Pick<IMerchUser, 'id'>;
 	user: IMerchUser;
-	address: IMerchUserAddress;
+	address: string;
 	razOrderId: string;
 	orderDate: Date;
 	trackingId?: string;
