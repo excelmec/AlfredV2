@@ -246,6 +246,19 @@ export function useEventRegList() {
 			valueGetter: (params: GridValueGetterParams<ITeam>) =>
 				params.row?.registrations?.length,
 		},
+		{
+			field: 'members',
+			headerName: 'Team Members',
+			type: 'string',
+			align: 'left',
+			headerAlign: 'center',
+			width: 150,
+			flex: 1,
+			valueGetter: (params: GridValueGetterParams<ITeam>) =>
+				params.row?.registrations
+					?.map((reg) => reg?.user?.name)
+					.join(', '),
+		},
 	];
 
 	return {
