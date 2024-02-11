@@ -150,6 +150,7 @@ export function useEventList() {
 		eventList,
 		loading,
 		error,
+		setError,
 		fetchEventList,
 		columns,
 		deleteEvent,

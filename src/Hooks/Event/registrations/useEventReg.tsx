@@ -5,8 +5,15 @@ import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { IRegistration, ITeam } from '../registrationTypes';
 import { GridValueGetterParams } from '@mui/x-data-grid';
 import { useEventDesc } from '../useEventDesc';
+import UserContext from 'Contexts/User/UserContext';
+import {
+	allEventEditRoles,
+	allEventViewRoles,
+	specificEventViewRoles,
+} from '../eventRoles';
 
 export function useEventRegList() {
+	const { userData } = useContext(UserContext);
 	const { axiosEventsPrivate, axiosAccPrivate } = useContext(ApiContext);
 	const { event, loading: eventLoading, fetchEvent } = useEventDesc();
 
@@ -30,6 +37,36 @@ export function useEventRegList() {
 			setError('');
 
 			const eventInfo = await fetchEvent(eventId);
+
+			if (
+				userData.roles.some((role) => allEventEditRoles.includes(role))
+			) {
+				// This person has edit access to all events, so can view all
+			} else if (
+				userData.roles.some((role) => allEventViewRoles.includes(role))
+			) {
+				// This person has view access to all events, so can view all
+			} else if (
+				userData.roles.some((role) =>
+					specificEventViewRoles.includes(role)
+				)
+			) {
+				// This person only has view access to events where they are the event head
+				if (
+					eventInfo?.eventHead1?.email === userData.email ||
+					eventInfo?.eventHead2?.email === userData.email
+				) {
+					// This person is an event head
+				} else {
+					setError('You do not have permission to view this page');
+					return;
+				}
+			} else {
+				// This person has no access to any event
+				setError('You do not have permission to view this page');
+				return;
+			}
+
 			const collegeInstitutions = await axiosAccPrivate.get<
 				{
 					id: number;

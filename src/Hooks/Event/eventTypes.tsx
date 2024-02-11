@@ -8,6 +8,12 @@ export interface IEventListItem {
 	needRegistration: boolean;
 	day?: number;
 	datetime: Date;
+
+
+	eventHead1Id: number;
+	eventHead1: IEventHead;
+	eventHead2Id: number;
+	eventHead2: IEventHead;
 }
 
 export interface IEvent extends IEventListItem {
@@ -18,10 +24,10 @@ export interface IEvent extends IEventListItem {
 	rules: string;
 	entryFee: number;
 	prizeMoney: number;
-	eventHead1Id: number;
-	eventHead1: IEventHead;
-	eventHead2Id: number;
-	eventHead2: IEventHead;
+	// eventHead1Id: number;
+	// eventHead1: IEventHead;
+	// eventHead2Id: number;
+	// eventHead2: IEventHead;
 	isTeam: boolean;
 	teamSize?: number;
 	eventStatusId: number;

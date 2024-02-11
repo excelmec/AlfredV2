@@ -13,28 +13,39 @@ import {
 	GridRowParams,
 	GridToolbar,
 } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useEventList } from '../../Hooks/Event/useEventsList';
 import { IEventListItem } from '../../Hooks/Event/eventTypes';
 import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
+import UserContext from 'Contexts/User/UserContext';
+import {
+	allEventEditRoles,
+	allEventViewRoles,
+	specificEventViewRoles,
+} from 'Hooks/Event/eventRoles';
 
 function getRowId(row: IEventListItem) {
 	return row.id;
 }
 
 export default function EventListPage() {
+	const { userData } = useContext(UserContext);
+
 	const {
 		eventList,
 		fetchEventList,
 		loading,
 		error,
+		setError,
 		columns,
 		deleteEvent,
 		eventIsDeleting,
 	} = useEventList();
+
+	const [viewableEvents, setViewableEvents] = useState<IEventListItem[]>([]);
 
 	const navigate = useNavigate();
 	const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
@@ -81,7 +92,11 @@ export default function EventListPage() {
 	];
 
 	function confirmDelete() {
-		setDeleteOpen(true);
+		if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
+			setDeleteOpen(true);
+		} else {
+			alert('You do not have permission to perform this action.');
+		}
 	}
 
 	async function handleDelete(eventId: number, eventName: string) {
@@ -101,6 +116,39 @@ export default function EventListPage() {
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	useEffect(() => {
+		if (loading) return;
+		if (eventList?.length === 0) return;
+
+		if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
+			// This person has edit access to all events, so can view all
+			setViewableEvents(eventList);
+		} else if (
+			userData.roles.some((role) => allEventViewRoles.includes(role))
+		) {
+			// This person has view access to all events, so can view all
+			setViewableEvents(eventList);
+		} else if (
+			userData.roles.some((role) => specificEventViewRoles.includes(role))
+		) {
+			// This person only has view access to events where they are the event head
+			const filteredEvents = eventList.filter((event) => {
+				return (
+					event.eventHead1?.email === userData.email ||
+					event.eventHead2?.email === userData.email
+				);
+			});
+			setViewableEvents(filteredEvents);
+			if (filteredEvents.length === 0) {
+				setError('You do not have permission to view this page');
+			}
+		} else {
+			// This person has no access to any event
+			setViewableEvents([]);
+			setError('You do not have permission to view this page');
+		}
+	}, [eventList]);
 
 	if (error) {
 		return <Typography variant='h5'>{error}</Typography>;
@@ -124,7 +172,7 @@ export default function EventListPage() {
 			<DataGrid
 				density='compact'
 				getRowId={getRowId}
-				rows={eventList}
+				rows={viewableEvents}
 				columns={muiColumns}
 				loading={loading}
 				sx={{

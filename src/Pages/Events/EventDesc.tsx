@@ -1,12 +1,19 @@
 import { Box, Typography } from '@mui/material';
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { useEventDesc } from '../../Hooks/Event/useEventDesc';
 import { useParams } from 'react-router-dom';
 import ToolBar from '../../Components/Events/EventDesc/ToolBar/ToolBar';
 import EventData from '../../Components/Events/EventDesc/EventData/EventData';
+import UserContext from 'Contexts/User/UserContext';
+import {
+	allEventEditRoles,
+	allEventViewRoles,
+	specificEventViewRoles,
+} from 'Hooks/Event/eventRoles';
 
 export default function EventDescPage() {
 	const { event, fetchEvent, loading, error, setError } = useEventDesc();
+	const { userData } = useContext(UserContext);
 
 	const { id } = useParams<{ id: string }>();
 
@@ -18,7 +25,34 @@ export default function EventDescPage() {
 		fetchEvent(Number(id));
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [id]);
+
+	useEffect(() => {
+		if (loading || !event) return;
+
+		if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
+			// This person has edit access to all events, so can view all
+		} else if (
+			userData.roles.some((role) => allEventViewRoles.includes(role))
+		) {
+			// This person has view access to all events, so can view all
+		} else if (
+			userData.roles.some((role) => specificEventViewRoles.includes(role))
+		) {
+			// This person only has view access to events where they are the event head
+			if (
+				event?.eventHead1?.email === userData.email ||
+				event?.eventHead2?.email === userData.email
+			) {
+				// This person is an event head
+			} else {
+				setError('You do not have permission to view this page');
+			}
+		} else {
+			// This person has no access to any event
+			setError('You do not have permission to view this page');
+		}
+	}, [event]);
 
 	if (error) {
 		return <Typography variant='h5'>{error}</Typography>;
