@@ -35,6 +35,7 @@ import {
 	allEventViewRoles,
 	specificEventViewRoles,
 } from 'Hooks/Event/eventRoles';
+import EventStatsPage from 'Pages/Events/EventStats';
 
 function App() {
 	return (
@@ -169,6 +170,17 @@ function EventsRoutes() {
 					]}
 				>
 					<EventRegistrationsListPage />
+				</ProtectedRoute>
+			}
+		/>,
+
+		<Route
+			path='/events/registrations/statistics'
+			element={
+				<ProtectedRoute
+					allowedRoles={[...allEventEditRoles, ...allEventViewRoles]}
+				>
+					<EventStatsPage />
 				</ProtectedRoute>
 			}
 		/>,
