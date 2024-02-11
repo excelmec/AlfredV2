@@ -52,7 +52,8 @@ export default function EventDescPage() {
 			// This person has no access to any event
 			setError('You do not have permission to view this page');
 		}
-	}, [event]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [event, loading, userData]);
 
 	if (error) {
 		return <Typography variant='h5'>{error}</Typography>;

@@ -148,7 +148,9 @@ export default function EventListPage() {
 			setViewableEvents([]);
 			setError('You do not have permission to view this page');
 		}
-	}, [eventList]);
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [eventList, loading, userData]);
 
 	if (error) {
 		return <Typography variant='h5'>{error}</Typography>;

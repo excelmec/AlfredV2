@@ -8,7 +8,6 @@ import {
 	Paper,
 	Table,
 	TableBody,
-	TableCell,
 	TableHead,
 	TableRow,
 	Typography,
