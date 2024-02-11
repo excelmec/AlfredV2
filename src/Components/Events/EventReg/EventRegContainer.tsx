@@ -1,7 +1,4 @@
 import {
-	Accordion,
-	AccordionDetails,
-	AccordionSummary,
 	Box,
 	Button,
 	Grid,
@@ -14,7 +11,6 @@ import {
 } from '@mui/material';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import './EventRegContainer.css';
 import { IRegistration, ITeam } from 'Hooks/Event/registrationTypes';
 import EventRegIndividual from './EventRegIndividual/EventRegIndividual';
@@ -59,38 +55,44 @@ export default function EventRegContainer({
 				teamRegsLoading={teamRegsLoading}
 			/>
 			<br />
-			<Accordion>
-				<AccordionSummary expandIcon={<ExpandMoreIcon />}>
+			<Grid
+				container
+				spacing={2}
+				justifyContent='center'
+				className='event-reg-table-grid'
+			>
+				<Grid item xs={12}>
 					<Typography variant='h5'>
 						Event Registration list (User wise)
 					</Typography>
-				</AccordionSummary>
-				<AccordionDetails className='event-reg-accordion-detail'>
+				</Grid>
+				<Grid item xs={12} className='event-reg-table-wrapper'>
 					<EventRegIndividual
 						individualRegsLoading={individualRegsLoading}
 						eventRegsIndividual={eventRegsIndividual}
 						regIndividualCols={regIndividualCols}
 						isTeam={event?.isTeam ?? false}
 					/>
-				</AccordionDetails>
-			</Accordion>
-			{event?.isTeam && (
-				<Accordion>
-					<AccordionSummary expandIcon={<ExpandMoreIcon />}>
-						<Typography variant='h5'>
-							Event Registration list (Team wise)
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails className='event-reg-accordion-detail'>
-						<EventRegTeams
-							institutionMap={institutionMap}
-							teamCols={teamCols}
-							eventRegsTeam={eventRegsTeam}
-							teamRegsLoading={teamRegsLoading}
-						/>
-					</AccordionDetails>
-				</Accordion>
-			)}
+				</Grid>
+				{event?.isTeam && (
+					<>
+						<Grid item xs={12}>
+							<Typography variant='h5'>
+								Event Registration list (Team wise)
+							</Typography>
+						</Grid>
+						<Grid item xs={12} className='event-reg-table-wrapper'>
+							<EventRegTeams
+								institutionMap={institutionMap}
+								teamCols={teamCols}
+								eventRegsTeam={eventRegsTeam}
+								teamRegsLoading={teamRegsLoading}
+							/>
+						</Grid>
+					</>
+				)}
+			</Grid>
+			<br />
 		</Box>
 	);
 }

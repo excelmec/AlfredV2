@@ -5,10 +5,6 @@
 	overflow-y: auto;
 }
 
-.event-reg-accordion-detail {
-	height: 70vh;
-}
-
 .event-reg-toolbar {
     width: 100%;
     display: flex;
@@ -21,7 +17,11 @@
     margin: 0 10px;
 }
 
-.event-reg-statistics-grid {
+.event-reg-statistics-grid, .event-reg-table-grid {
     width: 95% !important;
     margin: auto !important;
+}
+
+.event-reg-table-wrapper {
+    height: 70vh;
 }
