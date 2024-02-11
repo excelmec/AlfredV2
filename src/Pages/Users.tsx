@@ -6,7 +6,7 @@ import {
 	GridToolbar,
 } from '@mui/x-data-grid';
 import { useEffect } from 'react';
-import { User, useUserList } from '../Hooks/useUserList';
+import { IUser, useUserList } from '../Hooks/useUserList';
 
 export default function UserListPage() {
 	const { userList, loading, error, fetchUserList } = useUserList();
@@ -51,7 +51,7 @@ export default function UserListPage() {
 		</>
 	);
 }
-function getRowId(row: User) {
+function getRowId(row: IUser) {
 	return row.email;
 }
 

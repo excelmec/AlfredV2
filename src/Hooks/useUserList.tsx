@@ -2,7 +2,7 @@ import { useCallback, useContext, useState } from 'react';
 import { ApiContext } from '../Contexts/Api/ApiContext';
 import { getErrMsg } from './errorParser';
 
-export interface User {
+export interface IUser {
 	id: number;
 	name: string;
 	email: string;
@@ -26,7 +26,7 @@ export interface User {
 }
 
 export function useUserList() {
-	const [userList, setUserList] = useState<User[]>([]);
+	const [userList, setUserList] = useState<IUser[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string>('');
 
@@ -38,7 +38,7 @@ export function useUserList() {
 				setLoading(true);
 				setError('');
 				const response = await axiosAccPrivate.get<{
-					data: User[];
+					data: IUser[];
 					pagination: {
 						totalCount: number;
 						pageSize: number;

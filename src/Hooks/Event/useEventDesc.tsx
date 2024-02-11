@@ -30,6 +30,7 @@ export function useEventDesc() {
 			};
 
 			setEvent(eventData);
+			return eventData;
 		} catch (error) {
 			setError(getErrMsg(error));
 		} finally {

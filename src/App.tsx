@@ -29,6 +29,7 @@ import MerchItemCreatePage from 'Pages/Merchandise/item/itemCreate';
 import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
 import OrdersListPage from 'Pages/Merchandise/Orders/orderList';
 import OrderViewPage from 'Pages/Merchandise/Orders/orderView';
+import EventRegistrationsListPage from 'Pages/Events/EventRegistrations';
 
 function App() {
 	return (
@@ -163,6 +164,21 @@ function EventsRoutes() {
 			element={
 				<ProtectedRoute allowedRoles={['Admin']}>
 					<EventHeadsPage />
+				</ProtectedRoute>
+			}
+		/>,
+
+		<Route
+			path='/events/registrations/view/:eventId'
+			element={
+				/**
+				 * EventHead role to be given to users who need access to registration
+				 * list of ALL events.
+				 * Normal event heads of each event will have 'User' role only, but
+				 * they can access their respective event's registration list.
+				 */
+				<ProtectedRoute allowedRoles={['Admin', 'EventHead', 'User']}>
+					<EventRegistrationsListPage />
 				</ProtectedRoute>
 			}
 		/>,
