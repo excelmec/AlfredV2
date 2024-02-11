@@ -137,6 +137,11 @@ export default function CaTeamListPage() {
 				slotProps={{
 					toolbar: {
 						showQuickFilter: true,
+						printOptions: {
+							hideFooter: true,
+							hideHeader: true,
+							hideToolbar: true,
+						}
 					},
 				}}
 			/>

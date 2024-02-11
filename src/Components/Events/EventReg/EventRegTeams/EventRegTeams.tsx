@@ -69,6 +69,11 @@ export default function EventRegTeams({
 				slotProps={{
 					toolbar: {
 						showQuickFilter: true,
+						printOptions: {
+							hideFooter: true,
+							hideHeader: true,
+							hideToolbar: true,
+						}
 					},
 				}}
 				showCellVerticalBorder

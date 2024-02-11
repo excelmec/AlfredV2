@@ -45,6 +45,11 @@ export default function UserListPage() {
 				slotProps={{
 					toolbar: {
 						showQuickFilter: true,
+						printOptions: {
+							hideFooter: true,
+							hideHeader: true,
+							hideToolbar: true,
+						}
 					},
 				}}
 			/>
