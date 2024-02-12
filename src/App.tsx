@@ -278,7 +278,9 @@ function MerchRoutes() {
 		<Route
 			path='/merch/orders'
 			element={
-				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+				<ProtectedRoute
+					allowedRoles={['Admin', 'MerchManage', 'MerchOrderManage']}
+				>
 					<OrdersListPage />
 				</ProtectedRoute>
 			}
@@ -286,7 +288,7 @@ function MerchRoutes() {
 		<Route
 			path='/merch/orders/view/:orderId'
 			element={
-				<ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+				<ProtectedRoute allowedRoles={['Admin', 'MerchManage', 'MerchOrderManage']}>
 					<OrderViewPage />
 				</ProtectedRoute>
 			}

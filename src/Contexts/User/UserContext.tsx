@@ -26,6 +26,7 @@ export type UserRoles =
 	| 'CaVolunteer'
 	| 'Core'
 	| 'MerchManage'
+	| 'MerchOrderManage'
 	| 'EventHead';
 
 export type UserDatatype = {
