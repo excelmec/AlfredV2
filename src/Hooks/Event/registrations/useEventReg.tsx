@@ -36,7 +36,26 @@ export function useEventRegList() {
 		try {
 			setError('');
 
-			const eventInfo = await fetchEvent(eventId);
+			const eventInfoPromise = await fetchEvent(eventId);
+			const collegeInstitutionsPromise = axiosAccPrivate.get<
+				{
+					id: number;
+					name: string;
+				}[]
+			>('/api/Institution/college/list');
+			const shcoolInstitutionsPromise = axiosAccPrivate.get<
+				{
+					id: number;
+					name: string;
+				}[]
+			>('/api/Institution/school/list');
+
+			const [eventInfo, collegeInstitutions, shcoolInstitutions] =
+				await Promise.all([
+					eventInfoPromise,
+					collegeInstitutionsPromise,
+					shcoolInstitutionsPromise,
+				]);
 
 			if (
 				userData.roles.some((role) => allEventEditRoles.includes(role))
@@ -66,19 +85,6 @@ export function useEventRegList() {
 				setError('You do not have permission to view this page');
 				return;
 			}
-
-			const collegeInstitutions = await axiosAccPrivate.get<
-				{
-					id: number;
-					name: string;
-				}[]
-			>('/api/Institution/college/list');
-			const shcoolInstitutions = await axiosAccPrivate.get<
-				{
-					id: number;
-					name: string;
-				}[]
-			>('/api/Institution/school/list');
 
 			const institutionMap = new Map<number, string>();
 			collegeInstitutions.data.forEach((institution) => {

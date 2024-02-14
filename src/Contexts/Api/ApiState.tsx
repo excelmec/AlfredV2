@@ -16,6 +16,7 @@ const eventsBaseUrl = process.env.REACT_APP_EVENTS_BACKEND_BASE_URL;
 export const merchBaseUrl = process.env.REACT_APP_MERCH_BACKEND_BASE_URL;
 
 export function ApiState({ children }: IApiStateProps) {
+	console.log('ApiState');
 
 	if (!accBaseUrl) {
 		throw new Error('REACT_APP_ACC_BACKEND_BASE_URL is undefined');
@@ -27,7 +28,7 @@ export function ApiState({ children }: IApiStateProps) {
 	/**
 	 * Alfred can be used without certain features if needed
 	 * as Alfred is an all-in-one dashboard
-	 * 
+	 *
 	 * Newer independent API dash should not throw errors
 	 * but instead be enabled/disabled based on required features
 	 */
@@ -116,15 +117,17 @@ export function ApiState({ children }: IApiStateProps) {
 		setAccessToken(accessToken);
 		return accessToken;
 	}
-	const refreshAccessToken = useCallback(refreshTheAccessToken, [
-		refreshToken,
-		axiosAccPublic,
-		setAccessToken,
-	]);
+	const refreshAccessToken = useCallback(
+		refreshTheAccessToken,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[refreshToken]
+	);
 
 	useEffect(() => {
 		refreshAccessToken();
-	}, [refreshToken, axiosAccPublic, setAccessToken, refreshAccessToken]);
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [refreshToken]);
 
 	const attachAccessToken = (
 		config: InternalAxiosRequestConfig
