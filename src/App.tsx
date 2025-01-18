@@ -36,6 +36,8 @@ import {
 	specificEventViewRoles,
 } from 'Hooks/Event/eventRoles';
 import EventStatsPage from 'Pages/Events/EventStats';
+import TicketUserList from "./Pages/Ticket/TicketUserList";
+import TicketDescPage from "./Pages/Ticket/TicketDesc";
 
 function App() {
 	return (
@@ -60,6 +62,8 @@ function App() {
 									{EventsRoutes().map((route) => route)}
 
 									{MerchRoutes().map((route) => route)}
+
+									{TicketRoutes().map((route) => route)}
 
 									<Route path='*' element={<NotFound />} />
 								</Route>
@@ -307,6 +311,23 @@ function ContactRoutes() {
 			}
 		/>,
 	];
+}
+
+function TicketRoutes() {
+    return [
+        <Route
+            path='/tickets'
+            element={
+                    <TicketUserList/>
+            }
+        />,
+        <Route
+            path='/tickets/view/:id'
+            element={
+                <TicketDescPage/>
+            }
+        />,
+    ];
 }
 
 export default App;
