@@ -21,6 +21,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import StoreIcon from '@mui/icons-material/Store';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import BookOnlineIcon from '@mui/icons-material/BookOnline';
 
 import { NavLink, useLocation } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
@@ -34,10 +35,12 @@ export default function Sidebar() {
 	const [caOpen, setCaOpen] = useState(false);
 	const [eventsOpen, setEventsOpen] = useState(false);
 	const [merchOpen, setMerchOpen] = useState(false);
+	const [ticketsOpen, setTicketsOpen] = useState(false);
+
 
 	const location = useLocation();
 	const [activeLink, setActiveLink] = useState<
-		'none' | 'ca' | 'events' | 'merch'
+		'none' | 'ca' | 'events' | 'merch' | 'ticket'
 	>('none');
 
 	useEffect(() => {
@@ -47,6 +50,8 @@ export default function Sidebar() {
 			setActiveLink('events');
 		} else if (location.pathname.startsWith('/merch')) {
 			setActiveLink('merch');
+		} else if (location.pathname.startsWith('/ticket')) {
+			setActiveLink('ticket');
 		} else {
 			setActiveLink('none');
 		}
@@ -177,6 +182,40 @@ export default function Sidebar() {
 							text='Test Payment'
 							leftBorder
 							icon={<FormatListNumberedIcon />}
+						/>
+					</List>
+				</Collapse>
+
+				{/* Ticket */}
+				<ListItemButton
+					className={`list-item-link ${
+						activeLink === 'ticket' ? 'active' : ''
+					}`}
+					onClick={() => {
+						setTicketsOpen(!ticketsOpen);
+					}}
+				>
+					<ListItemIcon>
+						<BookOnlineIcon />
+					</ListItemIcon>
+					<ListItemText primary='Tickets' />
+					{ticketsOpen ? <ExpandLess /> : <ExpandMore />}
+				</ListItemButton>
+				<Collapse in={ticketsOpen} timeout='auto' unmountOnExit>
+					<List disablePadding={true}>
+						<ListItemLink
+							to='/tickets'
+							text='User List'
+							leftBorder
+							icon={<FormatListNumberedIcon />}
+						/>
+					</List>
+					<List disablePadding={true}>
+						<ListItemLink
+							to='/tickets/statistics'
+							text='Statistics'
+							leftBorder
+							icon={<TrendingUpIcon />}
 						/>
 					</List>
 				</Collapse>
