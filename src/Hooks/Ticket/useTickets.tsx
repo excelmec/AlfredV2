@@ -4,7 +4,6 @@ import {getErrMsg} from 'Hooks/errorParser';
 import {TypeSafeColDef} from 'Hooks/gridColumType';
 import {GridRenderCellParams, GridValueGetterParams} from '@mui/x-data-grid';
 import {ITicket, ITicketListItem} from "./ticketTypes";
-import {dummyTickets} from "./dummyTickets";
 
 export function useTickets() {
     const [ticketList, setTicketList] = useState<ITicketListItem[]>([]);
@@ -13,18 +12,18 @@ export function useTickets() {
 
     const [ticketIsCheckingIn, setTicketIsCheckingIn] = useState<boolean>(false);
 
-    // const { axiosEventsPrivate } = useContext(ApiContext);
+    const {axiosEventsPrivate} = useContext(ApiContext);
 
     async function fetchTicketList() {
         try {
             setLoading(true);
             setError('');
 
-            // const response = await axiosEventsPrivate.get<ITicket[]>(
-            //     '/api/events'
-            // );
+            const response = await axiosEventsPrivate.get<ITicket[]>(
+                '/api/tickets'
+            );
 
-            setTicketList(dummyTickets);
+            setTicketList(response.data);
         } catch (error) {
             setError(getErrMsg(error));
         } finally {
@@ -32,19 +31,18 @@ export function useTickets() {
         }
     }
 
-    async function checkInTicket(ticketId: number) {
+    async function checkInTicket(excelId: number) {
         try {
             setTicketIsCheckingIn(true);
             setError('');
 
-            // await axiosEventsPrivate.delete(`/api/events/`, {
-            //     data: {
-            //         id: eventId,
-            //         name: eventName,
-            //     },
-            // });
+            const response = await axiosEventsPrivate.post(
+                '/api/tickets/' + excelId + '/check-in'
+            );
 
-            console.log('Checking in ticket: ' + ticketId);
+            if(response.status !== 200) {
+                setError(response.data);
+            }
 
             await fetchTicketList();
         } catch (error) {
@@ -78,24 +76,6 @@ export function useTickets() {
             width: 150,
         },
         {
-            field: 'isPaid',
-            headerName: 'Paid',
-            type: 'boolean',
-            width: 80,
-        },
-        {
-            field: 'amount',
-            headerName: 'Amount',
-            type: 'number',
-            width: 80,
-        },
-        {
-            field: 'isCheckedIn',
-            headerName: 'Checked In',
-            type: 'boolean',
-            width: 80,
-        },
-        {
             field: 'branchCode',
             headerName: 'Branch Code',
             type: 'string',
@@ -106,7 +86,25 @@ export function useTickets() {
             headerName: 'Branch Division',
             type: 'string',
             width: 80,
-        }
+        },
+        {
+            field: 'isPaid',
+            headerName: 'Paid',
+            type: 'boolean',
+            width: 80,
+        },
+        {
+            field: 'mailSent',
+            headerName: 'Mail Sent',
+            type: 'boolean',
+            width: 80,
+        },
+        {
+            field: 'isCheckedIn',
+            headerName: 'Checked In',
+            type: 'boolean',
+            width: 80,
+        },
     ];
 
     return {

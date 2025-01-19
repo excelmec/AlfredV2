@@ -1,7 +1,7 @@
-import {useContext, useState} from 'react';
-import {ApiContext} from '../../Contexts/Api/ApiContext';
-import {getErrMsg} from '../errorParser';
-import {ITicket} from "./ticketTypes";
+import { useContext, useState } from 'react';
+import { ApiContext } from '../../Contexts/Api/ApiContext';
+import { getErrMsg } from '../errorParser';
+import { ITicket } from "./ticketTypes";
 
 export function useTicketDesc() {
     const [ticket, setTicket] = useState<ITicket>();
@@ -28,18 +28,15 @@ export function useTicketDesc() {
                 "id": 2,
                 "excelId": 1002,
                 "name": "Attendee 2",
+                "email": "attendee2@fasd",
                 "isPaid": false,
+                "mailSent": false,
                 "amount": 346.79,
-                "isCheckedIn": true,
+                "checkedIn": true,
                 "branchCode": "EB",
                 "branchDivision": "B",
-                "entryFee": 900,
-                "checkedInBy": {
-                    "id": 1,
-                    "name": "Admin",
-                    "email": "admin@email.com",
-                    "phoneNumber": "9876543210",
-                }
+                "checkedInBy": "user@fasd",
+                errorCount: 0,
             };
 
             setTicket(ticketData);
@@ -51,5 +48,5 @@ export function useTicketDesc() {
         }
     }
 
-    return {ticket, loading, error, fetchTicket, setError} as const;
+    return { ticket, loading, error, fetchTicket, setError } as const;
 }
