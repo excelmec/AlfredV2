@@ -88,5 +88,22 @@ export function useUserList() {
 		[axiosAccPrivate]
 	);
 
-	return { userList, loading, error, fetchUserList } as const;
+	const updateUserRole = async (id: number, newRole: string) => {
+		try {
+			await axiosAccPrivate.put("/api/Admin/users/permission", {
+				id: id,
+				role: newRole,
+			});
+			
+			setUserList(prevList =>
+				prevList.map(user =>
+					user.id === id ? { ...user, role: newRole } : user
+				)
+			);
+		} catch (error) {
+			throw new Error('Failed to update user role');
+		}
+	};
+
+	return { userList, loading, error, fetchUserList, updateUserRole } as const;
 }
