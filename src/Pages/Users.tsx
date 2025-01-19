@@ -30,6 +30,7 @@ const roles = [
   "User",
   "CaVolunteer",
   "MerchManage",
+  "MECLabsAdmin"
 ];
 
 export default function UserListPage() {
