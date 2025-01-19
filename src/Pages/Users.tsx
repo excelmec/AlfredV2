@@ -121,7 +121,16 @@ export default function UserListPage() {
       width: 200,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
-          <Typography variant="body2" sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              flexGrow: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              marginRight: 1
+            }}
+          >
             {params.value}
           </Typography>
           <IconButton
@@ -130,6 +139,7 @@ export default function UserListPage() {
               e.stopPropagation();
               handleOpenModal(params.row);
             }}
+            sx={{ flexShrink: 0 }}
           >
             <EditIcon fontSize="small" color="secondary" />
           </IconButton>
