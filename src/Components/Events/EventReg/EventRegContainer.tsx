@@ -24,6 +24,7 @@ export default function EventRegContainer({
 	individualRegsLoading,
 	eventRegsIndividual,
 	regIndividualCols,
+	checkInIndividual,
 
 	event,
 	institutionMap,
@@ -38,6 +39,7 @@ export default function EventRegContainer({
 	individualRegsLoading: boolean;
 	eventRegsIndividual: IRegistration[];
 	regIndividualCols: TypeSafeColDef<IRegistration>[];
+	checkInIndividual: (registration: IRegistration) => Promise<void>,
 
 	teamCols: TypeSafeColDef<ITeam>[];
 	eventRegsTeam: ITeam[];
@@ -71,6 +73,7 @@ export default function EventRegContainer({
 						individualRegsLoading={individualRegsLoading}
 						eventRegsIndividual={eventRegsIndividual}
 						regIndividualCols={regIndividualCols}
+						checkInIndividual={checkInIndividual}
 						isTeam={event?.isTeam ?? false}
 					/>
 				</Grid>

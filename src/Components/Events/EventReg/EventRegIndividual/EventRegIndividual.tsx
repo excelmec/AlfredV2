@@ -26,11 +26,13 @@ export default function EventRegIndividual({
 	individualRegsLoading,
 	eventRegsIndividual,
 	regIndividualCols,
+	checkInIndividual,
 	isTeam,
 }: {
 	individualRegsLoading: boolean;
 	eventRegsIndividual: IRegistration[];
 	regIndividualCols: TypeSafeColDef<IRegistration>[];
+	checkInIndividual: (registration: IRegistration) => Promise<void>;
 	isTeam: boolean;
 }) {
 	const initialColVisibility: GridColumnVisibilityModel = {
@@ -58,6 +60,25 @@ export default function EventRegIndividual({
 					}}
 				/>,
 			],
+		},
+		{
+			field: "checkedIn",
+			headerName: "Checked In",
+			type: "actions",
+			width: 95,
+			getActions: (params: GridRowParams<IRegistration>) => [
+				<GridActionsCellItem
+					icon={<input id="test" type="checkbox" defaultChecked={params.row?.checkedIn}></input>}
+					label='Check in'
+					onClick={(event) => {
+						const target = event?.target as HTMLInputElement;
+						if (params.row) {
+							params.row.checkedIn = target.checked
+							checkInIndividual(params.row)
+						}
+					}}
+				/>,
+			]
 		},
 		...regIndividualCols,
 	];

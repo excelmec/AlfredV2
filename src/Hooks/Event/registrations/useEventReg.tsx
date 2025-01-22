@@ -304,6 +304,22 @@ export function useEventRegList() {
 		},
 	];
 
+	async function checkInIndividual(registration: IRegistration) {
+		try {
+			if (registration.checkedIn) {
+				const response = await axiosEventsPrivate.put<IRegistration>(
+				`/api/registration/${registration.eventId}/check-in/${registration.id}`
+				);
+			} else {
+				const response = await axiosEventsPrivate.put<IRegistration>(
+				`/api/registration/${registration.eventId}/check-out/${registration.id}`
+				);
+			}
+		} catch (error) {
+			setError(getErrMsg(error));
+		}
+	}
+
 	return {
 		eventLoading,
 		event,
@@ -312,6 +328,7 @@ export function useEventRegList() {
 		eventRegsIndividual,
 		individualRegsLoading,
 		regIndividualCols,
+		checkInIndividual,
 
 		teamCols,
 		eventRegsTeam,
