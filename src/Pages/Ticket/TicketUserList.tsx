@@ -20,6 +20,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
+import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import UserContext from 'Contexts/User/UserContext';
 import {
     allEventEditRoles,
@@ -52,7 +53,7 @@ export default function TicketUserList() {
     const navigate = useNavigate();
     const [checkInOpen, setCheckInOpen] = useState<boolean>(false);
     const [ticketToCheckIn, setTicketToCheckIn] = useState<
-        Pick<ITicketListItem, 'id' | 'name'> | undefined
+        Pick<ITicketListItem, 'id' | 'name' | 'excelId'> | undefined
     >();
 
     const muiColumns = [
@@ -68,6 +69,15 @@ export default function TicketUserList() {
                     label='View'
                     onClick={() => {
                         navigate(`/tickets/view/${params.row.id}`);
+                    }}
+                />,
+                <GridActionsCellItem
+                    icon={<CreditScoreIcon />}
+                    label='Mark as Paid'
+                    color='primary'
+                    onClick={() => {
+                        // setTicketToCheckIn(params.row as ITicketListItem);
+                        // confirmCheckIn();
                     }}
                 />,
                 <GridActionsCellItem
@@ -171,7 +181,7 @@ export default function TicketUserList() {
 
             <Dialog open={checkInOpen} onClose={handleCheckInClose}>
                 <DialogTitle>
-                    Check In Ticket with ID: {ticketToCheckIn?.id}
+                    Check In Ticket with Excel ID: {ticketToCheckIn?.excelId}
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -183,7 +193,7 @@ export default function TicketUserList() {
                         autoFocus
                         onClick={() => {
                             handleCheckIn(
-                                ticketToCheckIn?.id as number,
+                                ticketToCheckIn?.excelId as number,
                             );
                         }}
                         disabled={ticketIsCheckingIn}

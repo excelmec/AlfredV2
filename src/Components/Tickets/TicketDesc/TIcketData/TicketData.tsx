@@ -66,7 +66,7 @@ export default function TicketData({ticket}: { ticket: ITicket }) {
                     <Typography>Entry Fee</Typography>
                 </Grid>
                 <Grid item xs={6}>
-                    <Typography>{ticket?.entryFee}</Typography>
+                    <Typography>{ticket?.amount}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                     <Typography>Paid</Typography>
@@ -86,15 +86,13 @@ export default function TicketData({ticket}: { ticket: ITicket }) {
                     <Typography>Checked In</Typography>
                 </Grid>
                 <Grid item xs={6}>
-                    <Typography>{ticket?.isCheckedIn ? "Checked In" : "Not Checked In"}</Typography>
+                    <Typography>{ticket?.checkedIn ? "Checked In" : "Not Checked In"}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                     <Typography>{ticket?.isPaid ? "Paid" : "Not Paid"}</Typography>
                 </Grid>
                 <Grid item xs={6}>
-                    <Typography>{ticket?.checkedInBy?.name}</Typography>
-                    <Typography>{ticket?.checkedInBy?.phoneNumber}</Typography>
-                    <Typography>{ticket?.checkedInBy?.email}</Typography>
+                    <Typography>{ticket?.checkedInBy}</Typography>
                 </Grid>
 
             </Grid>
