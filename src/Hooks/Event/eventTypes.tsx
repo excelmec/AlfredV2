@@ -98,3 +98,18 @@ export const EventStatusIdToString: {
 };
 
 export type TEventButton = string | undefined;
+
+export interface IScheduleItem {
+	id: number;
+	eventId: number;
+	name: string;
+	icon: string;
+	eventType: string;
+	category: string;
+	venue: string;
+	needRegistration: boolean;
+	roundId: number;
+	round: string;
+	day: number;
+	datetime: Date;
+}

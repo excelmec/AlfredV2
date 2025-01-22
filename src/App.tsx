@@ -30,6 +30,7 @@ import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
 import OrdersListPage from 'Pages/Merchandise/Orders/orderList';
 import OrderViewPage from 'Pages/Merchandise/Orders/orderView';
 import EventRegistrationsListPage from 'Pages/Events/EventRegistrations';
+import EventSchedule from 'Pages/Events/EventSchedule';
 import {
 	allEventEditRoles,
 	allEventViewRoles,
@@ -38,6 +39,7 @@ import {
 import EventStatsPage from 'Pages/Events/EventStats';
 import TicketUserList from "./Pages/Ticket/TicketUserList";
 import TicketDescPage from "./Pages/Ticket/TicketDesc";
+import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
 
 function App() {
 	return (
@@ -218,6 +220,22 @@ function EventsRoutes() {
 			element={
 				<ProtectedRoute allowedRoles={['Admin']}>
 					<EventHeadsPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/schedule'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventSchedule />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/schedule/create'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventScheduleCreate />
 				</ProtectedRoute>
 			}
 		/>,
