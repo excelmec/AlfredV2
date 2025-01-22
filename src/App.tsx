@@ -39,6 +39,7 @@ import {
 import EventStatsPage from 'Pages/Events/EventStats';
 import TicketUserList from "./Pages/Ticket/TicketUserList";
 import TicketDescPage from "./Pages/Ticket/TicketDesc";
+import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
 
 function App() {
 	return (
@@ -227,6 +228,14 @@ function EventsRoutes() {
 			element={
 				<ProtectedRoute allowedRoles={['Admin']}>
 					<EventSchedule />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/schedule/create'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventScheduleCreate />
 				</ProtectedRoute>
 			}
 		/>,

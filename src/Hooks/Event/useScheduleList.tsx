@@ -1,14 +1,33 @@
 import { useContext, useState } from "react";
 import { ApiContext } from "Contexts/Api/ApiContext";
-import { getErrMsg } from "Hooks/errorParser";
-import { IScheduleItem } from "./eventTypes";
+import {
+  getErrMsg,
+  IUpdateNetworkError,
+  IUpdateSuccess,
+  IUpdateValidationError,
+  TupdateFnReturn,
+} from "Hooks/errorParser";
+import { IEvent, IScheduleItem } from "./eventTypes";
 import { TypeSafeColDef } from "Hooks/gridColumType";
-import { GridRenderCellParams, GridValueGetterParams } from "@mui/x-data-grid";
+import { GridValueGetterParams } from "@mui/x-data-grid";
+import {
+  createEventScheduleValidationSchema,
+  defaultDummyEvent,
+  IValidateCreateEventSchedule,
+} from "./create-update/eventScheduleValidation";
+import { ValidationError } from "yup";
+import { AxiosResponse } from "axios";
 
 export function useScheduleList() {
+  const [newEvent, setNewEvent] =
+    useState<IValidateCreateEventSchedule>(defaultDummyEvent);
   const [eventList, setEventList] = useState<IScheduleItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [creatingSchedule, setCreatingSchedule] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
 
   const [eventIsDeleting, setEventIsDeleting] = useState<boolean>(false);
 
@@ -170,6 +189,72 @@ export function useScheduleList() {
     }
   };
 
+  function validateSchedule(): boolean {
+    try {
+      createEventScheduleValidationSchema.validateSync(newEvent, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
+      setValidationErrors([]);
+      return true;
+    } catch (err: any) {
+      if (err instanceof ValidationError) {
+        setValidationErrors(err.inner);
+        console.log(err.inner);
+      } else {
+        console.log(err);
+        setError(err?.message);
+      }
+      return false;
+    }
+  }
+
+  async function createSchedule(): Promise<TupdateFnReturn> {
+    try {
+      console.log({ newEvent });
+      setCreatingSchedule(true);
+
+      if (!validateSchedule()) {
+        return {
+          success: false,
+          validationError: validationErrors,
+        } as IUpdateValidationError;
+      }
+
+      const scheduleFormData = newEvent;
+
+      const createRes = await axiosEventsPrivate.post<{ id: number }>(
+        "/api/schedule",
+        scheduleFormData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!createRes.data?.id) {
+        setError(
+          "Something went wrong when creating schedule. Schedule ID not found"
+        );
+      }
+
+      return {
+        success: true,
+        id: createRes.data?.id,
+      } as IUpdateSuccess;
+    } catch (err) {
+      console.log(err);
+      const errMsg = getErrMsg(err);
+      setError(errMsg);
+      return {
+        success: false,
+        networkError: errMsg,
+      } as IUpdateNetworkError;
+    } finally {
+      setCreatingSchedule(false);
+    }
+  }
+
   return {
     eventList,
     loading,
@@ -180,5 +265,12 @@ export function useScheduleList() {
     deleteEvent,
     eventIsDeleting,
     updateScheduleItem,
+    newEvent,
+    setNewEvent,
+    validationErrors,
+    setValidationErrors,
+    createSchedule,
+    validateSchedule,
+    creatingSchedule,
   } as const;
 }
