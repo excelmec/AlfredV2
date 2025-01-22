@@ -189,6 +189,29 @@ export function useScheduleList() {
     }
   };
 
+  const deleteScheduleItem = async (eventId: number, roundId: number) => {
+    try {
+      setError("");
+      const response = await axiosEventsPrivate.delete(`/api/schedule`, {
+        data: {
+          eventId,
+          roundId,
+        },
+      });
+
+      if (response.status === 200) {
+        setEventList((prevList) =>
+          prevList.filter((event) => event.eventId !== eventId)
+        );
+      } else {
+        setError(`Failed to delete event schedule entry.`);
+      }
+    } catch (error) {
+      setError(getErrMsg(error));
+      throw error;
+    }
+  };
+
   function validateSchedule(): boolean {
     try {
       createEventScheduleValidationSchema.validateSync(newEvent, {
@@ -272,5 +295,6 @@ export function useScheduleList() {
     createSchedule,
     validateSchedule,
     creatingSchedule,
+    deleteScheduleItem
   } as const;
 }

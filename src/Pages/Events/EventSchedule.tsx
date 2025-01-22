@@ -38,8 +38,16 @@ function getRowId(row: IScheduleItem) {
 export default function EventSchedule() {
   const { userData } = useContext(UserContext);
 
-  const { eventList, fetchEventList, updateScheduleItem, loading, error, setError, columns } =
-    useScheduleList();
+  const {
+    eventList,
+    fetchEventList,
+    updateScheduleItem,
+    loading,
+    error,
+    setError,
+    columns,
+    deleteScheduleItem,
+  } = useScheduleList();
 
   const [viewableEvents, setViewableEvents] = useState<IScheduleItem[]>([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -78,6 +86,12 @@ export default function EventSchedule() {
     handleCloseModal();
   };
 
+
+  const handleDeleteClick = async (params: GridRowParams) => {
+    const event = params.row as IScheduleItem;
+    await deleteScheduleItem(event.eventId, event.roundId);
+  };
+
   const muiColumns = [
     ...columns,
     {
@@ -91,6 +105,12 @@ export default function EventSchedule() {
           label="Edit"
           color="secondary"
           onClick={() => handleEditClick(params)}
+        />,
+        <GridActionsCellItem
+          icon={<DeleteIcon />}
+          label="Delete"
+          color="error"
+          onClick={() => handleDeleteClick(params)}
         />,
       ],
     },
