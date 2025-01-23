@@ -12,6 +12,8 @@ export interface ITeam {
 }
 
 export interface IRegistration {
+    id: number,
+    checkedIn: boolean,
     ambassadorId: Pick<CAEvents, 'ambassadorId'>,
     eventId: Pick<IEvent, 'id'>,
     excelId: Pick<IUser, 'id'>,
