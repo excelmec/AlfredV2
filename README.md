@@ -9,15 +9,15 @@ AlfredV2 is a revamped version, rewritten in React of the existing Alfred repo (
 - start dev with `yarn start`
 
 ### Todo
-- [ ] Accounts
+- [x] Accounts
     - [x] Users List
-    - [ ] Users Role Edit
+    - [x] Users Role Edit
 - [ ] Events
     - [x] Event CRUD
     - [x] Event Heads CRUD
     - [ ] Event Registrations
     - [ ] Event Results CRUD
-    - [ ] Event Schedule CRUD
+    - [x] Event Schedule CRUD
     - [ ] Event HighLights CRUD
 - [x] Campus Ambassador
     - [x] Ca CRUD

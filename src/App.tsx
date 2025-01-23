@@ -30,12 +30,16 @@ import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
 import OrdersListPage from 'Pages/Merchandise/Orders/orderList';
 import OrderViewPage from 'Pages/Merchandise/Orders/orderView';
 import EventRegistrationsListPage from 'Pages/Events/EventRegistrations';
+import EventSchedule from 'Pages/Events/EventSchedule';
 import {
 	allEventEditRoles,
 	allEventViewRoles,
 	specificEventViewRoles,
 } from 'Hooks/Event/eventRoles';
 import EventStatsPage from 'Pages/Events/EventStats';
+import TicketUserList from "./Pages/Ticket/TicketUserList";
+import TicketDescPage from "./Pages/Ticket/TicketDesc";
+import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
 
 function App() {
 	return (
@@ -60,6 +64,8 @@ function App() {
 									{EventsRoutes().map((route) => route)}
 
 									{MerchRoutes().map((route) => route)}
+
+									{TicketRoutes().map((route) => route)}
 
 									<Route path='*' element={<NotFound />} />
 								</Route>
@@ -217,6 +223,22 @@ function EventsRoutes() {
 				</ProtectedRoute>
 			}
 		/>,
+		<Route
+			path='/events/schedule'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventSchedule />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/events/schedule/create'
+			element={
+				<ProtectedRoute allowedRoles={['Admin']}>
+					<EventScheduleCreate />
+				</ProtectedRoute>
+			}
+		/>,
 	];
 }
 
@@ -307,6 +329,23 @@ function ContactRoutes() {
 			}
 		/>,
 	];
+}
+
+function TicketRoutes() {
+    return [
+        <Route
+            path='/tickets'
+            element={
+                    <TicketUserList/>
+            }
+        />,
+        <Route
+            path='/tickets/view/:id'
+            element={
+                <TicketDescPage/>
+            }
+        />,
+    ];
 }
 
 export default App;

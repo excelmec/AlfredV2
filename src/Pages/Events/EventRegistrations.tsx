@@ -14,6 +14,7 @@ export default function EventRegistrationsListPage() {
 		individualRegsLoading,
 		eventRegsIndividual,
 		regIndividualCols,
+		checkInIndividual,
 
 		teamCols,
 		eventRegsTeam,
@@ -62,6 +63,7 @@ export default function EventRegistrationsListPage() {
 				institutionMap={institutionMap}
 				individualRegsLoading={individualRegsLoading}
 				eventRegsIndividual={eventRegsIndividual}
+				checkInIndividual={checkInIndividual}
 				regIndividualCols={regIndividualCols}
 				teamCols={teamCols}
 				eventRegsTeam={eventRegsTeam}
