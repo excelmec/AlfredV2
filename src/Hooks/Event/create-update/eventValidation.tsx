@@ -28,6 +28,7 @@ export const eventValidationSchema: ObjectSchema<
 		| 'eventHead2'
 		| 'icon'
 		| 'id'
+		| 'results'
 	> & { icon: File | undefined }
 > = object().shape({
 	name: string()
