@@ -166,6 +166,40 @@ export default function EventData({ event }: { event: IEvent }) {
 					<Typography>{event?.entryFee}</Typography>
 				</Grid>
 
+				<Grid item xs={12}>
+					<Divider />
+				</Grid>
+				<Grid item xs={12}>
+					<Typography variant='h5'>Results</Typography>
+				</Grid>
+				<Grid item xs={6}>
+					<Typography>1st: </Typography>
+				</Grid>
+				<Grid item xs={3}>
+					<Typography>{event?.results.length >= 1 ? event.results[0].teamName : ""}</Typography>
+				</Grid>
+				<Grid item xs={3}>
+					<Typography>{event?.results.length >= 1 ? event.results[0].teamMembers : ""}</Typography>
+				</Grid>
+				<Grid item xs={6}>
+					<Typography>2nd: </Typography>
+				</Grid>
+				<Grid item xs={3}>
+					<Typography>{event?.results.length >= 2 ? event.results[1].teamName : ""}</Typography>
+				</Grid>
+				<Grid item xs={3}>
+					<Typography>{event?.results.length >= 2 ? event.results[1].teamMembers : ""}</Typography>
+				</Grid>				
+				<Grid item xs={6}>
+					<Typography>3rd: </Typography>
+				</Grid>
+				<Grid item xs={3}>
+					<Typography>{event?.results.length >= 3 ? event.results[2].teamName : ""}</Typography>
+				</Grid>
+				<Grid item xs={3}>
+					<Typography>{event?.results.length >= 3 ? event.results[2].teamMembers : ""}</Typography>
+				</Grid>
+
 				<Grid item xs={6}>
 					<Typography>Prize Money</Typography>
 				</Grid>
