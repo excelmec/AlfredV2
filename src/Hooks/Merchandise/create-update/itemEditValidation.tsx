@@ -57,7 +57,8 @@ export const itemValidationSchema: ObjectSchema<IItemEditWithFile> =
 					})
 					.required()
 			)
-			.required(),
+			.required()
+			.min(1, "Atleast 1 image required"),
 
 		stockCount: array()
 			.of(
