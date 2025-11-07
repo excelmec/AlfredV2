@@ -1,175 +1,133 @@
-import {
-	Button,
-	// Dialog,
-	// DialogActions,
-	// DialogContent,
-	// DialogContentText,
-	// DialogTitle,
-	Typography,
-} from '@mui/material';
+import { Button, Typography } from "@mui/material";
 
 import {
-	DataGrid,
-	GridActionsCellItem,
-	GridRowParams,
-	GridToolbar,
-} from '@mui/x-data-grid';
+  DataGrid,
+  GridActionsCellItem,
+  GridRowParams,
+  GridToolbar,
+} from "@mui/x-data-grid";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-import { useItemList } from '../../../Hooks/Merchandise/useItemList';
-import { IItem } from 'Hooks/Merchandise/itemTypes';
+import { useItemList } from "../../../Hooks/Merchandise/useItemList";
+import { IItem } from "Hooks/Merchandise/itemTypes";
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import MerchItemDelete from "./itemDelete";
+import { IEventListItem } from "Hooks/Event/eventTypes";
 
 function getRowId(row: IItem) {
-	return row.id;
+  return row.id;
 }
 
 export default function MerchItemListPage() {
-	const { itemList, fetchItemList, loading, error, columns } = useItemList();
+  const { itemList, fetchItemList, loading, error, columns } = useItemList();
+  const [deleteDialoge, setDeleteDialoge] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<
+    Pick<IEventListItem, "id" | "name"> | undefined
+  >();
 
-	const navigate = useNavigate();
-	// const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
-	// const [eventToDelete, setEventToDelete] = useState<
-	// Pick<IEventListItem, 'id' | 'name'> | undefined
-	// >();
+  const navigate = useNavigate();
 
-	const muiColumns = [
-		...columns,
-		{
-			field: 'actions',
-			headerName: 'Actions',
-			type: 'actions',
-			width: 150,
-			getActions: (params: GridRowParams) => [
-				<GridActionsCellItem
-					icon={<VisibilityIcon color='primary' />}
-					label='View'
-					onClick={() => {
-						navigate(`/merch/items/view/${params.row.id}`);
-					}}
-				/>,
-				<GridActionsCellItem
-					icon={<EditIcon />}
-					label='Edit'
-					color='secondary'
-					onClick={() => {
-						navigate(`/merch/items/edit/${params.row.id}`);
-					}}
-				/>,
-				<GridActionsCellItem
-					icon={<DeleteIcon color='error' />}
-					label='Delete'
-					onClick={() => {
-						alert('Coming Soon');
-					}}
-				/>,
-			],
-		},
-	];
+  const muiColumns = [
+    ...columns,
+    {
+      field: "actions",
+      headerName: "Actions",
+      type: "actions",
+      width: 150,
+      getActions: (params: GridRowParams) => [
+        <GridActionsCellItem
+          icon={<VisibilityIcon color="primary" />}
+          label="View"
+          onClick={() => {
+            navigate(`/merch/items/view/${params.row.id}`);
+          }}
+        />,
+        <GridActionsCellItem
+          icon={<EditIcon />}
+          label="Edit"
+          color="secondary"
+          onClick={() => {
+            navigate(`/merch/items/edit/${params.row.id}`);
+          }}
+        />,
+        <GridActionsCellItem
+          icon={<DeleteIcon color="error" />}
+          label="Delete"
+          onClick={() => {
+            setDeleteItem({ id: params.row.id, name: params.row.name });
+          }}
+        />,
+      ],
+    },
+  ];
 
-	// function confirmDelete() {
-	// 	setDeleteOpen(true);
-	// }
+  useEffect(() => {
+    fetchItemList();
 
-	// async function handleDelete(eventId: number, eventName: string) {
-	// 	await deleteEvent(eventId, eventName);
-	// 	handleDeleteClose();
-	// }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-	// const handleDeleteClose = () => {
-	// 	if (eventIsDeleting) {
-	// 		return;
-	// 	}
-	// 	setDeleteOpen(false);
-	// };
+  if (error) {
+    return <Typography variant="h5">{error}</Typography>;
+  }
 
-	useEffect(() => {
-		fetchItemList();
+  const handleDeleteDialogueClose = () => {
+    setDeleteItem(undefined);
+    fetchItemList();
+  };
 
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+  return (
+    <>
+      <br />
+      <Typography variant="h5" noWrap component="div">
+        Merchandise Items List
+      </Typography>
+      <br />
+      <Button
+        size="small"
+        variant="contained"
+        onClick={() => navigate("/merch/items/create")}
+      >
+        Create New Item
+      </Button>
+      <br />
+      <DataGrid
+        density="compact"
+        getRowId={getRowId}
+        rows={itemList}
+        columns={muiColumns}
+        loading={loading}
+        sx={{
+          width: "90%",
+        }}
+        autoPageSize
+        slots={{ toolbar: GridToolbar }}
+        slotProps={{
+          toolbar: {
+            showQuickFilter: true,
+            printOptions: {
+              hideFooter: true,
+              hideHeader: true,
+              hideToolbar: true,
+            },
+          },
+        }}
+        showCellVerticalBorder
+        showColumnVerticalBorder
+      />
 
-	if (error) {
-		return <Typography variant='h5'>{error}</Typography>;
-	}
-
-	return (
-		<>
-			<br />
-			<Typography variant='h5' noWrap component='div'>
-				Merchandise Items List
-			</Typography>
-			<br />
-			<Button
-				size='small'
-				variant='contained'
-				onClick={() => navigate('/merch/items/create')}
-			>
-				Create New Item
-			</Button>
-			<br />
-			<DataGrid
-				density='compact'
-				getRowId={getRowId}
-				rows={itemList}
-				columns={muiColumns}
-				loading={loading}
-				sx={{
-					width: '90%',
-				}}
-				autoPageSize
-				slots={{ toolbar: GridToolbar }}
-				slotProps={{
-					toolbar: {
-						showQuickFilter: true,
-						printOptions: {
-							hideFooter: true,
-							hideHeader: true,
-							hideToolbar: true,
-						}
-					},
-				}}
-				showCellVerticalBorder
-				showColumnVerticalBorder
-			/>
-
-			{/* <Dialog open={deleteOpen} onClose={handleDeleteClose}>
-				<DialogTitle>
-					Delete Event with ID: {eventToDelete?.id}
-				</DialogTitle>
-				<DialogContent>
-					<DialogContentText>
-						Would you like to delete Event: {eventToDelete?.name}?
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						autoFocus
-						onClick={() => {
-							handleDelete(
-								eventToDelete?.id as number,
-								eventToDelete?.name as string
-							);
-						}}
-						disabled={eventIsDeleting}
-					>
-						Delete
-					</Button>
-					<Button
-						onClick={handleDeleteClose}
-						autoFocus
-						disabled={eventIsDeleting}
-					>
-						Cancel
-					</Button>
-				</DialogActions>
-			</Dialog> */}
-		</>
-	);
+      <MerchItemDelete
+        id={deleteItem?.id}
+        name={deleteItem?.name}
+        dialogueOpen={deleteItem != undefined ? true : false}
+        onClose={handleDeleteDialogueClose}
+      />
+    </>
+  );
 }
