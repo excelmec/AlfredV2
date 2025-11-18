@@ -232,7 +232,7 @@ export default function OrderDataView({
 
 				<Grid item xs={3}>
 					<Button
-						disabled={updatingShippingStatus}
+						disabled={updatingShippingStatus || order.orderStatus !== 'order_confirmed'}
 						size='small'
 						variant='contained'
 						color='primary'

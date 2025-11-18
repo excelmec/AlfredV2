@@ -18,6 +18,7 @@ import {
 	IconButton,
 	TextField,
 	FormHelperText,
+	Checkbox
 } from '@mui/material';
 
 import {
@@ -781,6 +782,24 @@ export default function ItemEditable({
 							</IconButton>
 						</Box>
 					</Grid>
+				</Grid>
+
+				<Grid item xs={6}>
+					<Typography>Can Be Preordered</Typography>
+				</Grid>
+				<Grid item xs={6}>
+					<Typography>
+						<Checkbox
+							// checked=
+							name='canBePreordered'
+							onChange={(e) => {
+								console.log(`Checked: ${e.target.checked}`)
+								setItem({ ...item, canBePreordered: e.target.checked})
+								console.log(`Checked after: ${item.canBePreordered}`)
+								}
+							}
+						/>
+					</Typography>
 				</Grid>
 
 				<Grid item xs={12}>

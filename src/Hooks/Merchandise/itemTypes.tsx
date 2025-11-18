@@ -43,6 +43,7 @@ export interface IItem {
 	price: number;
 	sizeOptions: ESize[];
 	colorOptions: string[];
+	canBePreordered: boolean;
 
 	mediaObjects: IMediaObject[];
 	stockCount: IStockCount[];

@@ -172,8 +172,14 @@ export default function Sidebar() {
 							icon={<FormatListNumberedIcon />}
 						/>
 						<ListItemLink
-							to='/merch/orders'
-							text='List Orders'
+							to='/merch/confirmed_orders'
+							text='List Confirmed Orders'
+							leftBorder
+							icon={<FormatListNumberedIcon />}
+						/>
+						<ListItemLink
+							to='/merch/preorders'
+							text='List Pre-orders'
 							leftBorder
 							icon={<FormatListNumberedIcon />}
 						/>

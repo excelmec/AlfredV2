@@ -1,4 +1,4 @@
-import { ObjectSchema, array, mixed, number, object, string } from 'yup';
+import { ObjectSchema, array, mixed, number, object, string, boolean } from 'yup';
 import { IItemEditWithFile } from './itemEditTypes';
 import {
 	EMediaObjectType,
@@ -41,6 +41,16 @@ export const itemValidationSchema: ObjectSchema<IItemEditWithFile> =
 				const set = new Set(lowerCaseValue);
 				return set.size === lowerCaseValue.length;
 			}),
+
+		canBePreordered: boolean()
+			.transform((val, originalValue) => {
+				if (typeof originalValue === "string") {
+					return originalValue.toLowerCase() === "true";
+				}
+				return val;
+			})
+			.default(false)
+			.required(),
 
 		mediaObjects: array()
 			.of(

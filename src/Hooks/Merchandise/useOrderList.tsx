@@ -6,7 +6,8 @@ import { IOrder } from './orderTypes';
 import { GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
 
 export function useOrderList() {
-	const [orderList, setOrderList] = useState<IOrder[]>([]);
+	const [confirmedOrderList, setConfirmedOrderList] = useState<IOrder[]>([]);
+	const [preorderList, setPreorderList] = useState<IOrder[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string>('');
 
@@ -22,7 +23,10 @@ export function useOrderList() {
 				orders: IOrder[];
 			}>('/admin/orders');
 
-			setOrderList(response.data.orders);
+			console.log(response.data.orders)
+
+			setConfirmedOrderList(response.data.orders.filter(order => order.orderStatus === 'order_confirmed'));
+			setPreorderList(response.data.orders.filter(order => order.orderStatus === 'pre_ordered'));
 		} catch (error) {
 			setError(getErrMsg(error));
 		} finally {
@@ -128,7 +132,8 @@ export function useOrderList() {
 	];
 
 	return {
-		orderList,
+		confirmedOrderList,
+		preorderList,
 		loading,
 		error,
 		fetchOrderList,

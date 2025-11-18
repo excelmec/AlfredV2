@@ -20,8 +20,8 @@ function getRowId(row: IOrder) {
 	return row.orderId;
 }
 
-export default function OrdersListPage() {
-	const { orderList, fetchOrderList, loading, error, columns } =
+export default function ConfirmedOrdersListPage() {
+	const { confirmedOrderList, fetchOrderList, loading, error, columns } =
 		useOrderList();
 
 	const [shippingStatusToShow, setShippingStatusToShow] = useState<
@@ -33,7 +33,7 @@ export default function OrdersListPage() {
 
 		// Not showing shipped orders
 	]);
-	const filteredOrderList = orderList.filter((order) =>
+	const filteredOrderList = confirmedOrderList.filter((order) =>
 		shippingStatusToShow.includes(order.shippingStatus)
 	);
 

@@ -25,6 +25,7 @@ export const dummyEditItem: IItemEdit = {
 	mediaObjects: [],
 	sizeOptions: [],
 	colorOptions: [],
+	canBePreordered: false
 };
 
 export interface IMediaObjectEditWithFile extends IMediaObjectEdit {
@@ -43,4 +44,5 @@ export const dummyEditItemWithFile: IItemEditWithFile = {
 	mediaObjects: [],
 	sizeOptions: [],
 	colorOptions: [],
+	canBePreordered: false
 };

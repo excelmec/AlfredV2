@@ -56,6 +56,7 @@ export interface IOrderItem {
 }
 
 export enum EOrderStatus {
+	pre_ordered = 'pre_ordered',
 	order_unconfirmed = 'order_unconfirmed',
 	order_confirmed = 'order_confirmed',
 	order_cancelled_by_user = 'order_cancelled_by_user',

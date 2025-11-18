@@ -27,8 +27,9 @@ import MerchItemViewPage from 'Pages/Merchandise/item/itemView';
 import MerchItemEditPage from 'Pages/Merchandise/item/itemEdit';
 import MerchItemCreatePage from 'Pages/Merchandise/item/itemCreate';
 import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
-import OrdersListPage from 'Pages/Merchandise/Orders/orderList';
-import OrderViewPage from 'Pages/Merchandise/Orders/orderView';
+import ConfirmedOrdersListPage from 'Pages/Merchandise/ConfirmedOrders/confirmedOrderList';
+import PreordersListPage from 'Pages/Merchandise/Preorders/preorderList';
+import OrderViewPage from 'Pages/Merchandise/ConfirmedOrders/orderView';
 import EventRegistrationsListPage from 'Pages/Events/EventRegistrations';
 import EventSchedule from 'Pages/Events/EventSchedule';
 import {
@@ -298,12 +299,22 @@ function MerchRoutes() {
 		/>,
 
 		<Route
-			path='/merch/orders'
+			path='/merch/confirmed_orders'
 			element={
 				<ProtectedRoute
 					allowedRoles={['Admin', 'MerchManage', 'MerchOrderManage']}
 				>
-					<OrdersListPage />
+					<ConfirmedOrdersListPage />
+				</ProtectedRoute>
+			}
+		/>,
+		<Route
+			path='/merch/preorders'
+			element={
+				<ProtectedRoute
+					allowedRoles={['Admin', 'MerchManage', 'MerchOrderManage']}
+				>
+					<PreordersListPage />
 				</ProtectedRoute>
 			}
 		/>,
