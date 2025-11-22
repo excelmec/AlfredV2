@@ -43,6 +43,7 @@ import TicketDescPage from './Pages/Ticket/TicketDesc';
 import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
 
 function App() {
+  console.log('GitHub Action should not fail here');
   return (
     <div className="App">
       <CssBaseline />
