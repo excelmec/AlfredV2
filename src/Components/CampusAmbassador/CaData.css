@@ -1,11 +1,11 @@
 .ca-data-container {
-	width: 90%;
-	margin-bottom: 20px;
-	flex-grow: 0.5;
-	overflow-y: auto;
+  width: 90%;
+  margin-bottom: 20px;
+  flex-grow: 0.5;
+  overflow-y: auto;
 }
 
 .ca-data-grid {
-	width: 100%;
-	padding: 20px;
+  width: 100%;
+  padding: 20px;
 }

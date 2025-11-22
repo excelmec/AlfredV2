@@ -9,50 +9,50 @@ import './ToolBar.css';
 import { useNavigate } from 'react-router-dom';
 
 export default function ToolBar({ ticketId }: { ticketId: number }) {
-	const navigate = useNavigate();
-	return (
-		<Box
-			className='ticket-desc-toolbar'
-			component={Paper}
-			elevation={2}
-			borderRadius={0}
-			zIndex={5}
-		>
-			<Button
-				variant='contained'
-				color='primary'
-				startIcon={<ArrowBackIcon />}
-				className='toolbutton'
-				onClick={() => {
-					navigate('/tickets');
-				}}
-			>
-				Back
-			</Button>
-			<Box sx={{ flexGrow: 1 }} />
+  const navigate = useNavigate();
+  return (
+    <Box
+      className="ticket-desc-toolbar"
+      component={Paper}
+      elevation={2}
+      borderRadius={0}
+      zIndex={5}
+    >
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<ArrowBackIcon />}
+        className="toolbutton"
+        onClick={() => {
+          navigate('/tickets');
+        }}
+      >
+        Back
+      </Button>
+      <Box sx={{ flexGrow: 1 }} />
 
-			<Button
-				variant='contained'
-				color='primary'
-				startIcon={<DocumentScannerIcon />}
-				className='toolbutton'
-				onClick={() => {
-					alert('Coming Soon!');
-				}}
-			>
-				Check In
-			</Button>
-			<Button
-				variant='contained'
-				color='primary'
-				startIcon={<EditIcon />}
-				className='toolbutton'
-				onClick={() => {
-					navigate(`/tickets/edit/${ticketId}`);
-				}}
-			>
-				Edit
-			</Button>
-		</Box>
-	);
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<DocumentScannerIcon />}
+        className="toolbutton"
+        onClick={() => {
+          alert('Coming Soon!');
+        }}
+      >
+        Check In
+      </Button>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<EditIcon />}
+        className="toolbutton"
+        onClick={() => {
+          navigate(`/tickets/edit/${ticketId}`);
+        }}
+      >
+        Edit
+      </Button>
+    </Box>
+  );
 }

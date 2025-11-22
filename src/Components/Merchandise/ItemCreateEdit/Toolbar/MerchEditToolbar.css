@@ -1,11 +1,11 @@
 .item-edit-toolbar {
-    width: 90%;
-    display: flex;
-    padding: 10px 30px;
-    justify-content: space-between;
-    align-items: center;
+  width: 90%;
+  display: flex;
+  padding: 10px 30px;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.item-edit-toolbar .toolbutton{
-    margin: 0 10px;
+.item-edit-toolbar .toolbutton {
+  margin: 0 10px;
 }

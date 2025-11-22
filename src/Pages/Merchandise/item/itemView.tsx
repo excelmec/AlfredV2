@@ -6,53 +6,53 @@ import ItemDetails from 'Components/Merchandise/ItemViewDetails/ItemViewDetails'
 import ItemViewToolBar from 'Components/Merchandise/ItemViewDetails/ToolBar/ItemViewToolBar';
 
 export default function MerchItemViewPage() {
-	const { item, fetchItem, loading, error } = useItemView();
+  const { item, fetchItem, loading, error } = useItemView();
 
-	const { itemId: itemIdStr } = useParams();
-	const itemId = parseInt(itemIdStr ?? '');
+  const { itemId: itemIdStr } = useParams();
+  const itemId = parseInt(itemIdStr ?? '');
 
-	// const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-	useEffect(() => {
-		fetchItem(itemId);
+  useEffect(() => {
+    fetchItem(itemId);
 
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [itemId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemId]);
 
-	if (error) {
-		return <Typography variant='h5'>{error}</Typography>;
-	}
+  if (error) {
+    return <Typography variant="h5">{error}</Typography>;
+  }
 
-	if (loading) {
-		return <Typography variant='h5'>Loading...</Typography>;
-	}
+  if (loading) {
+    return <Typography variant="h5">Loading...</Typography>;
+  }
 
-	if (!item) {
-		return <Typography variant='h5'>Item not found</Typography>;
-	}
+  if (!item) {
+    return <Typography variant="h5">Item not found</Typography>;
+  }
 
-	return (
-		<>
-			<>
-				<br />
-				<Box
-					sx={{
-						display: 'flex',
-						justifyContent: 'center',
-						alignItems: 'center',
-						width: '100%',
-					}}
-				>
-					<Typography variant='h5' noWrap>
-						Item Description
-					</Typography>
-				</Box>
-				<br />
+  return (
+    <>
+      <>
+        <br />
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Typography variant="h5" noWrap>
+            Item Description
+          </Typography>
+        </Box>
+        <br />
 
-				<ItemViewToolBar itemId={itemId} />
+        <ItemViewToolBar itemId={itemId} />
 
-				<ItemDetails item={item} key={itemId} />
-			</>
-		</>
-	);
+        <ItemDetails item={item} key={itemId} />
+      </>
+    </>
+  );
 }

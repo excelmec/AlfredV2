@@ -9,123 +9,121 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function EventEditPage() {
-	const { id } = useParams<{ id: string }>();
-	const { event, fetchEvent, loading, error, setError } = useEventDesc();
-	const {
-		newEvent,
-		setNewEvent,
-		updateEvent,
-		loading: savingEvent,
-		error: savingEventError,
-		validateEvent,
-		validationErrors,
-	} = useEventEdit(id);
+  const { id } = useParams<{ id: string }>();
+  const { event, fetchEvent, loading, error, setError } = useEventDesc();
+  const {
+    newEvent,
+    setNewEvent,
+    updateEvent,
+    loading: savingEvent,
+    error: savingEventError,
+    validateEvent,
+    validationErrors,
+  } = useEventEdit(id);
 
-	const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
-	const [currentIconFile, setCurrentIconFile] = useState<File | undefined>();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const [currentIconFile, setCurrentIconFile] = useState<File | undefined>();
 
-	useEffect(() => {
-		if (!Number.isInteger(Number(id))) {
-			setError('Invalid Event ID');
-		}
+  useEffect(() => {
+    if (!Number.isInteger(Number(id))) {
+      setError('Invalid Event ID');
+    }
 
-		fetchEvent(Number(id));
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+    fetchEvent(Number(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-	async function initNewEvent() {
-		if (!event) return;
+  async function initNewEvent() {
+    if (!event) return;
 
-		const imageRes = await axios.get(event.icon, {
-			responseType: 'blob',
-		});
+    const imageRes = await axios.get(event.icon, {
+      responseType: 'blob',
+    });
 
-		const icon = new File([imageRes.data], 'icon.png', {
-			type: imageRes.headers['content-type'] ?? 'image/png',
-		});
+    const icon = new File([imageRes.data], 'icon.png', {
+      type: imageRes.headers['content-type'] ?? 'image/png',
+    });
 
-		setNewEvent({
-			...event,
-			icon,
-		});
+    setNewEvent({
+      ...event,
+      icon,
+    });
 
-		setCurrentIconFile(icon);
-	}
+    setCurrentIconFile(icon);
+  }
 
-	useEffect(() => {
-		if (!event) return;
+  useEffect(() => {
+    if (!event) return;
 
-		initNewEvent();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [event]);
+    initNewEvent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event]);
 
-	useEffect(() => {
-		if (!currentIconFile) {
-			/**
-			 * The new and old event loading completes when the icon of old event loads as a file
-			 * Else this will falsely trigger the event changed
-			 */
-			return;
-		}
+  useEffect(() => {
+    if (!currentIconFile) {
+      /**
+       * The new and old event loading completes when the icon of old event loads as a file
+       * Else this will falsely trigger the event changed
+       */
+      return;
+    }
 
-		const oldEvent = {
-			...event,
-			icon: currentIconFile,
-		};
+    const oldEvent = {
+      ...event,
+      icon: currentIconFile,
+    };
 
-		if (lodash.isEqual(oldEvent, newEvent)) {
-			setHasUnsavedChanges(false);
-		} else {
-			setHasUnsavedChanges(true);
-		}
-	}, [newEvent, currentIconFile, event]);
+    if (lodash.isEqual(oldEvent, newEvent)) {
+      setHasUnsavedChanges(false);
+    } else {
+      setHasUnsavedChanges(true);
+    }
+  }, [newEvent, currentIconFile, event]);
 
-	if (error) {
-		return <Typography variant='h5'>{error}</Typography>;
-	}
+  if (error) {
+    return <Typography variant="h5">{error}</Typography>;
+  }
 
-	if (loading) {
-		return <Typography variant='h5'>Loading...</Typography>;
-	}
+  if (loading) {
+    return <Typography variant="h5">Loading...</Typography>;
+  }
 
-	if (!event) {
-		return (
-			<Typography variant='h5'>{'Something went wrong :('}</Typography>
-		);
-	}
+  if (!event) {
+    return <Typography variant="h5">{'Something went wrong :('}</Typography>;
+  }
 
-	return (
-		<>
-			<br />
-			<Box
-				sx={{
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					width: '100%',
-				}}
-			>
-				<Typography variant='h5' noWrap>
-					Edit Event
-				</Typography>
-			</Box>
-			<br />
+  return (
+    <>
+      <br />
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <Typography variant="h5" noWrap>
+          Edit Event
+        </Typography>
+      </Box>
+      <br />
 
-			<EventEditToolBar
-				saveChanges={updateEvent}
-				hasUnsavedChanges={hasUnsavedChanges}
-				savingEvent={savingEvent}
-			/>
+      <EventEditToolBar
+        saveChanges={updateEvent}
+        hasUnsavedChanges={hasUnsavedChanges}
+        savingEvent={savingEvent}
+      />
 
-			<EventEdit
-				id={event.id}
-				newEvent={newEvent!}
-				setNewEvent={setNewEvent}
-				savingEvent={savingEvent}
-				savingEventError={savingEventError}
-				validateEvent={validateEvent}
-				validationErrors={validationErrors}
-			/>
-		</>
-	);
+      <EventEdit
+        id={event.id}
+        newEvent={newEvent!}
+        setNewEvent={setNewEvent}
+        savingEvent={savingEvent}
+        savingEventError={savingEventError}
+        validateEvent={validateEvent}
+        validationErrors={validationErrors}
+      />
+    </>
+  );
 }

@@ -1,15 +1,15 @@
 .order-data-container {
-	width: 90%;
-	margin-bottom: 20px;
-	flex-grow: 0.5;
-	overflow-y: auto;
+  width: 90%;
+  margin-bottom: 20px;
+  flex-grow: 0.5;
+  overflow-y: auto;
 }
 
 .order-data-grid {
-	width: 100%;
-	padding: 20px;
+  width: 100%;
+  padding: 20px;
 }
 
 .order-data-help-dialog {
-	padding: 20px;
+  padding: 20px;
 }

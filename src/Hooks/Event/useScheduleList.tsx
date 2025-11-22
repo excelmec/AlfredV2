@@ -1,33 +1,30 @@
-import { useContext, useState } from "react";
-import { ApiContext } from "Contexts/Api/ApiContext";
+import { useContext, useState } from 'react';
+import { ApiContext } from 'Contexts/Api/ApiContext';
 import {
   getErrMsg,
   IUpdateNetworkError,
   IUpdateSuccess,
   IUpdateValidationError,
   TupdateFnReturn,
-} from "Hooks/errorParser";
-import { IEvent, IScheduleItem } from "./eventTypes";
-import { TypeSafeColDef } from "Hooks/gridColumType";
-import { GridValueGetterParams } from "@mui/x-data-grid";
+} from 'Hooks/errorParser';
+import { IEvent, IScheduleItem } from './eventTypes';
+import { TypeSafeColDef } from 'Hooks/gridColumType';
+import { GridValueGetterParams } from '@mui/x-data-grid';
 import {
   createEventScheduleValidationSchema,
   defaultDummyEvent,
   IValidateCreateEventSchedule,
-} from "./create-update/eventScheduleValidation";
-import { ValidationError } from "yup";
-import { AxiosResponse } from "axios";
+} from './create-update/eventScheduleValidation';
+import { ValidationError } from 'yup';
+import { AxiosResponse } from 'axios';
 
 export function useScheduleList() {
-  const [newEvent, setNewEvent] =
-    useState<IValidateCreateEventSchedule>(defaultDummyEvent);
+  const [newEvent, setNewEvent] = useState<IValidateCreateEventSchedule>(defaultDummyEvent);
   const [eventList, setEventList] = useState<IScheduleItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [creatingSchedule, setCreatingSchedule] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
-    []
-  );
+  const [error, setError] = useState<string>('');
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   const [eventIsDeleting, setEventIsDeleting] = useState<boolean>(false);
 
@@ -36,7 +33,7 @@ export function useScheduleList() {
   async function fetchEventList() {
     try {
       setLoading(true);
-      setError("");
+      setError('');
 
       interface IScheduleResponse {
         day: number;
@@ -55,9 +52,7 @@ export function useScheduleList() {
         }>;
       }
 
-      const response = await axiosEventsPrivate.get<IScheduleResponse[]>(
-        "/api/schedule"
-      );
+      const response = await axiosEventsPrivate.get<IScheduleResponse[]>('/api/schedule');
 
       let eventListData: IScheduleItem[] = response.data
         .flatMap((daySchedule) => daySchedule.events)
@@ -79,7 +74,7 @@ export function useScheduleList() {
   async function deleteEvent(eventId: number, eventName: string) {
     try {
       setEventIsDeleting(true);
-      setError("");
+      setError('');
 
       await axiosEventsPrivate.delete(`/api/events/`, {
         data: {
@@ -98,64 +93,64 @@ export function useScheduleList() {
 
   const columns: TypeSafeColDef<IScheduleItem>[] = [
     {
-      field: "id",
-      headerName: "ID",
-      type: "number",
-      align: "center",
-      headerAlign: "center",
+      field: 'id',
+      headerName: 'ID',
+      type: 'number',
+      align: 'center',
+      headerAlign: 'center',
       width: 10,
     },
     {
-      field: "eventId",
-      headerName: "Event ID",
-      type: "number",
-      align: "center",
-      headerAlign: "center",
+      field: 'eventId',
+      headerName: 'Event ID',
+      type: 'number',
+      align: 'center',
+      headerAlign: 'center',
       width: 100,
     },
     {
-      field: "name",
-      headerName: "Name",
-      type: "string",
+      field: 'name',
+      headerName: 'Name',
+      type: 'string',
       width: 200,
     },
     {
-      field: "eventType",
-      headerName: "Event Type",
-      type: "string",
+      field: 'eventType',
+      headerName: 'Event Type',
+      type: 'string',
       width: 100,
     },
     {
-      field: "roundId",
-      headerName: "RoundId",
-      type: "number",
+      field: 'roundId',
+      headerName: 'RoundId',
+      type: 'number',
       width: 80,
     },
     {
-      field: "round",
-      headerName: "Round",
-      type: "string",
+      field: 'round',
+      headerName: 'Round',
+      type: 'string',
       width: 200,
     },
     {
-      field: "day",
-      headerName: "Day",
-      type: "number",
+      field: 'day',
+      headerName: 'Day',
+      type: 'number',
       width: 10,
-      align: "center",
+      align: 'center',
     },
     {
-      field: "datetime",
-      headerName: "DateTime",
-      type: "string",
+      field: 'datetime',
+      headerName: 'DateTime',
+      type: 'string',
       width: 150,
       valueGetter: (params: GridValueGetterParams<IScheduleItem>) => {
         return params.row.datetime.toLocaleString([], {
-          year: "2-digit",
-          month: "numeric",
-          day: "numeric",
-          hour: "numeric",
-          minute: "numeric",
+          year: '2-digit',
+          month: 'numeric',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
         });
       },
     },
@@ -164,10 +159,10 @@ export function useScheduleList() {
   const updateScheduleItem = async (
     selectedEvent: IScheduleItem | null,
     round: string,
-    roundId: number
+    roundId: number,
   ) => {
     try {
-      setError("");
+      setError('');
       await axiosEventsPrivate.put(`/api/schedule`, {
         eventId: selectedEvent?.eventId,
         round,
@@ -178,10 +173,8 @@ export function useScheduleList() {
 
       setEventList((prevList) =>
         prevList.map((event) =>
-          event.eventId === selectedEvent?.eventId
-            ? { ...event, round, roundId }
-            : event
-        )
+          event.eventId === selectedEvent?.eventId ? { ...event, round, roundId } : event,
+        ),
       );
     } catch (error) {
       setError(getErrMsg(error));
@@ -191,7 +184,7 @@ export function useScheduleList() {
 
   const deleteScheduleItem = async (eventId: number, roundId: number) => {
     try {
-      setError("");
+      setError('');
       const response = await axiosEventsPrivate.delete(`/api/schedule`, {
         data: {
           eventId,
@@ -200,9 +193,7 @@ export function useScheduleList() {
       });
 
       if (response.status === 200) {
-        setEventList((prevList) =>
-          prevList.filter((event) => event.eventId !== eventId)
-        );
+        setEventList((prevList) => prevList.filter((event) => event.eventId !== eventId));
       } else {
         setError(`Failed to delete event schedule entry.`);
       }
@@ -247,18 +238,16 @@ export function useScheduleList() {
       const scheduleFormData = newEvent;
 
       const createRes = await axiosEventsPrivate.post<{ id: number }>(
-        "/api/schedule",
+        '/api/schedule',
         scheduleFormData,
         {
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
-        }
+        },
       );
       if (!createRes.data?.id) {
-        setError(
-          "Something went wrong when creating schedule. Schedule ID not found"
-        );
+        setError('Something went wrong when creating schedule. Schedule ID not found');
       }
 
       return {
@@ -295,6 +284,6 @@ export function useScheduleList() {
     createSchedule,
     validateSchedule,
     creatingSchedule,
-    deleteScheduleItem
+    deleteScheduleItem,
   } as const;
 }
