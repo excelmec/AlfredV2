@@ -4,6 +4,7 @@ import {
   Typography,
   Paper,
   Divider,
+  Checkbox,
   TableContainer,
   Table,
   TableHead,
@@ -132,6 +133,13 @@ export default function ItemDetails({ item }: { item: IItem }) {
         </Grid>
         <Grid item xs={6}>
           <Typography>{item.colorOptions.join(', ')}</Typography>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Typography>Can Be Pre-ordered</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography>{item.canBePreordered ? 'YES' : 'NO'}</Typography>
         </Grid>
 
         <Grid item xs={12}>

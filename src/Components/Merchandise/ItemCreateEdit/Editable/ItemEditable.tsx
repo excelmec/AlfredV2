@@ -695,13 +695,14 @@ export default function ItemEditable({
         </Grid>
 
         <Grid item xs={6}>
-          <Typography>Can Be Preordered</Typography>
+          <Typography>Can Be Pre-ordered</Typography>
         </Grid>
         <Grid item xs={6}>
           <Typography>
             <Checkbox
               // checked=
               name="canBePreordered"
+              checked={item.canBePreordered}
               onChange={(e) => {
                 console.log(`Checked: ${e.target.checked}`);
                 setItem({ ...item, canBePreordered: e.target.checked });
