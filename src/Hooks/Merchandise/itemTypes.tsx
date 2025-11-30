@@ -1,12 +1,22 @@
 export enum ESize {
+  XS = 'XS',
   S = 'S',
   M = 'M',
   L = 'L',
   XL = 'XL',
   XXL = 'XXL',
+  XXXL = 'XXXL',
 }
 
-export const sizeOptions: ESize[] = [ESize.S, ESize.M, ESize.L, ESize.XL, ESize.XXL];
+export const sizeOptions: ESize[] = [
+  ESize.XS,
+  ESize.S,
+  ESize.M,
+  ESize.L,
+  ESize.XL,
+  ESize.XXL,
+  ESize.XXXL,
+];
 
 export enum EMediaObjectType {
   image = 'image',
