@@ -8,6 +8,7 @@ export function useOrderEach() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [updatingShippingStatus, setUpdatingShippingStatus] = useState<boolean>(false);
+  const [updatingSelfPickupStatus, setUpdatingSelfPickupStatus] = useState<boolean>(false);
 
   const { axiosMerchPrivate } = useContext(ApiContext);
 
@@ -58,6 +59,23 @@ export function useOrderEach() {
     }
   }
 
+  async function updateOrderSelfPickupStatus(orderId: string, selfPickupStatus: string) {
+    try {
+      setUpdatingSelfPickupStatus(true);
+      setError('');
+
+      await axiosMerchPrivate.put(`/admin/orderStatus/${orderId}`, {
+        selfpickupStatus: selfPickupStatus,
+      });
+
+      await fetchOrder(orderId);
+    } catch (error) {
+      setError(getErrMsg(error));
+    } finally {
+      setUpdatingSelfPickupStatus(false);
+    }
+  }
+
   return {
     order,
     loading,
@@ -65,5 +83,7 @@ export function useOrderEach() {
     fetchOrder,
     updateOrderShippingStatus,
     updatingShippingStatus,
+    updateOrderSelfPickupStatus,
+    updatingSelfPickupStatus,
   } as const;
 }

@@ -151,8 +151,14 @@ export default function Sidebar() {
               icon={<FormatListNumberedIcon />}
             />
             <ListItemLink
-              to="/merch/confirmed_orders"
-              text="List Confirmed Orders"
+              to="/merch/confirmed_delivery_orders"
+              text="List Confirmed Delivery Orders"
+              leftBorder
+              icon={<FormatListNumberedIcon />}
+            />
+            <ListItemLink
+              to="/merch/confirmed_pickup_orders"
+              text="List Confirmed Pickup Orders"
               leftBorder
               icon={<FormatListNumberedIcon />}
             />

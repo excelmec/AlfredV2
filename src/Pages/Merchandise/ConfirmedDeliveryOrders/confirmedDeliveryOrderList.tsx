@@ -20,7 +20,7 @@ function getRowId(row: IOrder) {
   return row.orderId;
 }
 
-export default function ConfirmedOrdersListPage() {
+export default function ConfirmedDeliveryOrdersListPage() {
   const { confirmedOrderList, fetchOrderList, loading, error, columns } = useOrderList();
 
   const [shippingStatusToShow, setShippingStatusToShow] = useState<EShippingStatus[]>([
@@ -156,7 +156,7 @@ export default function ConfirmedOrdersListPage() {
     <>
       <br />
       <Typography variant="h5" noWrap component="div">
-        Order List
+        Confirmed Delivery Order List
       </Typography>
       <br />
       <DataGrid

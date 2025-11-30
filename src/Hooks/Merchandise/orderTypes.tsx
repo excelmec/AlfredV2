@@ -30,10 +30,12 @@ export interface IOrder {
   razOrderId: string;
   orderDate: Date;
   trackingId?: string;
+  isSelfPickup: boolean;
 
   orderStatus: EOrderStatus;
   paymentStatus: EPaymentStatus;
   shippingStatus: EShippingStatus;
+  selfpickupStatus: ESelfPickupStatus;
 
   totalAmountInRs: number;
   additionalCharges: IAdditionalOrderCharges[];
@@ -77,6 +79,12 @@ export enum EShippingStatus {
   processing = 'processing',
   shipping = 'shipping',
   delivered = 'delivered',
+}
+
+export enum ESelfPickupStatus {
+  not_ready_for_pickup = 'not_ready_for_pickup',
+  ready_for_pickup = 'ready_for_pickup',
+  picked_up = 'picked_up',
 }
 
 export interface IAdditionalOrderCharges {

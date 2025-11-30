@@ -26,21 +26,30 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import './OrderDataView.css';
 
 import { useState } from 'react';
-import { EShippingStatus, IOrder } from 'Hooks/Merchandise/orderTypes';
+import { ESelfPickupStatus, EShippingStatus, IOrder } from 'Hooks/Merchandise/orderTypes';
 
 export default function OrderDataView({
   order,
   updateOrderShippingStatus,
   updatingShippingStatus,
+  updateOrderSelfPickupStatus,
+  updatingSelfPickupStatus,
 }: {
   order: IOrder;
   updateOrderShippingStatus: (orderId: string, shippingStatus: string, trackingId?: string) => void;
   updatingShippingStatus: boolean;
+  updateOrderSelfPickupStatus: (orderId: string, selfPickupStatus: string) => void;
+  updatingSelfPickupStatus: boolean;
 }) {
   const [newShippingStatus, setNewShippingStatus] = useState<EShippingStatus>(order.shippingStatus);
   const [newTrackingId, setNewTrackingId] = useState<string | undefined>(order.trackingId);
   const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
-  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [shippingStatusHelpDialogOpen, setShippingStatusHelpDialogOpen] = useState(false);
+  const [newSelfPickupStatus, setNewSelfPickupStatus] = useState<ESelfPickupStatus>(
+    order.selfpickupStatus,
+  );
+  const [selfPickupDialogOpen, setSelfPickupDialogOpen] = useState(false);
+  const [selfPickupStatusHelpDialogOpen, setSelfPickupStatusHelpDialogOpen] = useState(false);
 
   const handleShippingDialogClose = () => {
     if (updatingShippingStatus) {
@@ -49,6 +58,14 @@ export default function OrderDataView({
     setNewShippingStatus(order.shippingStatus);
     setNewTrackingId(order.trackingId);
     setShippingDialogOpen(false);
+  };
+
+  const handleSelfPickupDialogClose = () => {
+    if (updatingSelfPickupStatus) {
+      return;
+    }
+    setNewSelfPickupStatus(order.selfpickupStatus);
+    setSelfPickupDialogOpen(false);
   };
 
   const dateVal: Date =
@@ -175,46 +192,85 @@ export default function OrderDataView({
             {order.paymentStatus}
           </Typography>
         </Grid>
-        <Grid item xs={6}>
-          <Typography>Shipping Status</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography
-            color={
-              order.shippingStatus === 'not_shipped' || order.shippingStatus === 'processing'
-                ? 'error'
-                : ''
-            }
-          >
-            {order.shippingStatus}
-          </Typography>
-        </Grid>
+        {order.isSelfPickup ? (
+          <>
+            <Grid item xs={6}>
+              <Typography>Pickup Status</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography>{order.selfpickupStatus}</Typography>
+            </Grid>
 
-        <Grid item xs={3}>
-          <Button
-            disabled={updatingShippingStatus || order.orderStatus !== 'order_confirmed'}
-            size="small"
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              setShippingDialogOpen(true);
-            }}
-          >
-            Update Shipping Status
-          </Button>
-        </Grid>
-        <Grid item xs={9}>
-          <Button
-            size="small"
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              setHelpDialogOpen(!helpDialogOpen);
-            }}
-          >
-            Open Help
-          </Button>
-        </Grid>
+            <Grid item xs={3}>
+              <Button
+                disabled={updatingShippingStatus || order.orderStatus !== 'order_confirmed'}
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setSelfPickupDialogOpen(true);
+                }}
+              >
+                Update Pickup Status
+              </Button>
+            </Grid>
+            <Grid item xs={9}>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setSelfPickupStatusHelpDialogOpen(!selfPickupStatusHelpDialogOpen);
+                }}
+              >
+                Open Help
+              </Button>
+            </Grid>
+          </>
+        ) : (
+          <>
+            <Grid item xs={6}>
+              <Typography>Shipping Status</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography
+                color={
+                  order.shippingStatus === 'not_shipped' || order.shippingStatus === 'processing'
+                    ? 'error'
+                    : ''
+                }
+              >
+                {order.shippingStatus}
+              </Typography>
+            </Grid>
+
+            <Grid item xs={3}>
+              <Button
+                disabled={updatingShippingStatus || order.orderStatus !== 'order_confirmed'}
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setShippingDialogOpen(true);
+                }}
+              >
+                Update Shipping Status
+              </Button>
+            </Grid>
+            <Grid item xs={9}>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setShippingStatusHelpDialogOpen(!shippingStatusHelpDialogOpen);
+                }}
+              >
+                Open Help
+              </Button>
+            </Grid>
+          </>
+        )}
 
         <Grid item xs={12}>
           <Divider />
@@ -341,8 +397,99 @@ export default function OrderDataView({
       </Dialog>
 
       <Dialog
-        open={helpDialogOpen}
-        onClose={() => setHelpDialogOpen(false)}
+        open={selfPickupDialogOpen}
+        onClose={handleSelfPickupDialogClose}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Update Pickup Status</DialogTitle>
+        <DialogContent>
+          <Select
+            value={newSelfPickupStatus}
+            onChange={(e) => {
+              setNewSelfPickupStatus(e.target.value as ESelfPickupStatus);
+            }}
+            fullWidth
+          >
+            {Object.values(ESelfPickupStatus).map((status) => (
+              <MenuItem key={status} value={status}>
+                {status}
+              </MenuItem>
+            ))}
+          </Select>
+          <br />
+          <br />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            autoFocus
+            onClick={() => {
+              updateOrderSelfPickupStatus(order.orderId, newSelfPickupStatus);
+            }}
+            disabled={updatingSelfPickupStatus}
+            startIcon={<SaveIcon />}
+            variant="contained"
+          >
+            Save
+          </Button>
+          <Button
+            onClick={handleSelfPickupDialogClose}
+            autoFocus
+            disabled={updatingSelfPickupStatus}
+            startIcon={<CancelIcon />}
+            variant="contained"
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={selfPickupStatusHelpDialogOpen}
+        onClose={() => setSelfPickupStatusHelpDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Help</DialogTitle>
+        <DialogContent>
+          <Typography>
+            <strong>PIckup Status</strong> - This is the status of self pickup. It can be one of the
+            following:
+          </Typography>
+          <ul className="order-data-help-dialog">
+            <li>
+              <strong>not_ready_for_pickup</strong> - There isn't either enough stock or the order
+              is simply not ready for pickup
+            </li>
+            <li>
+              <strong>ready_for_pickup</strong> - The order is ready for pickup by the customer. For
+              preorders, it gets automatically set when enough stock becomes available. For other
+              orders, it has to be manually set.
+            </li>
+            <li>
+              <strong>picked_up</strong> - The order has been picked up. No further action is
+              required.
+            </li>
+          </ul>
+          <Typography>
+            <strong>Status Flow:</strong> not_ready_for_pickup -&gt; ready_for_pickup -&gt;
+            picked_up
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            autoFocus
+            onClick={() => setSelfPickupStatusHelpDialogOpen(false)}
+            variant="contained"
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={shippingStatusHelpDialogOpen}
+        onClose={() => setShippingStatusHelpDialogOpen(false)}
         fullWidth
         maxWidth="sm"
       >
@@ -382,7 +529,11 @@ export default function OrderDataView({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={() => setHelpDialogOpen(false)} variant="contained">
+          <Button
+            autoFocus
+            onClick={() => setShippingStatusHelpDialogOpen(false)}
+            variant="contained"
+          >
             Close
           </Button>
         </DialogActions>

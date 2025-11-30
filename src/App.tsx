@@ -27,9 +27,10 @@ import MerchItemViewPage from 'Pages/Merchandise/item/itemView';
 import MerchItemEditPage from 'Pages/Merchandise/item/itemEdit';
 import MerchItemCreatePage from 'Pages/Merchandise/item/itemCreate';
 import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
-import ConfirmedOrdersListPage from 'Pages/Merchandise/ConfirmedOrders/confirmedOrderList';
+import ConfirmedDeliveryOrdersListPage from 'Pages/Merchandise/ConfirmedDeliveryOrders/confirmedDeliveryOrderList';
+import ConfirmedPickupOrdersListPage from 'Pages/Merchandise/ConfirmedPickupOrders/confirmedPickupOrderList';
 import PreordersListPage from 'Pages/Merchandise/Preorders/preorderList';
-import OrderViewPage from 'Pages/Merchandise/ConfirmedOrders/orderView';
+import OrderViewPage from 'Pages/Merchandise/ConfirmedDeliveryOrders/orderView';
 import EventRegistrationsListPage from 'Pages/Events/EventRegistrations';
 import EventSchedule from 'Pages/Events/EventSchedule';
 import {
@@ -283,10 +284,18 @@ function MerchRoutes() {
     />,
 
     <Route
-      path="/merch/confirmed_orders"
+      path="/merch/confirmed_delivery_orders"
       element={
         <ProtectedRoute allowedRoles={['Admin', 'MerchManage', 'MerchOrderManage']}>
-          <ConfirmedOrdersListPage />
+          <ConfirmedDeliveryOrdersListPage />
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      path="/merch/confirmed_pickup_orders"
+      element={
+        <ProtectedRoute allowedRoles={['Admin', 'MerchManage', 'MerchOrderManage']}>
+          <ConfirmedPickupOrdersListPage />
         </ProtectedRoute>
       }
     />,

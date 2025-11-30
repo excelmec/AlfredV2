@@ -6,8 +6,16 @@ import { useParams } from 'react-router-dom';
 
 export default function OrderViewPage() {
   const { orderId } = useParams();
-  const { order, loading, error, fetchOrder, updateOrderShippingStatus, updatingShippingStatus } =
-    useOrderEach();
+  const {
+    order,
+    loading,
+    error,
+    fetchOrder,
+    updateOrderShippingStatus,
+    updatingShippingStatus,
+    updateOrderSelfPickupStatus,
+    updatingSelfPickupStatus,
+  } = useOrderEach();
 
   useEffect(() => {
     fetchOrder(orderId);
@@ -44,6 +52,8 @@ export default function OrderViewPage() {
         order={order!}
         updateOrderShippingStatus={updateOrderShippingStatus}
         updatingShippingStatus={updatingShippingStatus}
+        updateOrderSelfPickupStatus={updateOrderSelfPickupStatus}
+        updatingSelfPickupStatus={updatingSelfPickupStatus}
       />
       ,
     </>
