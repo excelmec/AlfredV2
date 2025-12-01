@@ -30,6 +30,7 @@ import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
 import ConfirmedDeliveryOrdersListPage from 'Pages/Merchandise/ConfirmedDeliveryOrders/confirmedDeliveryOrderList';
 import ConfirmedPickupOrdersListPage from 'Pages/Merchandise/ConfirmedPickupOrders/confirmedPickupOrderList';
 import PreordersListPage from 'Pages/Merchandise/Preorders/preorderList';
+import MissingStockList from 'Pages/Merchandise/Preorders/missingStockList';
 import OrderViewPage from 'Pages/Merchandise/ConfirmedDeliveryOrders/orderView';
 import EventRegistrationsListPage from 'Pages/Events/EventRegistrations';
 import EventSchedule from 'Pages/Events/EventSchedule';
@@ -304,6 +305,14 @@ function MerchRoutes() {
       element={
         <ProtectedRoute allowedRoles={['Admin', 'MerchManage', 'MerchOrderManage']}>
           <PreordersListPage />
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      path="/merch/missing_stock"
+      element={
+        <ProtectedRoute allowedRoles={['Admin', 'MerchManage']}>
+          <MissingStockList />
         </ProtectedRoute>
       }
     />,

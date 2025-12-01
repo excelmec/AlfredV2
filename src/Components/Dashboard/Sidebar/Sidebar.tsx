@@ -169,6 +169,12 @@ export default function Sidebar() {
               icon={<FormatListNumberedIcon />}
             />
             <ListItemLink
+              to="/merch/missing_stock"
+              text="List Missing Stock"
+              leftBorder
+              icon={<FormatListNumberedIcon />}
+            />
+            <ListItemLink
               to="/merch/order/testpayment"
               text="Test Payment"
               leftBorder
