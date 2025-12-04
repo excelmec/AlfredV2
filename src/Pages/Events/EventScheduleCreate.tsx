@@ -8,61 +8,61 @@ import { IValidateCreateEventSchedule } from 'Hooks/Event/create-update/eventSch
 import { useScheduleList } from 'Hooks/Event/useScheduleList';
 
 export default function EventScheduleCreate() {
-    const {
-        newEvent,
-        setNewEvent,
-        validationErrors,
-        createSchedule,
-        validateSchedule,
-        creatingSchedule,
-		error: creatingScheduleError,
-    } = useScheduleList();
+  const {
+    newEvent,
+    setNewEvent,
+    validationErrors,
+    createSchedule,
+    validateSchedule,
+    creatingSchedule,
+    error: creatingScheduleError,
+  } = useScheduleList();
 
-	const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
 
-	useEffect(() => {
-		if (lodash.isEqual(defaultDummyEvent, newEvent)) {
-			setHasUnsavedChanges(false);
-		} else {
-			setHasUnsavedChanges(true);
-		}
-	}, [newEvent]);
+  useEffect(() => {
+    if (lodash.isEqual(defaultDummyEvent, newEvent)) {
+      setHasUnsavedChanges(false);
+    } else {
+      setHasUnsavedChanges(true);
+    }
+  }, [newEvent]);
 
-	if (creatingScheduleError) {
-		return <Typography variant='h5'>{creatingScheduleError}</Typography>;
-	}
+  if (creatingScheduleError) {
+    return <Typography variant="h5">{creatingScheduleError}</Typography>;
+  }
 
-	return (
-		<>
-			<br />
-			<Box
-				sx={{
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					width: '100%',
-				}}
-			>
-				<Typography variant='h5' noWrap>
-					Add Event Schedule details
-				</Typography>
-			</Box>
-			<br />
+  return (
+    <>
+      <br />
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <Typography variant="h5" noWrap>
+          Add Event Schedule details
+        </Typography>
+      </Box>
+      <br />
 
-			<EventEditToolBar
-				saveChanges={createSchedule}
-				hasUnsavedChanges={hasUnsavedChanges}
-				savingEvent={creatingSchedule}
-			/>
+      <EventEditToolBar
+        saveChanges={createSchedule}
+        hasUnsavedChanges={hasUnsavedChanges}
+        savingEvent={creatingSchedule}
+      />
 
-			<CreateSchedule
-				newEvent={newEvent as IValidateCreateEventSchedule}
-				setNewEvent={setNewEvent}
-				savingEvent={creatingSchedule}
-				savingEventError={creatingScheduleError}
-				validateEvent={validateSchedule}
-				validationErrors={validationErrors}
-			/>
-		</>
-	);
+      <CreateSchedule
+        newEvent={newEvent as IValidateCreateEventSchedule}
+        setNewEvent={setNewEvent}
+        savingEvent={creatingSchedule}
+        savingEventError={creatingScheduleError}
+        validateEvent={validateSchedule}
+        validationErrors={validationErrors}
+      />
+    </>
+  );
 }

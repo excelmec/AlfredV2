@@ -9,112 +9,105 @@ import { toast } from 'react-toastify';
 import { TupdateFnReturn } from 'Hooks/errorParser';
 
 export default function EventEditToolBar({
-	saveChanges,
-	hasUnsavedChanges,
-	savingEvent,
+  saveChanges,
+  hasUnsavedChanges,
+  savingEvent,
 }: {
-	saveChanges: () => Promise<TupdateFnReturn>;
-	hasUnsavedChanges: boolean;
-	savingEvent: boolean;
+  saveChanges: () => Promise<TupdateFnReturn>;
+  hasUnsavedChanges: boolean;
+  savingEvent: boolean;
 }) {
-	const navigate = useNavigate();
+  const navigate = useNavigate();
 
-	async function showUnsavedChangesPopup() {
-		return window.confirm('You have unsaved changes. Do you want to exit?');
-	}
+  async function showUnsavedChangesPopup() {
+    return window.confirm('You have unsaved changes. Do you want to exit?');
+  }
 
-	const handler = (event: BeforeUnloadEvent) => {
-		event.preventDefault();
-		event.returnValue = '';
-	};
+  const handler = (event: BeforeUnloadEvent) => {
+    event.preventDefault();
+    event.returnValue = '';
+  };
 
-	async function saveEvent() {
-		try {
-			const res = await saveChanges();
+  async function saveEvent() {
+    try {
+      const res = await saveChanges();
 
-			if (res.success) {
-				toast.success('Event Saved.');
-				navigate(`/events/view/${res.id}`, {
-					replace: true,
-				});
-				return;
-			}
+      if (res.success) {
+        toast.success('Event Saved.');
+        navigate(`/events/view/${res.id}`, {
+          replace: true,
+        });
+        return;
+      }
 
-			if (res.validationError) {
-				toast.error('Please fix the errors to continue.');
+      if (res.validationError) {
+        toast.error('Please fix the errors to continue.');
 
-				const firstErrorName = res.validationError[0]?.path;
-				if (!firstErrorName) return;
+        const firstErrorName = res.validationError[0]?.path;
+        if (!firstErrorName) return;
 
-				const firstErrorElem =
-					document.getElementsByName(firstErrorName)[0];
+        const firstErrorElem = document.getElementsByName(firstErrorName)[0];
 
-				if (!firstErrorElem) return;
+        if (!firstErrorElem) return;
 
-				firstErrorElem.scrollIntoView({
-					behavior: 'smooth',
-					block: 'start',
-				});
+        firstErrorElem.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
 
-				return;
-			}
-		} catch (error: any) {
-			console.log(error);
-			toast.error(`Error saving event: ${error?.message}`);
-		}
-	}
+        return;
+      }
+    } catch (error: any) {
+      console.log(error);
+      toast.error(`Error saving event: ${error?.message}`);
+    }
+  }
 
-	useEffect(() => {
-		if (hasUnsavedChanges) {
-			window.addEventListener('beforeunload', handler);
-		} else {
-			window.removeEventListener('beforeunload', handler);
-		}
+  useEffect(() => {
+    if (hasUnsavedChanges) {
+      window.addEventListener('beforeunload', handler);
+    } else {
+      window.removeEventListener('beforeunload', handler);
+    }
 
-		return () => {
-			window.removeEventListener('beforeunload', handler);
-		};
-	}, [hasUnsavedChanges]);
+    return () => {
+      window.removeEventListener('beforeunload', handler);
+    };
+  }, [hasUnsavedChanges]);
 
-	return (
-		<Box
-			className='event-edit-toolbar'
-			component={Paper}
-			elevation={2}
-			borderRadius={0}
-			zIndex={5}
-		>
-			<Box sx={{ flexGrow: 1 }} />
+  return (
+    <Box className="event-edit-toolbar" component={Paper} elevation={2} borderRadius={0} zIndex={5}>
+      <Box sx={{ flexGrow: 1 }} />
 
-			<Button
-				variant='contained'
-				color='secondary'
-				startIcon={<SaveIcon />}
-				className='toolbutton'
-				onClick={saveEvent}
-				disabled={savingEvent}
-			>
-				{savingEvent ? 'Saving...' : 'Save'}
-			</Button>
-			<Button
-				variant='contained'
-				color='error'
-				startIcon={<CancelIcon />}
-				className='toolbutton'
-				disabled={savingEvent}
-				onClick={async () => {
-					if (hasUnsavedChanges) {
-						const confirmExit = await showUnsavedChangesPopup();
-						console.log(confirmExit);
-						if (!confirmExit) return;
-					}
+      <Button
+        variant="contained"
+        color="secondary"
+        startIcon={<SaveIcon />}
+        className="toolbutton"
+        onClick={saveEvent}
+        disabled={savingEvent}
+      >
+        {savingEvent ? 'Saving...' : 'Save'}
+      </Button>
+      <Button
+        variant="contained"
+        color="error"
+        startIcon={<CancelIcon />}
+        className="toolbutton"
+        disabled={savingEvent}
+        onClick={async () => {
+          if (hasUnsavedChanges) {
+            const confirmExit = await showUnsavedChangesPopup();
+            console.log(confirmExit);
+            if (!confirmExit) return;
+          }
 
-					console.log('navigating');
-					navigate(-1);
-				}}
-			>
-				Cancel
-			</Button>
-		</Box>
-	);
+          console.log('navigating');
+          navigate(-1);
+        }}
+      >
+        Cancel
+      </Button>
+    </Box>
+  );
 }

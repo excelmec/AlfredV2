@@ -5,60 +5,60 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function CaViewPage() {
-	const { ambassadorId } = useParams();
-	const {
-		ca,
-		caPointLog,
-		fetchCa,
-		loading,
-		error,
+  const { ambassadorId } = useParams();
+  const {
+    ca,
+    caPointLog,
+    fetchCa,
+    loading,
+    error,
 
-		addNewPoint,
-		savingNewPoint,
+    addNewPoint,
+    savingNewPoint,
 
-		deletePoint,
-		deletingPoint
-	} = useCa();
+    deletePoint,
+    deletingPoint,
+  } = useCa();
 
-	useEffect(() => {
-		fetchCa(Number(ambassadorId));
+  useEffect(() => {
+    fetchCa(Number(ambassadorId));
 
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ambassadorId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ambassadorId]);
 
-	if (loading) {
-		return (
-			<Typography variant='h5' noWrap component='div'>
-				Loading...
-			</Typography>
-		);
-	}
+  if (loading) {
+    return (
+      <Typography variant="h5" noWrap component="div">
+        Loading...
+      </Typography>
+    );
+  }
 
-	if (error) {
-		return (
-			<Typography variant='h5' noWrap component='div'>
-				{error}
-			</Typography>
-		);
-	}
+  if (error) {
+    return (
+      <Typography variant="h5" noWrap component="div">
+        {error}
+      </Typography>
+    );
+  }
 
-	return (
-		<>
-			<Box>
-				<Typography variant='h5' noWrap component='div'>
-					Campus Ambassador View
-				</Typography>
-			</Box>
-			<br />
+  return (
+    <>
+      <Box>
+        <Typography variant="h5" noWrap component="div">
+          Campus Ambassador View
+        </Typography>
+      </Box>
+      <br />
 
-			<CaDataView
-				ca={ca}
-				caPointLog={caPointLog}
-				addNewPoint={addNewPoint}
-				savingNewPoint={savingNewPoint}
-				deletePoint={deletePoint}
-				deletingPoint={deletingPoint}
-			/>
-		</>
-	);
+      <CaDataView
+        ca={ca}
+        caPointLog={caPointLog}
+        addNewPoint={addNewPoint}
+        savingNewPoint={savingNewPoint}
+        deletePoint={deletePoint}
+        deletingPoint={deletingPoint}
+      />
+    </>
+  );
 }

@@ -7,7 +7,7 @@ import {
   DialogTitle,
   Typography,
   TextField,
-} from "@mui/material";
+} from '@mui/material';
 import {
   DataGrid,
   GridActionsCellItem,
@@ -15,21 +15,21 @@ import {
   GridRowParams,
   GridToolbar,
   GridValueGetterParams,
-} from "@mui/x-data-grid";
-import { useContext, useEffect, useState } from "react";
-import { IEventListItem, IScheduleItem } from "../../Hooks/Event/eventTypes";
-import { useNavigate } from "react-router-dom";
-import DeleteIcon from "@mui/icons-material/Delete";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import UserContext from "Contexts/User/UserContext";
+} from '@mui/x-data-grid';
+import { useContext, useEffect, useState } from 'react';
+import { IEventListItem, IScheduleItem } from '../../Hooks/Event/eventTypes';
+import { useNavigate } from 'react-router-dom';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
+import UserContext from 'Contexts/User/UserContext';
 import {
   allEventEditRoles,
   allEventViewRoles,
   specificEventViewRoles,
-} from "Hooks/Event/eventRoles";
-import { TypeSafeColDef } from "Hooks/gridColumType";
-import { useScheduleList } from "Hooks/Event/useScheduleList";
+} from 'Hooks/Event/eventRoles';
+import { TypeSafeColDef } from 'Hooks/gridColumType';
+import { useScheduleList } from 'Hooks/Event/useScheduleList';
 
 function getRowId(row: IScheduleItem) {
   return row.id;
@@ -51,11 +51,9 @@ export default function EventSchedule() {
 
   const [viewableEvents, setViewableEvents] = useState<IScheduleItem[]>([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<IScheduleItem | null>(
-    null
-  );
-  const [editRound, setEditRound] = useState("");
-  const [editRoundId, setEditRoundId] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState<IScheduleItem | null>(null);
+  const [editRound, setEditRound] = useState('');
+  const [editRoundId, setEditRoundId] = useState('');
 
   const navigate = useNavigate();
 
@@ -70,22 +68,18 @@ export default function EventSchedule() {
   const handleCloseModal = () => {
     setEditModalOpen(false);
     setSelectedEvent(null);
-    setEditRound("");
-    setEditRoundId("");
+    setEditRound('');
+    setEditRoundId('');
   };
 
   const handleSaveEdit = async () => {
-    if (
-      selectedEvent?.round === editRound &&
-      selectedEvent?.roundId === Number(editRoundId)
-    ) {
+    if (selectedEvent?.round === editRound && selectedEvent?.roundId === Number(editRoundId)) {
       handleCloseModal();
       return;
     }
     await updateScheduleItem(selectedEvent, editRound, Number(editRoundId));
     handleCloseModal();
   };
-
 
   const handleDeleteClick = async (params: GridRowParams) => {
     const event = params.row as IScheduleItem;
@@ -95,9 +89,9 @@ export default function EventSchedule() {
   const muiColumns = [
     ...columns,
     {
-      field: "actions",
-      headerName: "Actions",
-      type: "actions",
+      field: 'actions',
+      headerName: 'Actions',
+      type: 'actions',
       width: 150,
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
@@ -129,15 +123,13 @@ export default function EventSchedule() {
     if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
       // This person has edit access to all events, so can view all
       setViewableEvents(eventList);
-    } else if (
-      userData.roles.some((role) => allEventViewRoles.includes(role))
-    ) {
+    } else if (userData.roles.some((role) => allEventViewRoles.includes(role))) {
       // This person has view access to all events, so can view all
       setViewableEvents(eventList);
     } else {
       // This person has no access to any event
       setViewableEvents([]);
-      setError("You do not have permission to view this page");
+      setError('You do not have permission to view this page');
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,11 +146,7 @@ export default function EventSchedule() {
         Event Schedule
       </Typography>
       <br />
-      <Button
-        size="small"
-        variant="contained"
-        onClick={() => navigate("/events/schedule/create")}
-      >
+      <Button size="small" variant="contained" onClick={() => navigate('/events/schedule/create')}>
         Create New Schedule
       </Button>
       <br />
@@ -169,7 +157,7 @@ export default function EventSchedule() {
         columns={muiColumns}
         loading={loading}
         sx={{
-          width: "90%",
+          width: '90%',
         }}
         autoPageSize
         slots={{ toolbar: GridToolbar }}
@@ -193,10 +181,7 @@ export default function EventSchedule() {
           <DialogContentText>
             Modify the round information for this schedule item.
             {selectedEvent && (
-              <Typography
-                variant="subtitle1"
-                sx={{ my: 1, color: "text.secondary" }}
-              >
+              <Typography variant="subtitle1" sx={{ my: 1, color: 'text.secondary' }}>
                 Current Event: {selectedEvent.name}
               </Typography>
             )}
