@@ -1,16 +1,8 @@
-import {
-  Button,
-  // Dialog,
-  // DialogActions,
-  // DialogContent,
-  // DialogContentText,
-  // DialogTitle,
-  Typography,
-} from '@mui/material';
+import { Button, Typography } from '@mui/material';
 
 import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useItemList } from '../../../Hooks/Merchandise/useItemList';
 import { IItem } from 'Hooks/Merchandise/itemTypes';
@@ -20,6 +12,8 @@ import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
+import MerchItemDelete from './itemDelete';
+import { IEventListItem } from 'Hooks/Event/eventTypes';
 
 function getRowId(row: IItem) {
   return row.id;
@@ -29,10 +23,8 @@ export default function MerchItemListPage() {
   const { itemList, fetchItemList, loading, error, columns } = useItemList();
 
   const navigate = useNavigate();
-  // const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
-  // const [eventToDelete, setEventToDelete] = useState<
-  // Pick<IEventListItem, 'id' | 'name'> | undefined
-  // >();
+  const [deleteDialoge, setDeleteDialoge] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<Pick<IEventListItem, 'id' | 'name'> | undefined>();
 
   const muiColumns = [
     ...columns,
@@ -61,7 +53,7 @@ export default function MerchItemListPage() {
           icon={<DeleteIcon color="error" />}
           label="Delete"
           onClick={() => {
-            alert('Coming Soon');
+            setDeleteItem({ id: params.row.id, name: params.row.name });
           }}
         />,
       ],
@@ -93,6 +85,11 @@ export default function MerchItemListPage() {
   if (error) {
     return <Typography variant="h5">{error}</Typography>;
   }
+
+  const handleDeleteDialogueClose = () => {
+    setDeleteItem(undefined);
+    fetchItemList();
+  };
 
   return (
     <>
@@ -130,37 +127,12 @@ export default function MerchItemListPage() {
         showColumnVerticalBorder
       />
 
-      {/* <Dialog open={deleteOpen} onClose={handleDeleteClose}>
-				<DialogTitle>
-					Delete Event with ID: {eventToDelete?.id}
-				</DialogTitle>
-				<DialogContent>
-					<DialogContentText>
-						Would you like to delete Event: {eventToDelete?.name}?
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						autoFocus
-						onClick={() => {
-							handleDelete(
-								eventToDelete?.id as number,
-								eventToDelete?.name as string
-							);
-						}}
-						disabled={eventIsDeleting}
-					>
-						Delete
-					</Button>
-					<Button
-						onClick={handleDeleteClose}
-						autoFocus
-						disabled={eventIsDeleting}
-					>
-						Cancel
-					</Button>
-				</DialogActions>
-			</Dialog> */}
+      <MerchItemDelete
+        id={deleteItem?.id}
+        name={deleteItem?.name}
+        dialogueOpen={deleteItem != undefined ? true : false}
+        onClose={handleDeleteDialogueClose}
+      />
     </>
   );
 }

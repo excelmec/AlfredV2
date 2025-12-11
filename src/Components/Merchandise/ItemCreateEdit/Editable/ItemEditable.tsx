@@ -282,7 +282,15 @@ export default function ItemEditable({
             </MenuItem>
           ))}
         </Select>
-        {errMsg && <FormHelperText>{errMsg}</FormHelperText>}
+        {errMsg && (
+          <FormHelperText
+            sx={{
+              color: '#d32e2e',
+            }}
+          >
+            {errMsg}
+          </FormHelperText>
+        )}
       </>
     );
   }
@@ -336,133 +344,151 @@ export default function ItemEditable({
       .filter((mediaObject) => mediaObject.colorOption === color)
       .sort((a, b) => a.viewOrdering - b.viewOrdering);
 
+    const errMsg = validationErrors.find((error) => {
+      return error.path === 'mediaObjects';
+    })?.message;
+
     return (
-      <div className="item-image-edit-row">
-        {colorMediaItems.length === 0 ? (
-          'No Images added'
-        ) : (
-          <>
-            <DragDropContext
-              onDragEnd={onDragEnd}
-              autoScrollerOptions={{
-                disabled: false,
-              }}
-            >
-              <Droppable droppableId={color} direction="horizontal">
-                {(provided, snapshot) => (
-                  <div
-                    className="item-edit-droppable-div"
-                    ref={provided.innerRef}
-                    style={getListStyle(snapshot.isDraggingOver)}
-                    {...provided.droppableProps}
-                  >
-                    {colorMediaItems.map((mediaObject, index) => (
-                      <Draggable
-                        key={mediaObject.fileName}
-                        draggableId={mediaObject.fileName}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            style={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}
-                          >
-                            <img
-                              alt={`${itemId}-${color}-${index}`}
-                              src={mediaObject.url}
-                              className="item-edit-draggable-img"
-                            />
+      <>
+        <div className="item-image-edit-row">
+          {colorMediaItems.length === 0 ? (
+            'No Images added'
+          ) : (
+            <>
+              <DragDropContext
+                onDragEnd={onDragEnd}
+                autoScrollerOptions={{
+                  disabled: false,
+                }}
+              >
+                <Droppable droppableId={color} direction="horizontal">
+                  {(provided, snapshot) => (
+                    <div
+                      className="item-edit-droppable-div"
+                      ref={provided.innerRef}
+                      style={getListStyle(snapshot.isDraggingOver)}
+                      {...provided.droppableProps}
+                    >
+                      {colorMediaItems.map((mediaObject, index) => (
+                        <Draggable
+                          key={mediaObject.fileName}
+                          draggableId={mediaObject.fileName}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
                             <div
-                              className="item-edit-draggable-delete"
-                              onClick={() => {
-                                setItem({
-                                  ...item,
-                                  mediaObjects: item.mediaObjects.filter(
-                                    (eachMediaObject) =>
-                                      eachMediaObject.fileName !== mediaObject.fileName,
-                                  ),
-                                });
-                              }}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={getItemStyle(
+                                snapshot.isDragging,
+                                provided.draggableProps.style,
+                              )}
                             >
-                              <DeleteForeverIcon />
+                              <img
+                                alt={`${itemId}-${color}-${index}`}
+                                src={mediaObject.url}
+                                className="item-edit-draggable-img"
+                              />
+                              <div
+                                className="item-edit-draggable-delete"
+                                onClick={() => {
+                                  setItem({
+                                    ...item,
+                                    mediaObjects: item.mediaObjects.filter(
+                                      (eachMediaObject) =>
+                                        eachMediaObject.fileName !== mediaObject.fileName,
+                                    ),
+                                  });
+                                }}
+                              >
+                                <DeleteForeverIcon />
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </>
-        )}
-        <label htmlFor={`item-image-add-${itemId}-${color}`}>
-          <div className={`item-edit-image-add ${loadingNewImage ? 'disabled' : ''}`}>
-            <AddIcon />
-            <span className="item-edit-image-add-text">
-              {loadingNewImage ? 'Loading...' : 'Add new image'}
-            </span>
-          </div>
-        </label>
-        <input
-          disabled={loadingNewImage}
-          accept="image/*"
-          type="file"
-          style={{ display: 'none' }}
-          id={`item-image-add-${itemId}-${color}`}
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              setLoadingNewImage(true);
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </>
+          )}
+          <label htmlFor={`item-image-add-${itemId}-${color}`}>
+            <div className={`item-edit-image-add ${loadingNewImage ? 'disabled' : ''}`}>
+              <AddIcon />
+              <span className="item-edit-image-add-text">
+                {loadingNewImage ? 'Loading...' : 'Add new image'}
+              </span>
+            </div>
+          </label>
+          <input
+            disabled={loadingNewImage}
+            accept="image/*"
+            type="file"
+            style={{ display: 'none' }}
+            id={`item-image-add-${itemId}-${color}`}
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                setLoadingNewImage(true);
 
-              /**
-               * The filename coming from user system might cuase clashes,
-               * hence we generate a random name
-               */
-              const min = 1,
-                max = 10000;
-              const randomFileName = (Math.random() * (max - min) + min).toString();
-              const newImage = new File([e.target.files[0]], randomFileName, {
-                type: e.target.files[0].type,
-              });
-
-              const maxViewOrdering = item.mediaObjects
-                .filter((mediaObject) => {
-                  return mediaObject.colorOption === color;
-                })
-                .map((mediaObject) => {
-                  return mediaObject.viewOrdering;
-                })
-                .reduce((a, b) => Math.max(a, b), 0);
-
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                const newMediaObject: IMediaObjectEditWithFile = {
-                  file: newImage,
-                  type: EMediaObjectType.image,
-                  colorOption: color,
-                  url: reader.result as string,
-                  fileName: newImage.name,
-                  viewOrdering: maxViewOrdering + 1,
-                };
-                setItem({
-                  ...item,
-                  mediaObjects: [...item.mediaObjects, newMediaObject],
+                /**
+                 * The filename coming from user system might cuase clashes,
+                 * hence we generate a random name
+                 */
+                const min = 1,
+                  max = 10000;
+                const randomFileName = (Math.random() * (max - min) + min).toString();
+                const newImage = new File([e.target.files[0]], randomFileName, {
+                  type: e.target.files[0].type,
                 });
 
-                setLoadingNewImage(false);
-                e.target.value = '';
-              };
-              reader.onerror = (e) => {
-                console.error(e);
-              };
-              reader.readAsDataURL(newImage);
-            }
-          }}
-        />
-      </div>
+                const maxViewOrdering = item.mediaObjects
+                  .filter((mediaObject) => {
+                    return mediaObject.colorOption === color;
+                  })
+                  .map((mediaObject) => {
+                    return mediaObject.viewOrdering;
+                  })
+                  .reduce((a, b) => Math.max(a, b), 0);
+
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  const newMediaObject: IMediaObjectEditWithFile = {
+                    file: newImage,
+                    type: EMediaObjectType.image,
+                    colorOption: color,
+                    url: reader.result as string,
+                    fileName: newImage.name,
+                    viewOrdering: maxViewOrdering + 1,
+                  };
+                  setItem({
+                    ...item,
+                    mediaObjects: [...item.mediaObjects, newMediaObject],
+                  });
+
+                  setLoadingNewImage(false);
+                  e.target.value = '';
+                };
+                reader.onerror = (e) => {
+                  console.error(e);
+                };
+                reader.readAsDataURL(newImage);
+              }
+            }}
+          />
+        </div>
+        {errMsg && (
+          <FormHelperText
+            sx={{
+              color: '#d32e2e',
+            }}
+          >
+            {errMsg}
+          </FormHelperText>
+        )}
+      </>
     );
   }
 
