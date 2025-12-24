@@ -37,10 +37,10 @@ export function useEventHeadCrud() {
         return false;
       }
 
-      if (!eventHead.email) {
-        setError('Email is required');
-        return false;
-      }
+      // if (!eventHead.email) {
+      //   setError('Email is required');
+      //   return false;
+      // }
 
       if (!eventHead.phoneNumber) {
         setError('Phone number is required');
@@ -88,10 +88,10 @@ export function useEventHeadCrud() {
         return false;
       }
 
-      if (!eventHead.email) {
-        setError('Email is required');
-        return false;
-      }
+      // if (!eventHead.email) {
+      //   setError('Email is required');
+      //   return false;
+      // }
 
       if (!eventHead.phoneNumber) {
         setError('Phone number is required');
