@@ -7,6 +7,11 @@ import {
   DialogTitle,
   Typography,
   TextField,
+  Box,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   DataGrid,
@@ -30,6 +35,8 @@ import {
 } from 'Hooks/Event/eventRoles';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { useScheduleList } from 'Hooks/Event/useScheduleList';
+import { DateTimePicker } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
 
 function getRowId(row: IScheduleItem) {
   return row.id;
@@ -54,6 +61,8 @@ export default function EventSchedule() {
   const [selectedEvent, setSelectedEvent] = useState<IScheduleItem | null>(null);
   const [editRound, setEditRound] = useState('');
   const [editRoundId, setEditRoundId] = useState('');
+  const [editDatetime, setEditDatetime] = useState<Date>(new Date());
+  const [editDay, setEditDay] = useState<number>(1);
 
   const navigate = useNavigate();
 
@@ -62,6 +71,8 @@ export default function EventSchedule() {
     setSelectedEvent(event);
     setEditRound(event.round);
     setEditRoundId(event.roundId.toString());
+    setEditDatetime(new Date(event.datetime));
+    setEditDay(event.day);
     setEditModalOpen(true);
   };
 
@@ -70,14 +81,21 @@ export default function EventSchedule() {
     setSelectedEvent(null);
     setEditRound('');
     setEditRoundId('');
+    setEditDatetime(new Date());
+    setEditDay(1);
   };
 
   const handleSaveEdit = async () => {
-    if (selectedEvent?.round === editRound && selectedEvent?.roundId === Number(editRoundId)) {
+    if (
+      selectedEvent?.round === editRound &&
+      selectedEvent?.roundId === Number(editRoundId) &&
+      selectedEvent?.datetime.getTime() === editDatetime.getTime() &&
+      selectedEvent?.day === editDay
+    ) {
       handleCloseModal();
       return;
     }
-    await updateScheduleItem(selectedEvent, editRound, Number(editRoundId));
+    await updateScheduleItem(selectedEvent, editRound, Number(editRoundId), editDatetime, editDay);
     handleCloseModal();
   };
 
@@ -201,6 +219,29 @@ export default function EventSchedule() {
             value={editRoundId}
             onChange={(e) => setEditRoundId(e.target.value)}
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="day-select-label">Day</InputLabel>
+            <Select
+              labelId="day-select-label"
+              value={editDay}
+              label="Day"
+              onChange={(e) => setEditDay(Number(e.target.value))}
+            >
+              <MenuItem value={1}>1</MenuItem>
+              <MenuItem value={2}>2</MenuItem>
+              <MenuItem value={3}>3</MenuItem>
+            </Select>
+          </FormControl>
+          <Box sx={{ mt: 2 }}>
+            <DateTimePicker
+              label="Date & Time"
+              value={dayjs(editDatetime)}
+              onChange={(newValue) => {
+                if (newValue) setEditDatetime(dayjs(newValue).toDate());
+              }}
+              sx={{ width: '100%' }}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal}>Cancel</Button>

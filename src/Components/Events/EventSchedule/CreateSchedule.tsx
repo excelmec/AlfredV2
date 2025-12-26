@@ -260,7 +260,7 @@ export default function EventEdit({
             onChange={(e) => {
               setNewEvent((prev) => ({
                 ...prev,
-                datetime: e ? new Date(e.toString()) : new Date(),
+                datetime: e ? new Date(e.toLocaleString()) : new Date(),
               }));
             }}
           />
