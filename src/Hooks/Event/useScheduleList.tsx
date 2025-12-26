@@ -160,20 +160,26 @@ export function useScheduleList() {
     selectedEvent: IScheduleItem | null,
     round: string,
     roundId: number,
+    newDatetime: Date,
+    day: number,
   ) => {
     try {
       setError('');
+      const formattedDate = newDatetime.toLocaleString();
+
       await axiosEventsPrivate.put(`/api/schedule`, {
         eventId: selectedEvent?.eventId,
         round,
         roundId,
-        day: selectedEvent?.day,
-        datetime: selectedEvent?.datetime,
+        day,
+        datetime: formattedDate,
       });
 
       setEventList((prevList) =>
         prevList.map((event) =>
-          event.eventId === selectedEvent?.eventId ? { ...event, round, roundId } : event,
+          event.eventId === selectedEvent?.eventId && event.roundId === selectedEvent?.roundId
+            ? { ...event, round, roundId, datetime: newDatetime, day }
+            : event,
         ),
       );
     } catch (error) {
