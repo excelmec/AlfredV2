@@ -109,6 +109,13 @@ export default function EventData({ event }: { event: IEvent }) {
         </Grid>
 
         <Grid item xs={6}>
+          <Typography>Results Published</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography>{event?.results && event.results.length > 0 ? 'YES' : 'NO'}</Typography>
+        </Grid>
+
+        <Grid item xs={6}>
           <Typography>Number of Rounds</Typography>
         </Grid>
         <Grid item xs={6}>

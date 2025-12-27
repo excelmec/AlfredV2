@@ -8,7 +8,13 @@ import { Link as RouterLink } from 'react-router-dom';
 import './ToolBar.css';
 import { useNavigate } from 'react-router-dom';
 
-export default function ToolBar({ eventId }: { eventId: number }) {
+export default function ToolBar({
+  eventId,
+  resultsPublished,
+}: {
+  eventId: number;
+  resultsPublished?: boolean;
+}) {
   const navigate = useNavigate();
   return (
     <Box className="event-desc-toolbar" component={Paper} elevation={2} borderRadius={0} zIndex={5}>
@@ -38,11 +44,11 @@ export default function ToolBar({ eventId }: { eventId: number }) {
 
       <Button
         variant="contained"
-        color="primary"
+        color={resultsPublished ? 'primary' : 'inherit'}
         startIcon={<MilitaryTechIcon />}
         className="toolbutton"
         onClick={() => {
-          alert('Coming Soon!');
+          navigate(`/events/results/${eventId}`);
         }}
       >
         Results

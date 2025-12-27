@@ -37,9 +37,22 @@ export interface IEvent extends IEventListItem {
   registrationEndDate?: Date;
   button: TEventButton;
   registrationLink?: string;
+  results: IResult[];
 
   // rounds: [];
   // registration: null;
+}
+
+export interface IResult {
+  id: number;
+  eventId: number;
+  excelId: number;
+  teamId: number;
+  event?: IEvent;
+  position: number;
+  name: string;
+  teamName: string;
+  teamMembers: string;
 }
 
 export interface IEventHead {
