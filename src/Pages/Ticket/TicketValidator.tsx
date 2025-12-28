@@ -13,7 +13,11 @@ import {
   Chip,
   CircularProgress,
 } from '@mui/material';
-import { Html5Qrcode, Html5QrcodeCameraScanConfig } from 'html5-qrcode';
+import {
+  Html5Qrcode,
+  Html5QrcodeCameraScanConfig,
+  Html5QrcodeSupportedFormats,
+} from 'html5-qrcode';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import CameraswitchIcon from '@mui/icons-material/Cameraswitch';
@@ -45,7 +49,7 @@ export default function TicketValidator() {
   const { axiosTicketsPrivate } = useContext(ApiContext);
   const [scanHistory, setScanHistory] = useState<IScanHistoryItem[]>([]);
   const [currentResult, setCurrentResult] = useState<IScanResponse | null>(null);
-  const [inlineResult, setInlineResult] = useState<IScanResponse | null>(null); // Full-screen during scan delay
+  const [inlineResult, setInlineResult] = useState<IScanResponse | null>(null);
   const [error, setError] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [availableCameras, setAvailableCameras] = useState<any[]>([]);
@@ -115,16 +119,29 @@ export default function TicketValidator() {
 
     try {
       if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode(SCANNER_ELEMENT_ID);
+        scannerRef.current = new Html5Qrcode(SCANNER_ELEMENT_ID, {
+          verbose: false,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true,
+          },
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.DATA_MATRIX,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+          ],
+        });
       }
 
       const camIndex = cameraIndex !== undefined ? cameraIndex : currentCameraIndex;
 
       const config: Html5QrcodeCameraScanConfig = {
-        fps: 30,
+        fps: 60,
         qrbox: function (viewfinderWidth, viewfinderHeight) {
           const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const qrboxSize = Math.floor(minEdge * 0.7);
+          const qrboxSize = Math.floor(minEdge * 0.8);
           return {
             width: qrboxSize,
             height: qrboxSize,
@@ -132,6 +149,11 @@ export default function TicketValidator() {
         },
         aspectRatio: 1.0,
         disableFlip: false,
+        videoConstraints: {
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
       };
 
       const cameraId =
@@ -183,7 +205,7 @@ export default function TicketValidator() {
     }
   };
 
-  async function onScanSuccess(decodedText: string) {
+  async function onScanSuccess(decodedText: string, _decodedResult: any) {
     const now = Date.now();
 
     if (processingRef.current) {
