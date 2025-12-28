@@ -27,6 +27,7 @@ export type UserRoles =
   | 'Core'
   | 'MerchManage'
   | 'MerchOrderManage'
+  | 'TicketAdmin'
   | 'EventHead';
 
 export type UserDatatype = {

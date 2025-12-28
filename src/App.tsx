@@ -44,6 +44,7 @@ import TicketUserList from './Pages/Ticket/TicketUserList';
 import ProshowList from './Pages/Ticket/ProshowList';
 import TicketValidator from './Pages/Ticket/TicketValidator';
 import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
+import { ticketAdminRoles, ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
 
 function App() {
   return (
@@ -346,7 +347,7 @@ function TicketRoutes() {
     <Route
       path="/tickets"
       element={
-        <ProtectedRoute allowedRoles={['Admin']}>
+        <ProtectedRoute allowedRoles={ticketAdminRoles}>
           <TicketUserList />
         </ProtectedRoute>
       }
@@ -354,7 +355,7 @@ function TicketRoutes() {
     <Route
       path="/tickets/proshows"
       element={
-        <ProtectedRoute allowedRoles={['Admin']}>
+        <ProtectedRoute allowedRoles={ticketAdminRoles}>
           <ProshowList />
         </ProtectedRoute>
       }
@@ -362,7 +363,7 @@ function TicketRoutes() {
     <Route
       path="/tickets/scan"
       element={
-        <ProtectedRoute allowedRoles={['Admin']}>
+        <ProtectedRoute allowedRoles={ticketScanRoles}>
           <TicketValidator />
         </ProtectedRoute>
       }

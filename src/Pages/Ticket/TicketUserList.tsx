@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useContext, useEffect, useState, useMemo } from 'react';
 import UserContext from 'Contexts/User/UserContext';
-import { allEventEditRoles } from 'Hooks/Event/eventRoles';
+import { ticketAdminRoles } from 'Hooks/Ticket/ticketRoles';
 import { useTickets } from '../../Hooks/Ticket/useTickets';
 import { ITicketUser } from '../../Hooks/Ticket/ticketTypes';
 import { useAttendees } from '../../Hooks/Ticket/useAttendees';
@@ -168,7 +168,7 @@ export default function TicketUserList() {
   useEffect(() => {
     if (loading || userLoading) return;
 
-    if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
+    if (userData.roles.some((role) => ticketAdminRoles.includes(role))) {
       setViewableTickets(ticketList);
     } else {
       setViewableTickets([]);
