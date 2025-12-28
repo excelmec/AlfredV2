@@ -38,11 +38,11 @@ export default function ToolBar({ eventId }: { eventId: number }) {
 
       <Button
         variant="contained"
-        color="primary"
+        color={'primary'}
         startIcon={<MilitaryTechIcon />}
         className="toolbutton"
         onClick={() => {
-          alert('Coming Soon!');
+          navigate(`/events/results/${eventId}`);
         }}
       >
         Results

@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import {
   getErrMsg,
@@ -209,7 +209,7 @@ export function useScheduleList() {
     }
   };
 
-  function validateSchedule(): boolean {
+  const validateSchedule = useCallback((): boolean => {
     try {
       createEventScheduleValidationSchema.validateSync(newEvent, {
         abortEarly: false,
@@ -227,7 +227,7 @@ export function useScheduleList() {
       }
       return false;
     }
-  }
+  }, [newEvent]);
 
   async function createSchedule(): Promise<TupdateFnReturn> {
     try {
