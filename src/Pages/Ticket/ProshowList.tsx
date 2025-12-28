@@ -10,11 +10,10 @@ import {
 } from '@mui/material';
 import {
   DataGrid,
-  GridActionsCellItem,
   GridColDef,
-  GridRowParams,
   GridToolbar,
   GridValueGetterParams,
+  GridRenderCellParams,
 } from '@mui/x-data-grid';
 import { useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useProshows } from '../../Hooks/Ticket/useProshows';
@@ -131,24 +130,20 @@ export default function ProshowList() {
       {
         field: 'actions',
         headerName: 'Actions',
-        type: 'actions',
         width: 150,
-        getActions: (params: GridRowParams<IProshowMerged>) => [
-          <GridActionsCellItem
-            icon={
-              <Button size="small" variant="contained">
-                Distribute
-              </Button>
-            }
-            label="Distribute"
+        renderCell: (params: GridRenderCellParams<IProshowMerged>) => (
+          <Button
+            size="small"
+            variant="contained"
             onClick={() => {
               setSelectedProshowId(params.row.id);
               setSelectedProshowTitle(params.row.title);
               setDistributeOpen(true);
             }}
-            showInMenu={false}
-          />,
-        ],
+          >
+            Distribute
+          </Button>
+        ),
       },
     ],
     [],
@@ -193,18 +188,7 @@ export default function ProshowList() {
     const isValid = await validateProshow();
     if (!isValid) return;
 
-    // Exact logic from eventValidation.tsx for timezone handling
-    const value = newProshow.show_time;
-    function padTwoDigit(num: number) {
-      return (num < 10 ? '0' : '') + num;
-    }
-    const year = value.getFullYear();
-    const month = padTwoDigit(value.getMonth() + 1);
-    const day = padTwoDigit(value.getDate());
-    const hour = padTwoDigit(value.getHours());
-    const minute = padTwoDigit(value.getMinutes());
-    const second = padTwoDigit(value.getSeconds());
-    const formattedDate = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+    const formattedDate = dayjs(newProshow.show_time).format();
 
     const success = await createProshow({
       title: newProshow.title,
@@ -294,7 +278,7 @@ export default function ProshowList() {
             onChange={(e) => {
               setNewProshow((prev) => ({
                 ...prev,
-                show_time: e ? new Date(e.toLocaleString()) : new Date(),
+                show_time: e ? e.toDate() : new Date(),
               }));
             }}
           />
