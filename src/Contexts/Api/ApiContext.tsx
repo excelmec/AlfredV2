@@ -15,6 +15,8 @@ export type ApiContextType = {
 
   axiosMerchPrivate: AxiosInstance;
   axiosMerchPublic: AxiosInstance;
+
+  axiosTicketsPrivate: AxiosInstance;
 };
 
 export const ApiContext = createContext<ApiContextType>({
@@ -31,4 +33,6 @@ export const ApiContext = createContext<ApiContextType>({
 
   axiosMerchPrivate: {} as AxiosInstance,
   axiosMerchPublic: {} as AxiosInstance,
+
+  axiosTicketsPrivate: {} as AxiosInstance,
 });
