@@ -42,6 +42,7 @@ import {
 import EventStatsPage from 'Pages/Events/EventStats';
 import TicketUserList from './Pages/Ticket/TicketUserList';
 import ProshowList from './Pages/Ticket/ProshowList';
+import TicketValidator from './Pages/Ticket/TicketValidator';
 import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
 import EventResults from 'Pages/Events/EventResults';
 
@@ -366,6 +367,14 @@ function TicketRoutes() {
       element={
         <ProtectedRoute allowedRoles={['Admin']}>
           <ProshowList />
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      path="/tickets/scan"
+      element={
+        <ProtectedRoute allowedRoles={['Admin']}>
+          <TicketValidator />
         </ProtectedRoute>
       }
     />,

@@ -1,198 +1,329 @@
 import {
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Paper,
+  Chip,
+  TextField,
+  InputAdornment,
+  Box,
+  Alert,
+  AlertTitle,
+  List,
+  ListItem,
+  ListItemText,
+  Grid,
 } from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
-import { useContext, useEffect, useState } from 'react';
-import { IEventListItem } from '../../Hooks/Event/eventTypes';
-import { useNavigate } from 'react-router-dom';
-import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
-import CreditScoreIcon from '@mui/icons-material/CreditScore';
+import { useContext, useEffect, useState, useMemo } from 'react';
 import UserContext from 'Contexts/User/UserContext';
-import {
-  allEventEditRoles,
-  allEventViewRoles,
-  specificEventViewRoles,
-} from 'Hooks/Event/eventRoles';
+import { allEventEditRoles } from 'Hooks/Event/eventRoles';
 import { useTickets } from '../../Hooks/Ticket/useTickets';
-import { ITicketListItem } from '../../Hooks/Ticket/ticketTypes';
+import { ITicketUser } from '../../Hooks/Ticket/ticketTypes';
+import { useAttendees } from '../../Hooks/Ticket/useAttendees';
+import { useProshows } from '../../Hooks/Ticket/useProshows';
 
-function getRowId(row: IEventListItem) {
-  return row.id;
+import SearchIcon from '@mui/icons-material/Search';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { debounce } from 'lodash';
+
+function getRowId(row: ITicketUser) {
+  return row.email;
 }
 
 export default function TicketUserList() {
-  const { userData } = useContext(UserContext);
+  const { userData, userLoading } = useContext(UserContext);
 
+  const { ticketList, loading, error, setError, fetchTicketList, rowCount, invalidateRowCount } =
+    useTickets();
   const {
-    ticketList,
-    loading,
-    error,
-    setError,
-    fetchTicketList,
-    columns,
-    checkInTicket,
-    ticketIsCheckingIn,
-  } = useTickets();
+    uploadAttendees,
+    uploading,
+    error: uploadError,
+    uploadResult,
+    clearResult,
+  } = useAttendees();
+  const { proshows, fetchProshows } = useProshows();
 
-  const [viewableTickets, setViewableTickets] = useState<ITicketListItem[]>([]);
+  const [viewableTickets, setViewableTickets] = useState<ITicketUser[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 50,
+  });
 
-  const navigate = useNavigate();
-  const [checkInOpen, setCheckInOpen] = useState<boolean>(false);
-  const [ticketToCheckIn, setTicketToCheckIn] = useState<
-    Pick<ITicketListItem, 'id' | 'name' | 'excelId'> | undefined
-  >();
+  // Upload State
+  const [uploadOpen, setUploadOpen] = useState(false);
 
-  const muiColumns = [
-    ...columns,
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
-      width: 150,
-      getActions: (params: GridRowParams) => [
-        <GridActionsCellItem
-          icon={<VisibilityIcon color="primary" />}
-          label="View"
-          onClick={() => {
-            navigate(`/tickets/view/${params.row.id}`);
-          }}
-        />,
-        <GridActionsCellItem
-          icon={<CreditScoreIcon />}
-          label="Mark as Paid"
-          color="primary"
-          onClick={() => {
-            // setTicketToCheckIn(params.row as ITicketListItem);
-            // confirmCheckIn();
-          }}
-        />,
-        <GridActionsCellItem
-          icon={<DocumentScannerIcon />}
-          label="CheckIn"
-          color="primary"
-          onClick={() => {
-            setTicketToCheckIn(params.row as ITicketListItem);
-            confirmCheckIn();
-          }}
-        />,
-        <GridActionsCellItem
-          icon={<EditIcon />}
-          label="Edit"
-          color="secondary"
-          onClick={() => {
-            navigate(`/tickets/edit/${params.row.id}`);
-          }}
-        />,
-      ],
-    },
-  ];
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  function confirmCheckIn() {
-    if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
-      setCheckInOpen(true);
-    } else {
-      alert('You do not have permission to perform this action.');
+    setUploadOpen(true);
+
+    event.target.value = '';
+
+    const result = await uploadAttendees(file);
+    if (result) {
+      invalidateRowCount();
+      fetchTicketList(
+        paginationModel.page * paginationModel.pageSize,
+        paginationModel.pageSize,
+        searchTerm,
+      );
     }
-  }
+  };
 
-  async function handleCheckIn(ticketId: number) {
-    await checkInTicket(ticketId);
-    handleCheckInClose();
-  }
-
-  const handleCheckInClose = () => {
-    if (ticketIsCheckingIn) {
-      return;
-    }
-    setCheckInOpen(false);
+  const handleCloseUpload = () => {
+    if (uploading) return;
+    setUploadOpen(false);
+    clearResult();
   };
 
   useEffect(() => {
-    fetchTicketList();
+    fetchProshows();
+  }, [fetchProshows]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const dynamicColumns = useMemo(() => {
+    const baseColumns: GridColDef[] = [
+      {
+        field: 'name',
+        headerName: 'Name',
+        type: 'string',
+        width: 200,
+      },
+      {
+        field: 'email',
+        headerName: 'Email',
+        type: 'string',
+        width: 250,
+      },
+    ];
+
+    const proshowCols: GridColDef[] = proshows.map((proshow) => ({
+      field: `proshow_${proshow.title}`,
+      headerName: proshow.title,
+      width: 450,
+      renderCell: (params: GridRenderCellParams<ITicketUser>) => {
+        const userProshow = params.row.proshows?.find((p) => p.title === proshow.title);
+        if (!userProshow) return <Typography variant="caption">-</Typography>;
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: 'wrap',
+              py: 1,
+            }}
+          >
+            <Chip
+              label={userProshow.status}
+              color={
+                userProshow.status === 'SCANNED'
+                  ? 'success'
+                  : userProshow.status === 'EMAILED'
+                    ? 'primary'
+                    : 'default'
+              }
+              size="small"
+            />
+            <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>
+              <strong>Emailed:</strong>{' '}
+              {userProshow.emailed_at ? new Date(userProshow.emailed_at).toLocaleString() : '-'}
+            </Typography>
+            <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>
+              <strong>Scanned:</strong>{' '}
+              {userProshow.scanned_at ? new Date(userProshow.scanned_at).toLocaleString() : '-'}
+            </Typography>
+          </Box>
+        );
+      },
+    }));
+
+    return [...baseColumns, ...proshowCols];
+  }, [proshows]);
+
+  // Debounced search function
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((search: string, page: number, pageSize: number) => {
+        fetchTicketList(page * pageSize, pageSize, search);
+      }, 500),
+    [fetchTicketList],
+  );
+
+  // Trigger fetch when searchTerm or pagination changes
+  useEffect(() => {
+    debouncedSearch(searchTerm, paginationModel.page, paginationModel.pageSize);
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [searchTerm, paginationModel, debouncedSearch]);
 
   useEffect(() => {
-    if (loading) return;
-    if (ticketList?.length === 0) return;
+    if (loading || userLoading) return;
 
-    if (true) {
+    if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
       setViewableTickets(ticketList);
     } else {
-      // This person has no access to any event
       setViewableTickets([]);
       setError('You do not have permission to view this page');
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticketList, loading, userData]);
+  }, [ticketList, loading, userData, userLoading, setError]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return (
+      <Typography variant="h5" sx={{ p: 4 }}>
+        {error}
+      </Typography>
+    );
   }
 
   return (
     <>
       <br />
-      <Typography variant="h5" noWrap component="div">
-        User List
-      </Typography>
-      <br />
-      <br />
+      <Grid container alignItems="center" spacing={2} sx={{ width: '90%', mb: 2, pt: 2 }}>
+        <Grid item xs={12} md={4}>
+          <Typography variant="h5" noWrap component="div">
+            Ticket User List
+          </Typography>
+        </Grid>
+        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
+            Upload Attendees
+            <input type="file" hidden accept=".csv" onChange={handleFileChange} />
+          </Button>
+        </Grid>
+        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <TextField
+            size="small"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPaginationModel((prev) => ({ ...prev, page: 0 })); // Reset to page 0 on search
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: 300 }}
+          />
+        </Grid>
+      </Grid>
+
       <DataGrid
-        density="compact"
         getRowId={getRowId}
         rows={viewableTickets}
-        columns={muiColumns}
+        columns={dynamicColumns}
         loading={loading}
         sx={{
           width: '90%',
         }}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
+        getRowHeight={() => 'auto'}
+        paginationMode="server"
+        rowCount={rowCount}
+        pageSizeOptions={[20]}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
         showCellVerticalBorder
         showColumnVerticalBorder
       />
 
-      <Dialog open={checkInOpen} onClose={handleCheckInClose}>
-        <DialogTitle>Check In Ticket with Excel ID: {ticketToCheckIn?.excelId}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Would you like to check in: {ticketToCheckIn?.name}?
-          </DialogContentText>
+      <Dialog open={uploadOpen} onClose={handleCloseUpload} maxWidth="md" fullWidth>
+        <DialogTitle>{uploading ? 'Uploading Attendees...' : 'Upload Result'}</DialogTitle>
+        <DialogContent dividers>
+          {uploading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <Typography>Processing file, please wait...</Typography>
+            </Box>
+          )}
+
+          {!uploading && !uploadResult && !uploadError && (
+            <Typography sx={{ p: 2 }}>Select a file to start uploading.</Typography>
+          )}
+
+          {!uploading && uploadError && (
+            <Alert severity="error" sx={{ width: '100%', m: 2 }}>
+              {uploadError}
+            </Alert>
+          )}
+
+          {!uploading && uploadResult && (
+            <Box sx={{ p: 2 }}>
+              <Alert severity="success" sx={{ mb: 2 }}>
+                <AlertTitle>Upload Processed</AlertTitle>
+                Processed {uploadResult.total_rows} rows.
+              </Alert>
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={4}>
+                  <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h6">{uploadResult.total_rows}</Typography>
+                    <Typography variant="caption">Total Rows</Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={4}>
+                  <Paper elevation={1} sx={{ p: 2, textAlign: 'center', bgcolor: '#e8f5e9' }}>
+                    <Typography variant="h6" color="success.main">
+                      {uploadResult.successfully_upserted}
+                    </Typography>
+                    <Typography variant="caption">Success</Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={4}>
+                  <Paper
+                    elevation={1}
+                    sx={{
+                      p: 2,
+                      textAlign: 'center',
+                      bgcolor: uploadResult.rejected_total > 0 ? '#ffebee' : 'inherit',
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      color={uploadResult.rejected_total > 0 ? 'error.main' : 'inherit'}
+                    >
+                      {uploadResult.rejected_total}
+                    </Typography>
+                    <Typography variant="caption">Rejected</Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              {uploadResult.rejected_preview.length > 0 && (
+                <>
+                  <Typography variant="subtitle1" gutterBottom color="error">
+                    Rejection Preview:
+                  </Typography>
+                  <Paper variant="outlined" sx={{ maxHeight: 200, overflow: 'auto' }}>
+                    <List dense>
+                      {uploadResult.rejected_preview.map((item, idx) => (
+                        <ListItem key={idx} divider>
+                          <ListItemText
+                            primary={`Row Error: ${item.error}`}
+                            secondary={`Data: ${JSON.stringify(item.data)}`}
+                            primaryTypographyProps={{ color: 'error', variant: 'body2' }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Paper>
+                </>
+              )}
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button
-            autoFocus
-            onClick={() => {
-              handleCheckIn(ticketToCheckIn?.excelId as number);
-            }}
-            disabled={ticketIsCheckingIn}
-          >
-            Check In
-          </Button>
-          <Button onClick={handleCheckInClose} autoFocus disabled={ticketIsCheckingIn}>
-            Cancel
+          <Button onClick={handleCloseUpload} variant="contained" disabled={uploading}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>

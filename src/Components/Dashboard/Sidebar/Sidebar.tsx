@@ -22,6 +22,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import StoreIcon from '@mui/icons-material/Store';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BookOnlineIcon from '@mui/icons-material/BookOnline';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 
 import { NavLink, useLocation } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
@@ -210,6 +211,7 @@ export default function Sidebar() {
               leftBorder
               icon={<FormatListNumberedIcon />}
             />
+            <ListItemLink to="/tickets/scan" text="Scan" leftBorder icon={<QrCodeScannerIcon />} />
           </List>
         </Collapse>
 
