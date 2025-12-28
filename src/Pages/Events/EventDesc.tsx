@@ -76,7 +76,7 @@ export default function EventDescPage() {
       </Box>
       <br />
 
-      <ToolBar eventId={event!.id} resultsPublished={event?.results && event.results.length > 0} />
+      <ToolBar eventId={event!.id} />
       <EventData event={event!} />
     </>
   );
