@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Box,
   Button,
   Dialog,
@@ -27,6 +28,8 @@ import {
 import { useEventResultsCrud } from 'Hooks/Event/results/useEventResultsCrud';
 import { defaultResult, IValidateResult } from 'Hooks/Event/results/resultValidation';
 import { IResult } from 'Hooks/Event/eventTypes';
+import { useEventRegList } from 'Hooks/Event/registrations/useEventReg';
+import { IRegistration, ITeam } from 'Hooks/Event/registrationTypes';
 
 export default function EventResults() {
   const { event, fetchEvent, loading, error, setError } = useEventDesc();
@@ -43,6 +46,14 @@ export default function EventResults() {
     setError: setCrudError,
   } = useEventResultsCrud();
 
+  const {
+    fetchEventRegList,
+    eventRegsIndividual,
+    eventRegsTeam,
+    individualRegsLoading,
+    teamRegsLoading,
+  } = useEventRegList();
+
   const [openDialog, setOpenDialog] = useState(false);
   const [editingResult, setEditingResult] = useState<IResult | null>(null);
   const [formData, setFormData] = useState<IValidateResult>(defaultResult);
@@ -55,8 +66,10 @@ export default function EventResults() {
   useEffect(() => {
     if (!Number.isInteger(Number(id))) {
       setError('Invalid Event ID');
+    } else {
+      fetchEvent(Number(id));
+      fetchEventRegList(Number(id));
     }
-    fetchEvent(Number(id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -154,6 +167,45 @@ export default function EventResults() {
             ? Number(value)
             : value,
     }));
+  };
+
+  const handleRegistrationSelect = (_event: any, newValue: IRegistration | ITeam | null) => {
+    if (!newValue) return;
+
+    if ('user' in newValue) {
+      const reg = newValue as IRegistration;
+      const excelIdVal =
+        typeof reg.excelId === 'object' && reg.excelId !== null && 'id' in reg.excelId
+          ? (reg.excelId as any).id
+          : reg.excelId;
+
+      setFormData((prev) => ({
+        ...prev,
+        excelId: Number(excelIdVal) || 0,
+        name: reg.user.name,
+        teamId: reg.teamId?.id ?? reg.user.id,
+        teamName: reg.user.name,
+        teamMembers: reg.user.name,
+      }));
+    } else {
+      const team = newValue as ITeam;
+      const firstMemberExcelId = team.registrations[0]?.excelId;
+      const excelIdVal =
+        typeof firstMemberExcelId === 'object' &&
+        firstMemberExcelId !== null &&
+        'id' in firstMemberExcelId
+          ? (firstMemberExcelId as any).id
+          : firstMemberExcelId;
+
+      setFormData((prev) => ({
+        ...prev,
+        excelId: Number(excelIdVal) || 0,
+        name: team.name,
+        teamId: team.id,
+        teamName: team.name,
+        teamMembers: team.registrations.map((r) => r.user.name).join(', '),
+      }));
+    }
   };
 
   if (error) {
@@ -312,8 +364,7 @@ export default function EventResults() {
           </Grid>
         </Box>
 
-        {/* Add/Edit Dialog */}
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
           <DialogTitle>{editingResult ? 'Edit Result' : 'Add Result'}</DialogTitle>
           <DialogContent>
             {crudError && (
@@ -322,6 +373,41 @@ export default function EventResults() {
               </Typography>
             )}
             <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
+                <Autocomplete
+                  options={
+                    (event.isTeam ? eventRegsTeam : eventRegsIndividual) as (
+                      | ITeam
+                      | IRegistration
+                    )[]
+                  }
+                  getOptionLabel={(option) => {
+                    if ('user' in option) {
+                      const excelIdVal =
+                        typeof option.excelId === 'object' &&
+                        option.excelId !== null &&
+                        'id' in option.excelId
+                          ? (option.excelId as any).id
+                          : option.excelId;
+                      return `${option.user.name} (${excelIdVal})`;
+                    } else {
+                      // ITeam
+                      return `${option.name} (ID: ${option.id})`;
+                    }
+                  }}
+                  onChange={handleRegistrationSelect}
+                  loading={event.isTeam ? teamRegsLoading : individualRegsLoading}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={event.isTeam ? 'Select Team' : 'Select Participant'}
+                      placeholder="Search..."
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  )}
+                />
+              </Grid>
+
               <Grid item xs={6}>
                 <TextField
                   label="Position"
@@ -330,6 +416,7 @@ export default function EventResults() {
                   fullWidth
                   value={formData.position}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -340,6 +427,7 @@ export default function EventResults() {
                   fullWidth
                   value={formData.excelId}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -350,6 +438,7 @@ export default function EventResults() {
                   fullWidth
                   value={formData.teamId}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -359,6 +448,7 @@ export default function EventResults() {
                   fullWidth
                   value={formData.name}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -368,6 +458,7 @@ export default function EventResults() {
                   fullWidth
                   value={formData.teamName}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -379,6 +470,7 @@ export default function EventResults() {
                   onChange={handleChange}
                   placeholder="e.g. Peter Griffin, Brian Griffin"
                   helperText="Enter team members separated by commas"
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
             </Grid>

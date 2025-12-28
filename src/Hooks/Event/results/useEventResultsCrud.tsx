@@ -1,7 +1,6 @@
 import { useContext, useState } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
-import { IResult } from '../eventTypes';
 import { IValidateResult, resultValidationSchema } from './resultValidation';
 import { ValidationError } from 'yup';
 
@@ -15,7 +14,14 @@ export function useEventResultsCrud() {
       setLoading(true);
       setError('');
       await resultValidationSchema.validate(result, { abortEarly: false });
-      await axiosEventsPrivate.post('/api/Result', { ...result, eventId });
+      const payload = {
+        ...result,
+        eventId,
+        teamId: result.teamId ?? 0,
+        teamName: result.teamName ?? '',
+        teamMembers: result.teamMembers ?? '',
+      };
+      await axiosEventsPrivate.post('/api/Result', payload);
       return true;
     } catch (err: any) {
       if (err instanceof ValidationError) {
@@ -34,7 +40,15 @@ export function useEventResultsCrud() {
       setLoading(true);
       setError('');
       await resultValidationSchema.validate(result, { abortEarly: false });
-      await axiosEventsPrivate.put('/api/Result', { ...result, id: resultId, eventId });
+      const payload = {
+        ...result,
+        id: resultId,
+        eventId,
+        teamId: result.teamId ?? 0,
+        teamName: result.teamName ?? '',
+        teamMembers: result.teamMembers ?? '',
+      };
+      await axiosEventsPrivate.put('/api/Result', payload);
       return true;
     } catch (err: any) {
       if (err instanceof ValidationError) {

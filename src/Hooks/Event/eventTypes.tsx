@@ -47,12 +47,12 @@ export interface IResult {
   id: number;
   eventId: number;
   excelId: number;
-  teamId: number;
+  teamId?: number | null;
   event?: IEvent;
   position: number;
   name: string;
-  teamName: string;
-  teamMembers: string;
+  teamName?: string | null;
+  teamMembers?: string | null;
 }
 
 export interface IEventHead {
