@@ -199,19 +199,12 @@ export default function Sidebar() {
         <Collapse in={ticketsOpen} timeout="auto" unmountOnExit>
           <List disablePadding={true}>
             <ListItemLink
-              to="/tickets"
-              text="User List"
+              to="/tickets/proshows"
+              text="Proshows"
               leftBorder
               icon={<FormatListNumberedIcon />}
             />
-          </List>
-          <List disablePadding={true}>
-            <ListItemLink
-              to="/tickets/statistics"
-              text="Statistics"
-              leftBorder
-              icon={<TrendingUpIcon />}
-            />
+            <ListItemLink to="/tickets" text="Users" leftBorder icon={<FormatListNumberedIcon />} />
           </List>
         </Collapse>
 
