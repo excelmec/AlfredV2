@@ -19,7 +19,7 @@ import { useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useProshows } from '../../Hooks/Ticket/useProshows';
 import { IProshowResponse, IProshowStats } from '../../Hooks/Ticket/ticketTypes';
 import UserContext from 'Contexts/User/UserContext';
-import { allEventEditRoles } from 'Hooks/Event/eventRoles';
+import { ticketAdminRoles } from 'Hooks/Ticket/ticketRoles';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import {
@@ -157,7 +157,7 @@ export default function ProshowList() {
   useEffect(() => {
     if (loading || userLoading) return;
 
-    if (!userData.roles.some((role) => allEventEditRoles.includes(role))) {
+    if (!userData.roles.some((role) => ticketAdminRoles.includes(role))) {
       setError('You do not have permission to view this page');
     }
   }, [loading, userData, userLoading, setError]);

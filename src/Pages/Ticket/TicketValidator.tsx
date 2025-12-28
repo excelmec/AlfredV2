@@ -414,7 +414,7 @@ export default function TicketValidator() {
                       {inlineResult.ticket_data.name}
                     </Typography>
                     <Chip
-                      label={inlineResult.ticket_data.proshow}
+                      label={`Event: ${inlineResult.ticket_data.proshow}`}
                       sx={{
                         mt: 1,
                         bgcolor: 'white',
@@ -464,7 +464,7 @@ export default function TicketValidator() {
                     </Typography>
                     {currentResult.ticket_data?.proshow && (
                       <Chip
-                        label={currentResult.ticket_data.proshow}
+                        label={`Event: ${currentResult.ticket_data.proshow}`}
                         size="small"
                         sx={{
                           bgcolor: 'rgba(255,255,255,0.25)',
@@ -572,7 +572,7 @@ export default function TicketValidator() {
                           </Typography>
                           {item.response.ticket_data?.proshow && (
                             <Chip
-                              label={item.response.ticket_data.proshow}
+                              label={`Event: ${item.response.ticket_data.proshow}`}
                               size="small"
                               sx={{ height: 16, fontSize: '0.6rem' }}
                             />
