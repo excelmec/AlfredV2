@@ -204,7 +204,12 @@ export default function Sidebar() {
               leftBorder
               icon={<FormatListNumberedIcon />}
             />
-            <ListItemLink to="/tickets" text="Users" leftBorder icon={<FormatListNumberedIcon />} />
+            <ListItemLink
+              to="/tickets"
+              text="Attendees"
+              leftBorder
+              icon={<FormatListNumberedIcon />}
+            />
           </List>
         </Collapse>
 
