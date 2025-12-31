@@ -1,116 +1,95 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useCallback, useMemo, useRef } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
-import { TypeSafeColDef } from 'Hooks/gridColumType';
-import { GridRenderCellParams, GridValueGetterParams } from '@mui/x-data-grid';
-import { ITicket, ITicketListItem } from './ticketTypes';
+import { ITicketUser } from './ticketTypes';
 
 export function useTickets() {
-  const [ticketList, setTicketList] = useState<ITicketListItem[]>([]);
+  const [ticketList, setTicketList] = useState<ITicketUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [rowCount, setRowCount] = useState<number>(0);
 
-  const [ticketIsCheckingIn, setTicketIsCheckingIn] = useState<boolean>(false);
+  // Cache the discovered total count to prevent "bouncing" pagination
+  const totalCountRef = useRef<number | null>(null);
+  const prevSearchRef = useRef<string>('');
 
-  const { axiosEventsPrivate } = useContext(ApiContext);
+  const { axiosTicketsPrivate } = useContext(ApiContext);
 
-  async function fetchTicketList() {
-    try {
-      setLoading(true);
-      setError('');
+  const invalidateRowCount = useCallback(() => {
+    totalCountRef.current = null;
+  }, []);
 
-      const response = await axiosEventsPrivate.get<ITicket[]>('/api/tickets');
+  const fetchTicketList = useCallback(
+    async (offset: number = 0, limit: number = 50, search: string = '') => {
+      try {
+        setLoading(true);
+        setError('');
 
-      setTicketList(response.data);
-    } catch (error) {
-      setError(getErrMsg(error));
-    } finally {
-      setLoading(false);
-    }
-  }
+        // Reset known total if search criteria changes
+        if (search !== prevSearchRef.current) {
+          totalCountRef.current = null;
+          prevSearchRef.current = search;
+        }
 
-  async function checkInTicket(excelId: number) {
-    try {
-      setTicketIsCheckingIn(true);
-      setError('');
+        const response = await axiosTicketsPrivate.get<ITicketUser[]>('/tickets', {
+          params: {
+            offset,
+            limit,
+            search,
+          },
+        });
 
-      const response = await axiosEventsPrivate.post('/api/tickets/' + excelId + '/check-in');
+        setTicketList(response.data);
+        const total = response.headers['x-total-count'];
 
-      if (response.status !== 200) {
-        setError(response.data);
+        if (total) {
+          const parsedTotal = parseInt(total, 10);
+          setRowCount(parsedTotal);
+          totalCountRef.current = parsedTotal;
+        } else {
+          // Heuristic Pagination Logic
+          const currentLen = response.data.length;
+
+          if (currentLen < limit) {
+            // We reached the end of the list
+            const realTotal = offset + currentLen;
+            totalCountRef.current = realTotal;
+            setRowCount(realTotal);
+          } else {
+            // We received a full page
+            const projectedMinimum = offset + currentLen;
+
+            // If we have a cached total and we are consistent with it, stick to it.
+            // This prevents the "Next" button from re-enabling if we bounce back from an empty page.
+            if (totalCountRef.current !== null && totalCountRef.current === projectedMinimum) {
+              setRowCount(totalCountRef.current);
+            } else {
+              // Otherwise, assume there is at least one more item/page
+              setRowCount(projectedMinimum + 1);
+            }
+          }
+        }
+      } catch (error) {
+        setError(getErrMsg(error));
+      } finally {
+        setLoading(false);
       }
+    },
+    [axiosTicketsPrivate],
+  );
 
-      await fetchTicketList();
-    } catch (error) {
-      setError(getErrMsg(error));
-    } finally {
-      setTicketIsCheckingIn(false);
-    }
-  }
+  const values = useMemo(
+    () => ({
+      ticketList,
+      loading,
+      error,
+      setError,
+      fetchTicketList,
+      rowCount,
+      invalidateRowCount,
+    }),
+    [ticketList, loading, error, setError, fetchTicketList, rowCount, invalidateRowCount],
+  );
 
-  const columns: TypeSafeColDef<ITicketListItem>[] = [
-    {
-      field: 'id',
-      headerName: 'ID',
-      type: 'number',
-      align: 'center',
-      headerAlign: 'center',
-      width: 10,
-    },
-    {
-      field: 'excelId',
-      headerName: 'Excel ID',
-      type: 'number',
-      align: 'center',
-      headerAlign: 'center',
-      width: 100,
-    },
-    {
-      field: 'name',
-      headerName: 'Name',
-      type: 'string',
-      width: 150,
-    },
-    {
-      field: 'branchCode',
-      headerName: 'Branch Code',
-      type: 'string',
-      width: 80,
-    },
-    {
-      field: 'branchDivision',
-      headerName: 'Branch Division',
-      type: 'string',
-      width: 80,
-    },
-    {
-      field: 'isPaid',
-      headerName: 'Paid',
-      type: 'boolean',
-      width: 80,
-    },
-    {
-      field: 'mailSent',
-      headerName: 'Mail Sent',
-      type: 'boolean',
-      width: 80,
-    },
-    {
-      field: 'isCheckedIn',
-      headerName: 'Checked In',
-      type: 'boolean',
-      width: 80,
-    },
-  ];
-
-  return {
-    ticketList,
-    loading,
-    error,
-    setError,
-    fetchTicketList,
-    columns,
-    checkInTicket,
-    ticketIsCheckingIn,
-  } as const;
+  return values;
 }

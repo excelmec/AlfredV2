@@ -9,6 +9,7 @@ interface IApiStateProps {
 
 const accBaseUrl = process.env.REACT_APP_ACC_BACKEND_BASE_URL;
 const eventsBaseUrl = process.env.REACT_APP_EVENTS_BACKEND_BASE_URL;
+const ticketsBaseUrl = process.env.REACT_APP_TICKETS_BACKEND_BASE_URL;
 
 /**
  * Not setting this will disable the merch API in the dashboard
@@ -102,6 +103,12 @@ export function ApiState({ children }: IApiStateProps) {
     baseURL: merchBaseUrl,
   });
 
+  //Axios with Access Token
+  const axiosTicketsPrivate = axios.create({
+    ...axiosConfig,
+    baseURL: ticketsBaseUrl,
+  });
+
   async function refreshTheAccessToken(): Promise<string> {
     if (!refreshToken) {
       return '';
@@ -142,6 +149,7 @@ export function ApiState({ children }: IApiStateProps) {
   axiosAccPrivate.interceptors.request.clear();
   axiosEventsPrivate.interceptors.request.clear();
   axiosMerchPrivate.interceptors.request.clear();
+  axiosTicketsPrivate.interceptors.request.clear();
 
   /**
    * Attach Access Token to every request
@@ -149,10 +157,12 @@ export function ApiState({ children }: IApiStateProps) {
   axiosAccPrivate.interceptors.request.use(attachAccessToken);
   axiosEventsPrivate.interceptors.request.use(attachAccessToken);
   axiosMerchPrivate.interceptors.request.use(attachAccessToken);
+  axiosTicketsPrivate.interceptors.request.use(attachAccessToken);
 
   axiosAccPrivate.interceptors.response.clear();
   axiosEventsPrivate.interceptors.response.clear();
   axiosMerchPrivate.interceptors.response.clear();
+  axiosTicketsPrivate.interceptors.response.clear();
 
   const retryWithAt = [
     (res: any) => {
@@ -190,6 +200,7 @@ export function ApiState({ children }: IApiStateProps) {
   axiosAccPrivate.interceptors.response.use(...retryWithAt);
   axiosEventsPrivate.interceptors.response.use(...retryWithAt);
   axiosMerchPrivate.interceptors.response.use(...retryWithAt);
+  axiosTicketsPrivate.interceptors.response.use(...retryWithAt);
 
   return (
     <ApiContext.Provider
@@ -207,6 +218,8 @@ export function ApiState({ children }: IApiStateProps) {
 
         axiosMerchPrivate,
         axiosMerchPublic,
+
+        axiosTicketsPrivate,
       }}
     >
       {children}

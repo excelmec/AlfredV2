@@ -22,12 +22,14 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import StoreIcon from '@mui/icons-material/Store';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BookOnlineIcon from '@mui/icons-material/BookOnline';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 
 import { NavLink, useLocation } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
 import UserContext from '../../../Contexts/User/UserContext';
 import './Sidebar.css';
 import { Paper } from '@mui/material';
+import { ticketAdminRoles, ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
 
 export default function Sidebar() {
   const { userData, userLoading, logout } = useContext(UserContext);
@@ -199,18 +201,25 @@ export default function Sidebar() {
         <Collapse in={ticketsOpen} timeout="auto" unmountOnExit>
           <List disablePadding={true}>
             <ListItemLink
+              to="/tickets/proshows"
+              text="Proshows"
+              leftBorder
+              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
+              icon={<FormatListNumberedIcon />}
+            />
+            <ListItemLink
               to="/tickets"
-              text="User List"
+              text="Attendees"
+              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
               leftBorder
               icon={<FormatListNumberedIcon />}
             />
-          </List>
-          <List disablePadding={true}>
             <ListItemLink
-              to="/tickets/statistics"
-              text="Statistics"
+              to="/tickets/scan"
+              text="Scan"
               leftBorder
-              icon={<TrendingUpIcon />}
+              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
+              icon={<QrCodeScannerIcon />}
             />
           </List>
         </Collapse>
@@ -230,11 +239,13 @@ interface ListItemLinkProps {
   to: string;
   disablePadding?: boolean;
   leftBorder?: true;
+  havePermissions?: boolean;
 }
 
 function ListItemLink(props: ListItemLinkProps) {
   const { icon, text, to, disablePadding = true, leftBorder = false } = props;
-
+  console.log(props.havePermissions, props.to, props.text);
+  if (props.havePermissions === false) return <ListItem disablePadding={disablePadding}></ListItem>;
   return (
     <ListItem disablePadding={disablePadding}>
       <ListItemButton
