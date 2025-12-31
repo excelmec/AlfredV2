@@ -347,7 +347,7 @@ function TicketRoutes() {
     <Route
       path="/tickets"
       element={
-        <ProtectedRoute allowedRoles={ticketAdminRoles}>
+        <ProtectedRoute allowedRoles={ticketScanRoles}>
           <TicketUserList />
         </ProtectedRoute>
       }

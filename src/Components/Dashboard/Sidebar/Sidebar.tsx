@@ -29,6 +29,7 @@ import { useContext, useEffect, useState } from 'react';
 import UserContext from '../../../Contexts/User/UserContext';
 import './Sidebar.css';
 import { Paper } from '@mui/material';
+import { ticketAdminRoles, ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
 
 export default function Sidebar() {
   const { userData, userLoading, logout } = useContext(UserContext);
@@ -203,15 +204,23 @@ export default function Sidebar() {
               to="/tickets/proshows"
               text="Proshows"
               leftBorder
+              havePermissions={userData.roles.some((role) => ticketAdminRoles.includes(role))}
               icon={<FormatListNumberedIcon />}
             />
             <ListItemLink
               to="/tickets"
               text="Attendees"
+              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
               leftBorder
               icon={<FormatListNumberedIcon />}
             />
-            <ListItemLink to="/tickets/scan" text="Scan" leftBorder icon={<QrCodeScannerIcon />} />
+            <ListItemLink
+              to="/tickets/scan"
+              text="Scan"
+              leftBorder
+              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
+              icon={<QrCodeScannerIcon />}
+            />
           </List>
         </Collapse>
 
@@ -230,11 +239,13 @@ interface ListItemLinkProps {
   to: string;
   disablePadding?: boolean;
   leftBorder?: true;
+  havePermissions?: boolean;
 }
 
 function ListItemLink(props: ListItemLinkProps) {
   const { icon, text, to, disablePadding = true, leftBorder = false } = props;
-
+  console.log(props.havePermissions, props.to, props.text);
+  if (props.havePermissions === false) return <ListItem disablePadding={disablePadding}></ListItem>;
   return (
     <ListItem disablePadding={disablePadding}>
       <ListItemButton
