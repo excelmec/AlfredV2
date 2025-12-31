@@ -1,12 +1,7 @@
 import { useContext, useState, useCallback, useMemo } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
-import {
-  IProshowStats,
-  IProshowCreate,
-  IProshowResponse,
-  IDistributeResponse,
-} from './ticketTypes';
+import { IProshowStats, IProshowCreate, IProshowResponse } from './ticketTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 
 const statsColumns: TypeSafeColDef<IProshowStats>[] = [
@@ -26,7 +21,6 @@ export function useProshows() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [creating, setCreating] = useState<boolean>(false);
-  const [distributing, setDistributing] = useState<boolean>(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -73,27 +67,6 @@ export function useProshows() {
     [axiosTicketsPrivate, fetchStats, fetchProshows],
   );
 
-  const distributeTickets = useCallback(
-    async (proshowId: string) => {
-      try {
-        setDistributing(true);
-        setError('');
-        const response = await axiosTicketsPrivate.post<IDistributeResponse>('/distribute', {
-          proshow_id: proshowId,
-        });
-
-        await fetchStats();
-        return response.data;
-      } catch (err) {
-        setError(getErrMsg(err));
-        return null;
-      } finally {
-        setDistributing(false);
-      }
-    },
-    [axiosTicketsPrivate, fetchStats],
-  );
-
   const values = useMemo(
     () => ({
       stats,
@@ -104,23 +77,10 @@ export function useProshows() {
       fetchStats,
       fetchProshows,
       createProshow,
-      distributeTickets,
       creating,
-      distributing,
       statsColumns,
     }),
-    [
-      stats,
-      proshows,
-      loading,
-      error,
-      creating,
-      distributing,
-      fetchStats,
-      fetchProshows,
-      createProshow,
-      distributeTickets,
-    ],
+    [stats, proshows, loading, error, creating, fetchStats, fetchProshows, createProshow],
   );
 
   return values;

@@ -53,13 +53,6 @@ export interface IProshowResponse {
   created_at: string;
 }
 
-export interface IDistributeResponse {
-  success: boolean;
-  message: string;
-  total_tickets: number;
-  batches: number;
-}
-
 export interface IAttendeeUploadResponse {
   total_rows: number;
   successfully_upserted: number;

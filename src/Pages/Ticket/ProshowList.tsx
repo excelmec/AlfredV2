@@ -3,18 +3,11 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   TextField,
   Typography,
 } from '@mui/material';
-import {
-  DataGrid,
-  GridColDef,
-  GridToolbar,
-  GridValueGetterParams,
-  GridRenderCellParams,
-} from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridToolbar, GridValueGetterParams } from '@mui/x-data-grid';
 import { useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useProshows } from '../../Hooks/Ticket/useProshows';
 import { IProshowResponse, IProshowStats } from '../../Hooks/Ticket/ticketTypes';
@@ -79,15 +72,10 @@ export default function ProshowList() {
     error,
     setError,
     createProshow,
-    distributeTickets,
     creating,
-    distributing,
   } = useProshows();
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [distributeOpen, setDistributeOpen] = useState(false);
-  const [selectedProshowId, setSelectedProshowId] = useState<string | null>(null);
-  const [selectedProshowTitle, setSelectedProshowTitle] = useState<string | null>(null);
 
   const mergedProshows = useMemo(() => {
     if (proshows.length === 0) return [];
@@ -127,24 +115,6 @@ export default function ProshowList() {
       { field: 'emailed', headerName: 'Emailed', width: 90, type: 'number' },
       { field: 'email_failed', headerName: 'Failed', width: 90, type: 'number' },
       { field: 'scanned', headerName: 'Scanned', width: 90, type: 'number' },
-      {
-        field: 'actions',
-        headerName: 'Actions',
-        width: 150,
-        renderCell: (params: GridRenderCellParams<IProshowMerged>) => (
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              setSelectedProshowId(params.row.id);
-              setSelectedProshowTitle(params.row.title);
-              setDistributeOpen(true);
-            }}
-          >
-            Distribute
-          </Button>
-        ),
-      },
     ],
     [],
   );
@@ -185,6 +155,7 @@ export default function ProshowList() {
   }, [newProshow, createOpen, validateProshow]);
 
   const handleCreateSubmit = async () => {
+    if (!userData.roles.some((role) => ticketAdminRoles.includes(role))) return;
     const isValid = await validateProshow();
     if (!isValid) return;
 
@@ -199,13 +170,6 @@ export default function ProshowList() {
     if (success) {
       setCreateOpen(false);
       setNewProshow(defaultDummyProshow);
-    }
-  };
-
-  const handleDistribute = async () => {
-    if (selectedProshowId) {
-      await distributeTickets(selectedProshowId);
-      setDistributeOpen(false);
     }
   };
 
@@ -292,25 +256,6 @@ export default function ProshowList() {
             color="primary"
           >
             Create
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Distribute Dialog */}
-      <Dialog open={distributeOpen} onClose={() => setDistributeOpen(false)}>
-        <DialogTitle>Distribute Tickets</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to distribute tickets for <strong>{selectedProshowTitle}</strong>?
-            <br />
-            <br />
-            This will queue emails for all eligible users.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDistributeOpen(false)}>Cancel</Button>
-          <Button onClick={handleDistribute} autoFocus variant="contained" disabled={distributing}>
-            Distribute
           </Button>
         </DialogActions>
       </Dialog>

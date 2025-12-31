@@ -59,6 +59,7 @@ export default function TicketUserList() {
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!userData.roles.some((role) => ticketAdminRoles.includes(role))) return;
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -168,12 +169,7 @@ export default function TicketUserList() {
   useEffect(() => {
     if (loading || userLoading) return;
 
-    if (userData.roles.some((role) => ticketAdminRoles.includes(role))) {
-      setViewableTickets(ticketList);
-    } else {
-      setViewableTickets([]);
-      setError('You do not have permission to view this page');
-    }
+    setViewableTickets(ticketList);
   }, [ticketList, loading, userData, userLoading, setError]);
 
   if (error) {
@@ -194,10 +190,12 @@ export default function TicketUserList() {
           </Typography>
         </Grid>
         <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
-            Upload Attendees
-            <input type="file" hidden accept=".csv" onChange={handleFileChange} />
-          </Button>
+          {userData.roles.some((role) => ticketAdminRoles.includes(role)) && (
+            <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
+              Upload Attendees
+              <input type="file" hidden accept=".csv" onChange={handleFileChange} />
+            </Button>
+          )}
         </Grid>
         <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <TextField
