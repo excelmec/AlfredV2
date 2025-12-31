@@ -204,7 +204,7 @@ export default function Sidebar() {
               to="/tickets/proshows"
               text="Proshows"
               leftBorder
-              havePermissions={userData.roles.some((role) => ticketAdminRoles.includes(role))}
+              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
               icon={<FormatListNumberedIcon />}
             />
             <ListItemLink
