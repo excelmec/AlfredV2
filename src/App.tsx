@@ -43,6 +43,7 @@ import EventStatsPage from 'Pages/Events/EventStats';
 import TicketUserList from './Pages/Ticket/TicketUserList';
 import TicketDescPage from './Pages/Ticket/TicketDesc';
 import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
+import EventResults from 'Pages/Events/EventResults';
 
 function App() {
   return (
@@ -165,6 +166,16 @@ function EventsRoutes() {
           allowedRoles={[...allEventEditRoles, ...allEventViewRoles, ...specificEventViewRoles]}
         >
           <EventRegistrationsListPage />
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      path="/events/results/:id"
+      element={
+        <ProtectedRoute
+          allowedRoles={[...allEventEditRoles, ...allEventViewRoles, ...specificEventViewRoles]}
+        >
+          <EventResults />
         </ProtectedRoute>
       }
     />,

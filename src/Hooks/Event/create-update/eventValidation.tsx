@@ -12,7 +12,14 @@ import { InferType, ObjectSchema, boolean, date, mixed, number, object, string }
 export const eventValidationSchema: ObjectSchema<
   Omit<
     IEvent,
-    'eventStatus' | 'category' | 'eventType' | 'eventHead1' | 'eventHead2' | 'icon' | 'id'
+    | 'eventStatus'
+    | 'category'
+    | 'eventType'
+    | 'eventHead1'
+    | 'eventHead2'
+    | 'icon'
+    | 'id'
+    | 'results'
   > & { icon: File | undefined }
 > = object().shape({
   name: string()
