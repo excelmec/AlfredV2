@@ -61,7 +61,7 @@ export function ApiState({ children }: IApiStateProps) {
   console.log('Access token in state', accessToken);
 
   const axiosConfig = {
-    timeout: 10000,
+    timeout: 40000,
     headers: {
       'Content-type': 'application/json',
     },
