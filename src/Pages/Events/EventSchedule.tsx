@@ -13,27 +13,14 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
-import {
-  DataGrid,
-  GridActionsCellItem,
-  GridRenderCellParams,
-  GridRowParams,
-  GridToolbar,
-  GridValueGetterParams,
-} from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { useContext, useEffect, useState } from 'react';
-import { IEventListItem, IScheduleItem } from '../../Hooks/Event/eventTypes';
+import { IScheduleItem } from '../../Hooks/Event/eventTypes';
 import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import UserContext from 'Contexts/User/UserContext';
-import {
-  allEventEditRoles,
-  allEventViewRoles,
-  specificEventViewRoles,
-} from 'Hooks/Event/eventRoles';
-import { TypeSafeColDef } from 'Hooks/gridColumType';
+import { allEventEditRoles, allEventViewRoles } from 'Hooks/Event/eventRoles';
 import { useScheduleList } from 'Hooks/Event/useScheduleList';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';

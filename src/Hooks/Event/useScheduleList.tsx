@@ -7,7 +7,7 @@ import {
   IUpdateValidationError,
   TupdateFnReturn,
 } from 'Hooks/errorParser';
-import { IEvent, IScheduleItem } from './eventTypes';
+import { IScheduleItem } from './eventTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { GridValueGetterParams } from '@mui/x-data-grid';
 import {
@@ -16,7 +16,6 @@ import {
   IValidateCreateEventSchedule,
 } from './create-update/eventScheduleValidation';
 import { ValidationError } from 'yup';
-import { AxiosResponse } from 'axios';
 
 export function useScheduleList() {
   const [newEvent, setNewEvent] = useState<IValidateCreateEventSchedule>(defaultDummyEvent);

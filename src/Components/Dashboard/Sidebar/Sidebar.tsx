@@ -29,7 +29,7 @@ import { useContext, useEffect, useState } from 'react';
 import UserContext from '../../../Contexts/User/UserContext';
 import './Sidebar.css';
 import { Paper } from '@mui/material';
-import { ticketAdminRoles, ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
+import { ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
 
 export default function Sidebar() {
   const { userData, userLoading, logout } = useContext(UserContext);

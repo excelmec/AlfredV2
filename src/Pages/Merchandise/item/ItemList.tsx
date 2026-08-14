@@ -23,7 +23,6 @@ export default function MerchItemListPage() {
   const { itemList, fetchItemList, loading, error, columns } = useItemList();
 
   const navigate = useNavigate();
-  const [deleteDialoge, setDeleteDialoge] = useState(false);
   const [deleteItem, setDeleteItem] = useState<Pick<IEventListItem, 'id' | 'name'> | undefined>();
 
   const muiColumns = [
@@ -130,7 +129,7 @@ export default function MerchItemListPage() {
       <MerchItemDelete
         id={deleteItem?.id}
         name={deleteItem?.name}
-        dialogueOpen={deleteItem != undefined ? true : false}
+        dialogueOpen={deleteItem !== undefined ? true : false}
         onClose={handleDeleteDialogueClose}
       />
     </>

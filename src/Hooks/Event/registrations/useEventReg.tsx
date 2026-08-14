@@ -272,11 +272,11 @@ export function useEventRegList() {
   async function checkInIndividual(registration: IRegistration) {
     try {
       if (registration.checkedIn) {
-        const response = await axiosEventsPrivate.put<IRegistration>(
+        await axiosEventsPrivate.put<IRegistration>(
           `/api/registration/${registration.eventId}/check-in/${registration.id}`,
         );
       } else {
-        const response = await axiosEventsPrivate.put<IRegistration>(
+        await axiosEventsPrivate.put<IRegistration>(
           `/api/registration/${registration.eventId}/check-out/${registration.id}`,
         );
       }

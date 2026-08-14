@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 
 interface IMissingStock {
@@ -23,7 +23,7 @@ export function useMissingStockList() {
     { field: 'neededQty', headerName: 'Quantity Needed', width: 210 },
   ];
 
-  const fetchMissingStockList = async () => {
+  const fetchMissingStockList = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -35,7 +35,7 @@ export function useMissingStockList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [axiosMerchPrivate]);
 
   return { missingStockList, loading, error, columns, fetchMissingStockList };
 }

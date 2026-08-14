@@ -13,7 +13,7 @@ export default function MissingStockList() {
 
   useEffect(() => {
     fetchMissingStockList();
-  }, []);
+  }, [fetchMissingStockList]);
 
   if (error) {
     return <Typography variant="h5">{error}</Typography>;

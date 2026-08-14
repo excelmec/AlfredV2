@@ -45,7 +45,7 @@ import ProshowList from './Pages/Ticket/ProshowList';
 import TicketValidator from './Pages/Ticket/TicketValidator';
 import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
 import EventResults from 'Pages/Events/EventResults';
-import { ticketAdminRoles, ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
+import { ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
 
 function App() {
   return (
