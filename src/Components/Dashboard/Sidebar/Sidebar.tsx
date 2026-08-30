@@ -244,7 +244,6 @@ interface ListItemLinkProps {
 
 function ListItemLink(props: ListItemLinkProps) {
   const { icon, text, to, disablePadding = true, leftBorder = false } = props;
-  console.log(props.havePermissions, props.to, props.text);
   if (props.havePermissions === false) return <ListItem disablePadding={disablePadding}></ListItem>;
   return (
     <ListItem disablePadding={disablePadding}>

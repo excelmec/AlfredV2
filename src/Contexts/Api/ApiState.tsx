@@ -9,16 +9,18 @@ interface IApiStateProps {
 
 const accBaseUrl = process.env.REACT_APP_ACC_BACKEND_BASE_URL;
 const eventsBaseUrl = process.env.REACT_APP_EVENTS_BACKEND_BASE_URL;
-const ticketsBaseUrl = process.env.REACT_APP_TICKETS_BACKEND_BASE_URL;
 
 /**
  * Not setting this will disable the merch API in the dashboard
  */
 export const merchBaseUrl = process.env.REACT_APP_MERCH_BACKEND_BASE_URL;
 
-export function ApiState({ children }: IApiStateProps) {
-  console.log('ApiState');
+/**
+ * Not setting this will disable the tickets API in the dashboard
+ */
+export const ticketsBaseUrl = process.env.REACT_APP_TICKETS_BACKEND_BASE_URL;
 
+export function ApiState({ children }: IApiStateProps) {
   if (!accBaseUrl) {
     throw new Error('REACT_APP_ACC_BACKEND_BASE_URL is undefined');
   }
@@ -39,6 +41,11 @@ export function ApiState({ children }: IApiStateProps) {
     // throw new Error('REACT_APP_MERCH_BACKEND_BASE_URL is undefined');
   }
 
+  if (!ticketsBaseUrl) {
+    console.warn('REACT_APP_TICKETS_BACKEND_BASE_URL is undefined');
+    console.warn('Tickets API will not be available');
+  }
+
   const [refreshToken, setRefreshToken] = useLocalStorage('refreshToken', '');
   const [accessToken, setAccessToken] = useLocalStorage('accessToken', '');
 
@@ -56,9 +63,6 @@ export function ApiState({ children }: IApiStateProps) {
     checkRefreshFromUrl();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  console.log('Refresh token in state', refreshToken);
-  console.log('Access token in state', accessToken);
 
   const axiosConfig = {
     timeout: 40000,
@@ -177,7 +181,6 @@ export function ApiState({ children }: IApiStateProps) {
         (err.response?.status === 401 || // For expired token
           err?.code === 'ECONNABORTED') // For cold start timeouts
       ) {
-        console.log('Token Expired, Retrying');
         originalConfig._retry = true;
 
         try {

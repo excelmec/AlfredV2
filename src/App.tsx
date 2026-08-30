@@ -3,7 +3,7 @@ import 'App.css';
 import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import UserState from 'Contexts/User/UserState';
-import { ApiState, merchBaseUrl } from 'Contexts/Api/ApiState';
+import { ApiState, merchBaseUrl, ticketsBaseUrl } from 'Contexts/Api/ApiState';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
@@ -354,6 +354,18 @@ function ContactRoutes() {
 }
 
 function TicketRoutes() {
+  if (!ticketsBaseUrl)
+    return [
+      <Route
+        path="/tickets/*"
+        element={
+          <ProtectedRoute allowedRoles={ticketScanRoles}>
+            <ErrorPage errMsg="Tickets Features are disabled as tickets backend url is not set" />
+          </ProtectedRoute>
+        }
+      />,
+    ];
+
   return [
     <Route
       path="/tickets"
