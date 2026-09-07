@@ -1,4 +1,5 @@
 import { CssBaseline } from '@mui/material';
+import React from 'react';
 import 'App.css';
 import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -47,6 +48,14 @@ import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
 import EventResults from 'Pages/Events/EventResults';
 import { ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
 
+function withKeys(routes: React.ReactElement[]): React.ReactElement[] {
+  return routes.map((route: React.ReactElement) =>
+    React.cloneElement(route, {
+      key: route.key ?? String(route.props?.path ?? ''),
+    }),
+  );
+}
+
 function App() {
   return (
     <div className="App">
@@ -59,17 +68,17 @@ function App() {
                 <Route path="/" element={<DashLayout />}>
                   <Route path="/" element={<Home />} />
 
-                  {UserRoutes().map((route) => route)}
+                  {withKeys(UserRoutes())}
 
-                  {ContactRoutes().map((route) => route)}
+                  {withKeys(ContactRoutes())}
 
-                  {CampusAmbassadorRoutes().map((route) => route)}
+                  {withKeys(CampusAmbassadorRoutes())}
 
-                  {EventsRoutes().map((route) => route)}
+                  {withKeys(EventsRoutes())}
 
-                  {MerchRoutes().map((route) => route)}
+                  {withKeys(MerchRoutes())}
 
-                  {TicketRoutes().map((route) => route)}
+                  {withKeys(TicketRoutes())}
 
                   <Route path="*" element={<NotFound />} />
                 </Route>
@@ -85,6 +94,7 @@ function App() {
 function UserRoutes() {
   return [
     <Route
+      key="/users"
       path="/users"
       element={
         <ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
@@ -97,8 +107,9 @@ function UserRoutes() {
 
 function CampusAmbassadorRoutes() {
   return [
-    <Route path="/ca" element={<Navigate to="/ca/list" />} />,
+    <Route key="/ca" path="/ca" element={<Navigate to="/ca/list" replace />} />,
     <Route
+      key="/ca/:ambassadorId"
       path="/ca/:ambassadorId"
       element={
         <ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
@@ -107,6 +118,7 @@ function CampusAmbassadorRoutes() {
       }
     />,
     <Route
+      key="/ca/list"
       path="/ca/list"
       element={
         <ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
@@ -115,6 +127,7 @@ function CampusAmbassadorRoutes() {
       }
     />,
     <Route
+      key="/ca/team"
       path="/ca/team"
       element={
         <ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>
@@ -123,6 +136,7 @@ function CampusAmbassadorRoutes() {
       }
     />,
     <Route
+      key="/ca/team/:teamId/view"
       path="/ca/team/:teamId/view"
       element={
         <ProtectedRoute allowedRoles={['Admin', 'CaVolunteer']}>

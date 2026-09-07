@@ -61,8 +61,20 @@ export const eventValidationSchema: ObjectSchema<
       if (val === null || val === undefined) return 0;
       return val;
     }),
-  eventHead1Id: number().required(),
-  eventHead2Id: number().required(),
+  eventHead1Id: number()
+    .default(undefined)
+    .transform((val) => {
+      if (val === null || val === undefined || isNaN(val) || val === 0 || val === '')
+        return undefined;
+      return val;
+    }),
+  eventHead2Id: number()
+    .default(undefined)
+    .transform((val) => {
+      if (val === null || val === undefined || isNaN(val) || val === 0 || val === '')
+        return undefined;
+      return val;
+    }),
   isTeam: boolean().required(),
   teamSize: number()
     .default(undefined)
@@ -128,6 +140,14 @@ export const eventValidationSchema: ObjectSchema<
       return val;
     }),
 
+  referralPoints: number()
+    .default(undefined)
+    .moreThan(-1, 'Referral points must be positive')
+    .transform((val) => {
+      if (val === null || val === undefined || isNaN(val) || val === '') return undefined;
+      return val;
+    }),
+
   icon: mixed<File>()
     .required()
     .test(
@@ -161,9 +181,8 @@ export const defaultDummyEvent: IValidateUpdateEvent = {
   rules: '',
   entryFee: 0,
   prizeMoney: 0,
-  eventHead1Id: 0,
-
-  eventHead2Id: 0,
+  eventHead1Id: undefined,
+  eventHead2Id: undefined,
   isTeam: false,
   teamSize: undefined,
   eventStatusId: 0,
@@ -173,6 +192,7 @@ export const defaultDummyEvent: IValidateUpdateEvent = {
   registrationEndDate: undefined,
   button: undefined,
   registrationLink: undefined,
+  referralPoints: undefined,
   venue: '',
   needRegistration: false,
   day: 0,
@@ -188,7 +208,13 @@ export function objectToFormData(event: IValidateCreateEvent | IValidateUpdateEv
 
     const value = event[objectKey];
 
-    if (!value) return;
+    if (
+      value === undefined ||
+      value === null ||
+      value === '' ||
+      ((key === 'eventHead1Id' || key === 'eventHead2Id') && (value === 0 || value === '0'))
+    )
+      return;
 
     const firstCharUpperKey = key.charAt(0).toUpperCase() + key.slice(1);
 

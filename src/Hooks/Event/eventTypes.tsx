@@ -9,10 +9,10 @@ export interface IEventListItem {
   day?: number;
   datetime: Date;
 
-  eventHead1Id: number;
-  eventHead1: IEventHead;
-  eventHead2Id: number;
-  eventHead2: IEventHead;
+  eventHead1Id?: number;
+  eventHead1?: IEventHead;
+  eventHead2Id?: number;
+  eventHead2?: IEventHead;
 }
 
 export interface IEvent extends IEventListItem {
@@ -37,6 +37,7 @@ export interface IEvent extends IEventListItem {
   registrationEndDate?: Date;
   button: TEventButton;
   registrationLink?: string;
+  referralPoints?: number;
   results: IResult[];
 
   // rounds: [];

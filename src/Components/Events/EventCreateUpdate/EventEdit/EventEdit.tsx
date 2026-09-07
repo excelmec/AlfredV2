@@ -144,16 +144,13 @@ export default function EventEdit({
         autoHighlight
         getOptionLabel={(option: IEventHead) => option.name}
         onChange={(event, newValue) => {
-          if (newValue) {
-            console.log({ newValue });
-            setNewEvent((prev) => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                [eventHeadIdField]: newValue.id,
-              };
-            });
-          }
+          setNewEvent((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              [eventHeadIdField]: newValue ? newValue.id : undefined,
+            };
+          });
         }}
         disabled={eventHeadListLoading}
         value={eventHeadsList.find((eventHead) => {
@@ -659,6 +656,19 @@ export default function EventEdit({
             fieldName: 'prizeMoney',
             TextFieldProps: {
               type: 'number',
+            },
+          })}
+        </Grid>
+
+        <Grid item xs={6}>
+          <Typography>Referral Points (Campus Ambassador)</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          {CustomTextField({
+            fieldName: 'referralPoints',
+            TextFieldProps: {
+              type: 'number',
+              placeholder: 'Default: 5',
             },
           })}
         </Grid>
