@@ -43,35 +43,43 @@ export default function MerchItemEditPage() {
 
     setImagesLoading(true);
 
-    const imagePromises: Promise<Blob>[] = [];
+    try {
+      const imagePromises: Promise<Blob>[] = [];
 
-    item.mediaObjects.forEach((mediaObject) => {
-      imagePromises.push(
-        axios.get(mediaObject.url, {
-          responseType: 'blob',
-        }),
-      );
-    });
+      item.mediaObjects.forEach((mediaObject) => {
+        imagePromises.push(
+          axios
+            .get(mediaObject.url, {
+              responseType: 'blob',
+            })
+            .then((res) => res.data),
+        );
+      });
 
-    const imageBlobs = await Promise.all(imagePromises);
+      const imageBlobs = await Promise.all(imagePromises);
 
-    const mediaObjects: IMediaObjectEditWithFile[] = imageBlobs.map((blob, index) => {
-      const mediaObject = item.mediaObjects[index];
+      const mediaObjects: IMediaObjectEditWithFile[] = imageBlobs.map((blob, index) => {
+        const mediaObject = item.mediaObjects[index];
 
-      return {
-        url: mediaObject.url,
-        type: mediaObject.type,
-        colorOption: mediaObject.colorOption,
-        viewOrdering: mediaObject.viewOrdering,
-        fileName: mediaObject.id,
-        file: new File([blob], mediaObject.id),
-      };
-    });
+        return {
+          url: mediaObject.url,
+          type: mediaObject.type,
+          colorOption: mediaObject.colorOption,
+          viewOrdering: mediaObject.viewOrdering,
+          fileName: mediaObject.id,
+          file: new File([blob], mediaObject.id),
+        };
+      });
 
-    setModifiedItem({
-      ...item,
-      mediaObjects,
-    });
+      setModifiedItem({
+        ...item,
+        mediaObjects,
+      });
+    } catch (err) {
+      console.error('Failed to load item images:', err);
+      // We already set modifiedItem with empty mediaObjects before calling loadImages,
+      // so it's safe to just leave it like that or set it again.
+    }
 
     setImagesLoading(false);
   }

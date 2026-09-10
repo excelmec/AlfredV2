@@ -36,13 +36,21 @@ export default function EventEditPage() {
   async function initNewEvent() {
     if (!event) return;
 
-    const imageRes = await axios.get(event.icon, {
-      responseType: 'blob',
-    });
+    let icon: File | undefined = undefined;
 
-    const icon = new File([imageRes.data], 'icon.png', {
-      type: imageRes.headers['content-type'] ?? 'image/png',
-    });
+    try {
+      if (event.icon) {
+        const imageRes = await axios.get(event.icon, {
+          responseType: 'blob',
+        });
+
+        icon = new File([imageRes.data], 'icon.png', {
+          type: imageRes.headers['content-type'] ?? 'image/png',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch event icon:', error);
+    }
 
     setNewEvent({
       ...event,
