@@ -175,7 +175,7 @@ export default function EventData({ event }: { event: IEvent }) {
           <Typography>Referral Points (Campus Ambassador)</Typography>
         </Grid>
         <Grid item xs={6}>
-          <Typography>{event?.referralPoints ?? 'Default (5)'}</Typography>
+          <Typography>{event?.referralPoints ?? 'Default (0)'}</Typography>
         </Grid>
 
         <Grid item xs={12}>

@@ -192,7 +192,7 @@ export const defaultDummyEvent: IValidateUpdateEvent = {
   registrationEndDate: undefined,
   button: undefined,
   registrationLink: undefined,
-  referralPoints: undefined,
+  referralPoints: 0,
   venue: '',
   needRegistration: false,
   day: 0,
