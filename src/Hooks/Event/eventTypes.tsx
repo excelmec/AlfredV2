@@ -38,6 +38,7 @@ export interface IEvent extends IEventListItem {
   button: TEventButton;
   registrationLink?: string;
   referralPoints?: number;
+  needVolunteerForm: boolean;
   results: IResult[];
 
   // rounds: [];

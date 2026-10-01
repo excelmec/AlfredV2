@@ -3,12 +3,22 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import GroupsIcon from '@mui/icons-material/Groups';
+import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import { Link as RouterLink } from 'react-router-dom';
 
 import './ToolBar.css';
 import { useNavigate } from 'react-router-dom';
 
-export default function ToolBar({ eventId }: { eventId: number }) {
+// Optional: when unset, the link to the forms dashboard is hidden
+const formsBaseUrl = process.env.REACT_APP_FORMS_BASE_URL;
+
+export default function ToolBar({
+  eventId,
+  needVolunteerForm,
+}: {
+  eventId: number;
+  needVolunteerForm?: boolean;
+}) {
   const navigate = useNavigate();
   return (
     <Box className="event-desc-toolbar" component={Paper} elevation={2} borderRadius={0} zIndex={5}>
@@ -35,6 +45,20 @@ export default function ToolBar({ eventId }: { eventId: number }) {
       >
         Registrations
       </Button>
+
+      {needVolunteerForm && formsBaseUrl && (
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<VolunteerActivismIcon />}
+          className="toolbutton"
+          href={`${formsBaseUrl}/dashboard/events/new?kind=volunteer&eventId=${eventId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Volunteer Form
+        </Button>
+      )}
 
       <Button
         variant="contained"

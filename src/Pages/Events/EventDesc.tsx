@@ -76,7 +76,7 @@ export default function EventDescPage() {
       </Box>
       <br />
 
-      <ToolBar eventId={event!.id} />
+      <ToolBar eventId={event!.id} needVolunteerForm={event!.needVolunteerForm} />
       <EventData event={event!} />
     </>
   );

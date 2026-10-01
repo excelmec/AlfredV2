@@ -218,6 +218,13 @@ export default function EventData({ event }: { event: IEvent }) {
         </Grid>
 
         <Grid item xs={6}>
+          <Typography>Volunteer Call Form Needed?</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography>{event?.needVolunteerForm ? 'YES' : 'NO'}</Typography>
+        </Grid>
+
+        <Grid item xs={6}>
           <Typography>Is Team?</Typography>
         </Grid>
         <Grid item xs={6}>

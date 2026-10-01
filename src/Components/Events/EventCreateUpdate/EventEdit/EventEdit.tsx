@@ -413,6 +413,26 @@ export default function EventEdit({
         </Grid>
 
         <Grid item xs={6}>
+          <Typography>Volunteer Call Form Needed?</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography>
+            <Checkbox
+              checked={newEvent.needVolunteerForm ?? false}
+              onChange={(e) => {
+                setNewEvent((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    needVolunteerForm: e.target.checked,
+                  };
+                });
+              }}
+            />
+          </Typography>
+        </Grid>
+
+        <Grid item xs={6}>
           <Typography>Is Team?</Typography>
         </Grid>
         <Grid item xs={6}>

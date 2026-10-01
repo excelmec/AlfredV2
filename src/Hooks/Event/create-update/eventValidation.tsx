@@ -35,6 +35,13 @@ export const eventValidationSchema: ObjectSchema<
       if (val === null || val === undefined) return false;
       return val;
     }),
+  needVolunteerForm: boolean()
+    .required()
+    .default(false)
+    .transform((val) => {
+      if (val === null || val === undefined) return false;
+      return val;
+    }),
   day: number()
     .required()
     .transform((val) => {
@@ -195,6 +202,7 @@ export const defaultDummyEvent: IValidateUpdateEvent = {
   referralPoints: 0,
   venue: '',
   needRegistration: false,
+  needVolunteerForm: false,
   day: 0,
   datetime: new Date(),
 };
