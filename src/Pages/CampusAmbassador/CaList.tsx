@@ -5,13 +5,14 @@ import { CaListRes, useCaList } from 'Hooks/CampusAmbassador/useCaList';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
+import AddAmbassadors from 'Components/CampusAmbassador/AddAmbassadors';
 
 function getRowId(row: CaListRes) {
   return row.ambassadorId;
 }
 
 export default function CaListPage() {
-  const { caList, fetchCaList, loading, error } = useCaList();
+  const { caList, fetchCaList, loading, error, addAmbassador } = useCaList();
   const navigate = useNavigate();
 
   const columns: TypeSafeColDef<CaListRes>[] = [
@@ -24,6 +25,19 @@ export default function CaListPage() {
     {
       field: 'name',
       headerName: 'Name',
+      type: 'string',
+      minWidth: 150,
+      flex: 0.7,
+    },
+    {
+      field: 'code',
+      headerName: 'Referral Code',
+      type: 'string',
+      width: 130,
+    },
+    {
+      field: 'college',
+      headerName: 'College',
       type: 'string',
       minWidth: 150,
       flex: 0.7,
@@ -92,6 +106,8 @@ export default function CaListPage() {
       <Typography variant="h5" noWrap component="div">
         Campus Ambassadors List
       </Typography>
+      <br />
+      <AddAmbassadors caList={caList} addAmbassador={addAmbassador} onAdded={fetchCaList} />
       <br />
       <DataGrid
         density="compact"
