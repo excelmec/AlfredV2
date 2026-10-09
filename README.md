@@ -4,7 +4,9 @@ AlfredV2 is a revamped version, rewritten in React of the existing Alfred repo (
 
 ### Development
 
-- This is built using Vite + React with TypeScript and yarn
+- Built with Vite, React and TypeScript, using Tailwind CSS v4 and shadcn/ui (Radix) with Phosphor icons and Plus Jakarta Sans
+- Light and dark themes live in `src/index.css`; shadcn components are in `src/Components/ui`
+- Package manager is yarn
 - use `yarn install` to install dependencies
 - create a `.env` file according to `.env.example` file
 - start dev with `yarn dev` (or `yarn start`)

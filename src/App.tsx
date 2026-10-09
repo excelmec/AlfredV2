@@ -1,56 +1,59 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/Components/theme-provider';
 import UserState from 'Contexts/User/UserState';
 import { ApiState, merchBaseUrl, ticketsBaseUrl } from 'Contexts/Api/ApiState';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-import Home from 'Pages/Home';
-import Contact from 'Pages/Contact';
-import NotFound from 'Pages/NotFound';
-import CaListPage from 'Pages/CampusAmbassador/CaList';
-import UserListPage from 'Pages/Users';
-import EventListPage from 'Pages/Events/EventList';
-import EventHeadsPage from 'Pages/Events/EventHeads';
-import EventDescPage from 'Pages/Events/EventDesc';
-import CaTeamListPage from 'Pages/CampusAmbassador/CaTeamList';
-import CaTeamView from 'Pages/CampusAmbassador/CaTeamView';
-import CaViewPage from 'Pages/CampusAmbassador/CaView';
 import ProtectedRoute from 'Components/Protected/ProtectedRoute';
-import EventEditPage from 'Pages/Events/EventEdit';
-import EventCreatePage from 'Pages/Events/EventCreate';
-import ErrorPage from 'Pages/Error';
-import MerchItemListPage from 'Pages/Merchandise/item/ItemList';
-import MerchItemViewPage from 'Pages/Merchandise/item/itemView';
-import MerchItemEditPage from 'Pages/Merchandise/item/itemEdit';
-import MerchItemCreatePage from 'Pages/Merchandise/item/itemCreate';
-import TestOrderPaymentPage from 'Pages/Merchandise/testOrder';
-import ConfirmedDeliveryOrdersListPage from 'Pages/Merchandise/ConfirmedDeliveryOrders/confirmedDeliveryOrderList';
-import ConfirmedPickupOrdersListPage from 'Pages/Merchandise/ConfirmedPickupOrders/confirmedPickupOrderList';
-import PreordersListPage from 'Pages/Merchandise/Preorders/preorderList';
-import MissingStockList from 'Pages/Merchandise/Preorders/missingStockList';
-import OrderViewPage from 'Pages/Merchandise/ConfirmedDeliveryOrders/orderView';
-import EventRegistrationsListPage from 'Pages/Events/EventRegistrations';
-import EventSchedule from 'Pages/Events/EventSchedule';
 import {
   allEventEditRoles,
   allEventViewRoles,
   specificEventViewRoles,
 } from 'Hooks/Event/eventRoles';
-import EventStatsPage from 'Pages/Events/EventStats';
-import TicketUserList from './Pages/Ticket/TicketUserList';
-import ProshowList from './Pages/Ticket/ProshowList';
-import TicketValidator from './Pages/Ticket/TicketValidator';
-import EventScheduleCreate from 'Pages/Events/EventScheduleCreate';
-import EventResults from 'Pages/Events/EventResults';
 import { ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
+
+const Home = lazy(() => import('Pages/Home'));
+const Contact = lazy(() => import('Pages/Contact'));
+const NotFound = lazy(() => import('Pages/NotFound'));
+const CaListPage = lazy(() => import('Pages/CampusAmbassador/CaList'));
+const UserListPage = lazy(() => import('Pages/Users'));
+const EventListPage = lazy(() => import('Pages/Events/EventList'));
+const EventHeadsPage = lazy(() => import('Pages/Events/EventHeads'));
+const EventDescPage = lazy(() => import('Pages/Events/EventDesc'));
+const CaTeamListPage = lazy(() => import('Pages/CampusAmbassador/CaTeamList'));
+const CaTeamView = lazy(() => import('Pages/CampusAmbassador/CaTeamView'));
+const CaViewPage = lazy(() => import('Pages/CampusAmbassador/CaView'));
+const EventEditPage = lazy(() => import('Pages/Events/EventEdit'));
+const EventCreatePage = lazy(() => import('Pages/Events/EventCreate'));
+const ErrorPage = lazy(() => import('Pages/Error'));
+const MerchItemListPage = lazy(() => import('Pages/Merchandise/item/ItemList'));
+const MerchItemViewPage = lazy(() => import('Pages/Merchandise/item/itemView'));
+const MerchItemEditPage = lazy(() => import('Pages/Merchandise/item/itemEdit'));
+const MerchItemCreatePage = lazy(() => import('Pages/Merchandise/item/itemCreate'));
+const TestOrderPaymentPage = lazy(() => import('Pages/Merchandise/testOrder'));
+const ConfirmedDeliveryOrdersListPage = lazy(
+  () => import('Pages/Merchandise/ConfirmedDeliveryOrders/confirmedDeliveryOrderList'),
+);
+const ConfirmedPickupOrdersListPage = lazy(
+  () => import('Pages/Merchandise/ConfirmedPickupOrders/confirmedPickupOrderList'),
+);
+const PreordersListPage = lazy(() => import('Pages/Merchandise/Preorders/preorderList'));
+const MissingStockList = lazy(() => import('Pages/Merchandise/Preorders/missingStockList'));
+const OrderViewPage = lazy(() => import('Pages/Merchandise/ConfirmedDeliveryOrders/orderView'));
+const EventRegistrationsListPage = lazy(() => import('Pages/Events/EventRegistrations'));
+const EventSchedule = lazy(() => import('Pages/Events/EventSchedule'));
+const EventStatsPage = lazy(() => import('Pages/Events/EventStats'));
+const TicketUserList = lazy(() => import('./Pages/Ticket/TicketUserList'));
+const ProshowList = lazy(() => import('./Pages/Ticket/ProshowList'));
+const TicketValidator = lazy(() => import('./Pages/Ticket/TicketValidator'));
+const EventScheduleCreate = lazy(() => import('Pages/Events/EventScheduleCreate'));
+const EventResults = lazy(() => import('Pages/Events/EventResults'));
 
 function withKeys(routes: React.ReactElement[]): React.ReactElement[] {
   return routes.map((route: React.ReactElement) =>
     React.cloneElement(route, {
-      key: route.key ?? String(route.props?.path ?? ''),
+      key: route.key ?? String((route.props as { path?: string })?.path ?? ''),
     }),
   );
 }
@@ -60,29 +63,27 @@ function App() {
     <ThemeProvider>
       <ApiState>
         <UserState>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<DashLayout />}>
-                  <Route path="/" element={<Home />} />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<DashLayout />}>
+                <Route path="/" element={<Home />} />
 
-                  {withKeys(UserRoutes())}
+                {withKeys(UserRoutes())}
 
-                  {withKeys(ContactRoutes())}
+                {withKeys(ContactRoutes())}
 
-                  {withKeys(CampusAmbassadorRoutes())}
+                {withKeys(CampusAmbassadorRoutes())}
 
-                  {withKeys(EventsRoutes())}
+                {withKeys(EventsRoutes())}
 
-                  {withKeys(MerchRoutes())}
+                {withKeys(MerchRoutes())}
 
-                  {withKeys(TicketRoutes())}
+                {withKeys(TicketRoutes())}
 
-                  <Route path="*" element={<NotFound />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </LocalizationProvider>
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
         </UserState>
       </ApiState>
     </ThemeProvider>
