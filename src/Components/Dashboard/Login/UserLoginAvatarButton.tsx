@@ -1,4 +1,13 @@
-import { CaretUpDownIcon, SignInIcon, SignOutIcon } from '@phosphor-icons/react';
+import {
+  CaretUpDownIcon,
+  DesktopIcon,
+  MoonIcon,
+  PaletteIcon,
+  SignInIcon,
+  SignOutIcon,
+  SunIcon,
+} from '@phosphor-icons/react';
+import { useTheme } from 'next-themes';
 import { UserDatatype } from 'Contexts/User/UserContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
 import { Button } from '@/Components/ui/button';
@@ -7,6 +16,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
@@ -35,6 +49,7 @@ export default function UserLoginAvatarButton({
 }: UserLoginAvatarButtonProps) {
   const authRedirUrl = import.meta.env.REACT_APP_AUTH_REDIR_URL;
   const { isMobile } = useSidebar();
+  const { theme, setTheme } = useTheme();
 
   if (!authRedirUrl) {
     throw new Error('REACT_APP_AUTH_REDIR_URL not set');
@@ -98,6 +113,25 @@ export default function UserLoginAvatarButton({
             <span className="text-xs text-muted-foreground">{userData.email}</span>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <PaletteIcon /> Theme
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup value={theme ?? 'system'} onValueChange={setTheme}>
+              <DropdownMenuRadioItem value="light">
+                <SunIcon /> Light
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">
+                <MoonIcon /> Dark
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system">
+                <DesktopIcon /> System
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={logout}>
           <SignOutIcon /> Log out

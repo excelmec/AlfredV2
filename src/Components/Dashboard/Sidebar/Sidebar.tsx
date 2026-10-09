@@ -16,6 +16,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  SidebarTrigger,
 } from '@/Components/ui/sidebar';
 import UserLoginAvatarButton from '../Login/UserLoginAvatarButton';
 import { bottomLinks, navGroups, topLinks, type NavLeaf } from './navigation';
@@ -31,7 +32,7 @@ export default function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem>
+          <SidebarMenuItem className="flex items-center gap-1">
             <SidebarMenuButton size="lg" asChild tooltip="Alfred">
               <NavLink to="/">
                 <img src="/logo.png" alt="Excel" className="size-8 shrink-0 object-contain" />
@@ -41,6 +42,7 @@ export default function AppSidebar() {
                 </div>
               </NavLink>
             </SidebarMenuButton>
+            <SidebarTrigger className="shrink-0 group-data-[collapsible=icon]:hidden" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

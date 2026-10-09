@@ -97,11 +97,3 @@ export const navGroups: NavGroup[] = [
     ],
   },
 ];
-
-/** Resolve a human readable page section for the header from the current path */
-export function sectionTitleForPath(pathname: string): string {
-  const group = navGroups.find((g) => pathname.startsWith(g.prefix));
-  if (group) return group.title;
-  const link = [...topLinks, ...bottomLinks].find((l) => l.to !== '/' && pathname.startsWith(l.to));
-  return link?.title ?? 'Alfred';
-}
