@@ -1,17 +1,16 @@
-import { Box, Typography } from '@mui/material';
 import { useEffect } from 'react';
-import { useItemView } from '../../../Hooks/Merchandise/useItemView';
 import { useParams } from 'react-router-dom';
+import { useItemView } from '../../../Hooks/Merchandise/useItemView';
 import ItemDetails from 'Components/Merchandise/ItemViewDetails/ItemViewDetails';
 import ItemViewToolBar from 'Components/Merchandise/ItemViewDetails/ToolBar/ItemViewToolBar';
+import { PageHeader } from '@/Components/page-header';
+import { PageError, PageLoading } from '@/Components/page-state';
 
 export default function MerchItemViewPage() {
   const { item, fetchItem, loading, error } = useItemView();
 
   const { itemId: itemIdStr } = useParams();
   const itemId = parseInt(itemIdStr ?? '');
-
-  // const navigate = useNavigate();
 
   useEffect(() => {
     fetchItem(itemId);
@@ -20,39 +19,22 @@ export default function MerchItemViewPage() {
   }, [itemId]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   if (loading) {
-    return <Typography variant="h5">Loading...</Typography>;
+    return <PageLoading />;
   }
 
   if (!item) {
-    return <Typography variant="h5">Item not found</Typography>;
+    return <PageError title="Item not found" />;
   }
 
   return (
     <>
-      <>
-        <br />
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Typography variant="h5" noWrap>
-            Item Description
-          </Typography>
-        </Box>
-        <br />
-
-        <ItemViewToolBar itemId={itemId} />
-
-        <ItemDetails item={item} key={itemId} />
-      </>
+      <PageHeader title={item.name} description="Item description" />
+      <ItemViewToolBar itemId={itemId} />
+      <ItemDetails item={item} key={itemId} />
     </>
   );
 }

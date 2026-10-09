@@ -1,14 +1,7 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material';
-import { ApiContext } from 'Contexts/Api/ApiContext';
 import { useContext, useState } from 'react';
 import { toast } from 'sonner';
+import { ApiContext } from 'Contexts/Api/ApiContext';
+import { ConfirmDialog } from '@/Components/confirm-dialog';
 
 const MerchItemDelete = (parameters: {
   id: number | undefined;
@@ -39,31 +32,16 @@ const MerchItemDelete = (parameters: {
   };
 
   return (
-    <Dialog open={parameters.dialogueOpen} onClose={handleDeleteClose}>
-      <DialogTitle>Delete Item with ID: {parameters?.id}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>Would you like to delete item: {parameters?.name}?</DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          style={{
-            backgroundColor: 'red',
-            color: 'white',
-            fontWeight: 'bold',
-          }}
-          autoFocus
-          onClick={() => {
-            handleDelete(parameters?.id as number);
-          }}
-          disabled={eventIsDeleting}
-        >
-          Delete
-        </Button>
-        <Button onClick={handleDeleteClose} autoFocus disabled={eventIsDeleting}>
-          Cancel
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <ConfirmDialog
+      open={parameters.dialogueOpen}
+      title={`Delete item #${parameters?.id ?? ''}`}
+      description={`Would you like to delete item: ${parameters?.name ?? ''}?`}
+      confirmLabel="Delete"
+      destructive
+      loading={eventIsDeleting}
+      onConfirm={() => handleDelete(parameters?.id as number)}
+      onCancel={handleDeleteClose}
+    />
   );
 };
 

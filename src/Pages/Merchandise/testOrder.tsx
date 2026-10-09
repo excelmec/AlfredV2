@@ -1,4 +1,10 @@
-import { Button, TextField, Typography } from '@mui/material';
+import { toast } from 'sonner';
+import { CreditCardIcon } from '@phosphor-icons/react';
+import { PageHeader } from '@/Components/page-header';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import useRazorpay from 'react-razorpay';
 import { useEffect, useState } from 'react';
 
@@ -11,17 +17,17 @@ export default function TestOrderPaymentPage() {
   const [Razorpay] = useRazorpay();
   async function payOrder() {
     if (!orderId) {
-      return alert('Please enter an order ID');
+      return void toast.error('Please enter an order ID');
     }
     if (amount <= 0) {
-      return alert('Amount must be greater than 0');
+      return void toast.error('Amount must be greater than 0');
     }
 
     if (!Razorpay) {
-      return alert('Razorpay not loaded');
+      return void toast.error('Razorpay not loaded');
     }
     if (!rzpKey) {
-      return alert('Razorpay key not set');
+      return void toast.error('Razorpay key not set');
     }
     const rzpInstance = new Razorpay({
       key: rzpKey,
@@ -57,51 +63,54 @@ export default function TestOrderPaymentPage() {
   if (!rzpKey) {
     return (
       <>
-        <br />
-        <Typography variant="h5" noWrap component="div">
-          TestOrderPayment
-        </Typography>
-        <br />
-        <Typography variant="body1" noWrap component="div">
-          Please set the RAZORPAY_KEY_ID environment variable in the env to test payments.
-        </Typography>
-        <br />
+        <PageHeader title="Test payment" />
+        <p className="text-sm text-muted-foreground">
+          Please set the REACT_APP_RAZORPAY_KEY_ID environment variable in the env to test payments.
+        </p>
       </>
     );
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        TestOrderPayment
-      </Typography>
-      <br />
-      <TextField
-        label="Order ID"
-        variant="outlined"
-        value={orderId}
-        onChange={(e) => setOrderId(e.target.value)}
+      <PageHeader
+        title="Test payment"
+        description="Open the Razorpay checkout for an existing order to test payments."
       />
-      <br />
-      <TextField
-        label="Amount"
-        variant="outlined"
-        value={amount}
-        onChange={(e) => {
-          const val = parseInt(e.target.value);
-          if (!isNaN(val)) {
-            setAmount(val);
-          } else {
-            setAmount(0);
-          }
-        }}
-      />
-      <br />
-      <Button size="small" variant="contained" onClick={payOrder}>
-        Pay Order
-      </Button>
-      <br />
+      <Card className="max-w-md">
+        <CardHeader>
+          <CardTitle>Pay an order</CardTitle>
+          <CardDescription>Enter the Razorpay order ID and the amount in rupees.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="test-order-id">Order ID</Label>
+            <Input
+              id="test-order-id"
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="test-amount">Amount</Label>
+            <Input
+              id="test-amount"
+              value={amount}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val)) {
+                  setAmount(val);
+                } else {
+                  setAmount(0);
+                }
+              }}
+            />
+          </div>
+          <Button className="w-fit" onClick={payOrder}>
+            <CreditCardIcon /> Pay order
+          </Button>
+        </CardContent>
+      </Card>
     </>
   );
 }

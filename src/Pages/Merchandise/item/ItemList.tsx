@@ -1,19 +1,16 @@
-import { Button, Typography } from '@mui/material';
-
-import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
-
 import { useEffect, useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
+import { EyeIcon, PencilSimpleIcon, PlusIcon, TrashIcon } from '@phosphor-icons/react';
 import { useItemList } from '../../../Hooks/Merchandise/useItemList';
 import { IItem } from 'Hooks/Merchandise/itemTypes';
-
-import { useNavigate } from 'react-router-dom';
-
-import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import MerchItemDelete from './itemDelete';
 import { IEventListItem } from 'Hooks/Event/eventTypes';
+import MerchItemDelete from './itemDelete';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
+import { Button } from '@/Components/ui/button';
 
 function getRowId(row: IItem) {
   return row.id;
@@ -25,55 +22,37 @@ export default function MerchItemListPage() {
   const navigate = useNavigate();
   const [deleteItem, setDeleteItem] = useState<Pick<IEventListItem, 'id' | 'name'> | undefined>();
 
-  const muiColumns = [
+  const tableColumns: DataColumn<IItem>[] = [
     ...columns,
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 150,
-      getActions: (params: GridRowParams) => [
-        <GridActionsCellItem
-          icon={<VisibilityIcon color="primary" />}
+      width: 120,
+      getActions: (params) => [
+        <RowAction
+          key="view"
+          icon={<EyeIcon />}
           label="View"
-          onClick={() => {
-            navigate(`/merch/items/view/${params.row.id}`);
-          }}
+          tone="primary"
+          onClick={() => navigate(`/merch/items/view/${params.row.id}`)}
         />,
-        <GridActionsCellItem
-          icon={<EditIcon />}
+        <RowAction
+          key="edit"
+          icon={<PencilSimpleIcon />}
           label="Edit"
-          color="secondary"
-          onClick={() => {
-            navigate(`/merch/items/edit/${params.row.id}`);
-          }}
+          onClick={() => navigate(`/merch/items/edit/${params.row.id}`)}
         />,
-        <GridActionsCellItem
-          icon={<DeleteIcon color="error" />}
+        <RowAction
+          key="delete"
+          icon={<TrashIcon />}
           label="Delete"
-          onClick={() => {
-            setDeleteItem({ id: params.row.id, name: params.row.name });
-          }}
+          tone="destructive"
+          onClick={() => setDeleteItem({ id: params.row.id, name: params.row.name })}
         />,
       ],
     },
   ];
-
-  // function confirmDelete() {
-  // 	setDeleteOpen(true);
-  // }
-
-  // async function handleDelete(eventId: number, eventName: string) {
-  // 	await deleteEvent(eventId, eventName);
-  // 	handleDeleteClose();
-  // }
-
-  // const handleDeleteClose = () => {
-  // 	if (eventIsDeleting) {
-  // 		return;
-  // 	}
-  // 	setDeleteOpen(false);
-  // };
 
   useEffect(() => {
     fetchItemList();
@@ -82,7 +61,7 @@ export default function MerchItemListPage() {
   }, []);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   const handleDeleteDialogueClose = () => {
@@ -92,38 +71,22 @@ export default function MerchItemListPage() {
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Merchandise Items List
-      </Typography>
-      <br />
-      <Button size="small" variant="contained" onClick={() => navigate('/merch/items/create')}>
-        Create New Item
-      </Button>
-      <br />
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
+      <PageHeader
+        title="Merchandise items"
+        description="Everything available in the merchandise store."
+        actions={
+          <Button onClick={() => navigate('/merch/items/create')}>
+            <PlusIcon weight="bold" /> Create item
+          </Button>
+        }
+      />
+      <DataTable
+        columns={tableColumns}
         rows={itemList}
-        columns={muiColumns}
+        getRowId={getRowId}
         loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
-        showCellVerticalBorder
-        showColumnVerticalBorder
+        exportFileName="merch-items"
+        searchPlaceholder="Search items..."
       />
 
       <MerchItemDelete

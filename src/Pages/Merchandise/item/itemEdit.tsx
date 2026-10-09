@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Box, Typography } from '@mui/material';
-
 import { useItemView } from '../../../Hooks/Merchandise/useItemView';
 import { IMediaObjectEditWithFile } from 'Hooks/Merchandise/create-update/itemEditTypes';
 import axios from 'axios';
 import { useItemEdit } from 'Hooks/Merchandise/create-update/useItemEdit';
 import ItemEditable from 'Components/Merchandise/ItemCreateEdit/Editable/ItemEditable';
 import MerchEditToolbar from 'Components/Merchandise/ItemCreateEdit/Toolbar/MerchEditToolbar';
+import { PageHeader } from '@/Components/page-header';
+import { PageError, PageLoading } from '@/Components/page-state';
 
 export default function MerchItemEditPage() {
   const { item, fetchItem, loading, error } = useItemView();
@@ -100,51 +100,36 @@ export default function MerchItemEditPage() {
   }, [item]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   if (loading) {
-    return <Typography variant="h5">Loading...</Typography>;
+    return <PageLoading />;
   }
 
   if (!item) {
-    return <Typography variant="h5">Item not found</Typography>;
+    return <PageError title="Item not found" />;
   }
 
   return (
     <>
-      <>
-        <br />
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Typography variant="h5" noWrap>
-            Edit Item
-          </Typography>
-        </Box>
-        <br />
+      <PageHeader title="Edit item" description={item.name} />
 
-        <MerchEditToolbar
-          itemId={itemId}
-          saveChanges={updateItem}
-          hasUnsavedChanges={false}
-          savingChanges={savingItem}
-        />
+      <MerchEditToolbar
+        itemId={itemId}
+        saveChanges={updateItem}
+        hasUnsavedChanges={false}
+        savingChanges={savingItem}
+      />
 
-        <ItemEditable
-          validationErrors={validationErrors}
-          item={modifiedItem}
-          setItem={setModifiedItem}
-          imagesLoading={imagesLoading}
-          itemId={itemId}
-          validateEvent={validateEvent}
-        />
-      </>
+      <ItemEditable
+        validationErrors={validationErrors}
+        item={modifiedItem}
+        setItem={setModifiedItem}
+        imagesLoading={imagesLoading}
+        itemId={itemId}
+        validateEvent={validateEvent}
+      />
     </>
   );
 }

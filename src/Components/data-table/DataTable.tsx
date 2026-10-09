@@ -67,6 +67,8 @@ interface DataTableProps<R> {
   pageSize?: number;
   /** Columns to hide initially, keyed by field. Users can toggle them from the Columns menu */
   initialColumnVisibility?: Record<string, boolean>;
+  /** Initial sort, e.g. `[{ id: 'orderDate', desc: true }]` */
+  initialSorting?: SortingState;
   onRowClick?: (row: R) => void;
   /** Extra controls rendered at the right of the toolbar */
   toolbar?: ReactNode;
@@ -115,12 +117,13 @@ export function DataTable<R>({
   exportFileName = 'export',
   pageSize = 10,
   initialColumnVisibility,
+  initialSorting,
   onRowClick,
   toolbar,
   emptyMessage = 'No results found.',
   className,
 }: DataTableProps<R>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(initialSorting ?? []);
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialColumnVisibility ?? {},

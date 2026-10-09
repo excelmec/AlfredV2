@@ -1,242 +1,160 @@
-import {
-  Grid,
-  Box,
-  Typography,
-  Paper,
-  Divider,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-} from '@mui/material';
 import { IItem } from 'Hooks/Merchandise/itemTypes';
-
-import './ItemViewDetails.css';
-// import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-
-import { ReactElement } from 'react';
+import { DetailCard } from '@/Components/detail-card';
+import { Badge } from '@/Components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/Components/ui/table';
 
 export default function ItemDetails({ item }: { item: IItem }) {
-  function StockRow({ color }: { color: string }) {
-    const tableCells: ReactElement[] = [];
-
-    item.sizeOptions.forEach((size) => {
-      const stock = item.stockCount.find(
-        (stock) => stock.colorOption === color && stock.sizeOption === size,
-      );
-
-      if (stock) {
-        tableCells.push(<TableCell align="center">{stock.count}</TableCell>);
-      } else {
-        tableCells.push(<TableCell align="center">NA</TableCell>);
-      }
-    });
-
-    return (
-      <TableRow>
-        <TableCell
-          align="center"
-          sx={{
-            fontWeight: 'bold',
-            borderRight: '1px solid #0000001f',
-          }}
-        >
-          {color}
-        </TableCell>
-        {tableCells}
-      </TableRow>
-    );
-  }
-
-  function MediaColorRow({ color }: { color: string }) {
-    const mediaObjects = item.mediaObjects?.filter(
-      (mediaObject) => mediaObject.colorOption === color,
-    );
-    if (!mediaObjects || mediaObjects.length === 0) {
-      return <Typography>No Images Available for this color</Typography>;
-    }
-    return (
-      <div className="item-view-media-row">
-        {mediaObjects.map((mediaObject, index) => {
-          return (
-            <div className="item-view-media-container">
-              <img
-                src={mediaObject.url}
-                referrerPolicy="no-referrer"
-                alt={`Item ${mediaObject.colorOption} ${index + 1}`}
-                className="item-view-media-image"
-              />
-              <span className="item-view-media-index">
-                <span>{index + 1}</span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
   return (
-    <Box className="item-data-container" component={Paper} elevation={1} borderRadius={0}>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="item-data-grid"
-      >
-        <Grid item xs={12}>
-          <Typography variant="h5">Item Basic Details</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{item.id}</Typography>
-        </Grid>
+    <div className="grid gap-6">
+      <DetailCard
+        title="Basic details"
+        items={[
+          { label: 'ID', value: item.id },
+          { label: 'Name', value: item.name },
+          { label: 'Description', value: item.description },
+          { label: 'Price', value: item.price },
+          {
+            label: 'Size options',
+            value: (
+              <div className="flex flex-wrap gap-1">
+                {item.sizeOptions.map((size) => (
+                  <Badge key={size} variant="secondary">
+                    {size}
+                  </Badge>
+                ))}
+              </div>
+            ),
+          },
+          {
+            label: 'Color options',
+            value: (
+              <div className="flex flex-wrap gap-1">
+                {item.colorOptions.map((color) => (
+                  <Badge key={color} variant="secondary">
+                    {color}
+                  </Badge>
+                ))}
+              </div>
+            ),
+          },
+          {
+            label: 'Can be pre-ordered',
+            value: item.canBePreordered ? (
+              <Badge className="bg-primary/10 text-primary" variant="secondary">
+                Yes
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-muted-foreground">
+                No
+              </Badge>
+            ),
+          },
+        ]}
+      />
 
-        <Grid item xs={6}>
-          <Typography>Name</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{item.name}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Description</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{item.description}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Price</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{item.price}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Size Options</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{item.sizeOptions.join(', ')}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Color Options</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{item.colorOptions.join(', ')}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Can Be Pre-ordered</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{item.canBePreordered ? 'YES' : 'NO'}</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Stock Details</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
+      <Card>
+        <CardHeader>
+          <CardTitle>Stock details</CardTitle>
+        </CardHeader>
+        <CardContent>
           {item.stockCount.length !== 0 ? (
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }}>
-                <TableHead>
+            <div className="overflow-x-auto rounded-lg border">
+              <Table>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableCell
-                      align="center"
-                      width={100}
-                      sx={{
-                        fontWeight: 'bold',
-                        borderRight: '1px solid #0000001f',
-                      }}
-                    >
-                      {}
-                    </TableCell>
+                    <TableHead className="w-28 border-r" />
                     {item.sizeOptions.map((size) => (
-                      <TableCell
-                        align="center"
-                        sx={{
-                          fontWeight: 'bold',
-                        }}
-                        width={100}
-                      >
+                      <TableHead key={size} className="text-center">
                         {size}
-                      </TableCell>
+                      </TableHead>
                     ))}
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {item.colorOptions.map((color) => (
-                    <StockRow color={color} />
+                    <TableRow key={color}>
+                      <TableCell className="border-r font-semibold">{color}</TableCell>
+                      {item.sizeOptions.map((size) => {
+                        const stock = item.stockCount.find(
+                          (s) => s.colorOption === color && s.sizeOption === size,
+                        );
+                        return (
+                          <TableCell
+                            key={size}
+                            className={
+                              stock
+                                ? 'text-center tabular-nums'
+                                : 'text-center text-muted-foreground'
+                            }
+                          >
+                            {stock ? stock.count : 'NA'}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
           ) : (
-            <Typography>No Stock Data Available</Typography>
+            <p className="text-sm text-muted-foreground">No stock data available</p>
           )}
-        </Grid>
+        </CardContent>
+      </Card>
 
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
+      {item?.colorOptions?.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No images available as no color options have been added
+        </p>
+      ) : (
+        item.colorOptions?.map((color) => <MediaColorCard key={color} item={item} color={color} />)
+      )}
+    </div>
+  );
+}
 
-        {item?.colorOptions?.length === 0
-          ? 'No Images Available as no color options have been added'
-          : item.colorOptions?.map((color) => {
-              return (
-                <>
-                  <Grid item xs={12}>
-                    <Typography variant="h5">Item {color} Images</Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <MediaColorRow color={color} />
-                  </Grid>
-                </>
-              );
-            })}
+function MediaColorCard({ item, color }: { item: IItem; color: string }) {
+  const mediaObjects = item.mediaObjects?.filter(
+    (mediaObject) => mediaObject.colorOption === color,
+  );
 
-        {/* <Grid item xs={6}>
-					<Slider
-						dots
-						arrows
-						centerMode={true}
-						centerPadding='60px'
-						infinite={false}
-						speed={500}
-						slidesToShow={item.mediaObjects.length > 2 ? 3 : 1}
-						slidesToScroll={1}
-						// nextArrow={
-						// 	<button type="button">
-						// 		<NavigateNextIcon />
-						// 	</button>
-						// }
-					>
-						{item.mediaObjects.map((mediaObject, index) => {
-							return (
-								<img
-									src={mediaObject.url}
-									referrerPolicy='no-referrer'
-									alt={`Item ${index + 1}`}
-									className='item-image'
-								/>
-							);
-						})}
-					</Slider>
-				</Grid> */}
-      </Grid>
-    </Box>
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{color} images</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {!mediaObjects || mediaObjects.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No images available for this color</p>
+        ) : (
+          <div className="flex flex-wrap gap-4">
+            {mediaObjects.map((mediaObject, index) => (
+              <div
+                key={mediaObject.id ?? index}
+                className="relative w-36 overflow-hidden rounded-lg border bg-muted"
+              >
+                <img
+                  src={mediaObject.url}
+                  referrerPolicy="no-referrer"
+                  alt={`Item ${mediaObject.colorOption} ${index + 1}`}
+                  className="w-full select-none"
+                />
+                <span className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-background/90 text-xs font-semibold shadow">
+                  {index + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

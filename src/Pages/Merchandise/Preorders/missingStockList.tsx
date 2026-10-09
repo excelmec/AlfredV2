@@ -1,7 +1,8 @@
-import { Typography } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
 import { useEffect } from 'react';
 import { useMissingStockList } from 'Hooks/Merchandise/useMissingStockList';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
 
 function getRowId(row: any) {
   return `${row.itemId}-${row.colorOption}-${row.sizeOption}`;
@@ -16,28 +17,19 @@ export default function MissingStockList() {
   }, [fetchMissingStockList]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Missing Stock
-      </Typography>
-      <br />
-
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
-        rows={missingStockList}
+      <PageHeader title="Missing stock" description="Quantities needed to fulfil all pre-orders." />
+      <DataTable
         columns={columns}
+        rows={missingStockList}
+        getRowId={getRowId}
         loading={loading}
-        sx={{ width: '90%' }}
-        autoPageSize
-        showCellVerticalBorder
-        showColumnVerticalBorder
-        rowHeight={60}
+        exportFileName="missing-stock"
+        searchPlaceholder="Search items..."
       />
     </>
   );

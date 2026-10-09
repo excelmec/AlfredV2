@@ -1,32 +1,45 @@
+import { useState } from 'react';
+import { FloppyDiskIcon, QuestionIcon } from '@phosphor-icons/react';
+import { ESelfPickupStatus, EShippingStatus, IOrder } from 'Hooks/Merchandise/orderTypes';
+import { DetailCard } from '@/Components/detail-card';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
-  Box,
-  Button,
-  Divider,
-  Grid,
-  Paper,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
+import { Spinner } from '@/Components/ui/spinner';
+import {
   Table,
   TableBody,
-  TableContainer,
+  TableCell,
   TableHead,
+  TableHeader,
   TableRow,
-  TextField,
-  Typography,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Select,
-  MenuItem,
-} from '@mui/material';
+} from '@/Components/ui/table';
 
-import { StyledTableCell } from 'Components/Commons/TableCell';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-
-import './OrderDataView.css';
-
-import { useState } from 'react';
-import { ESelfPickupStatus, EShippingStatus, IOrder } from 'Hooks/Merchandise/orderTypes';
+function StatusBadge({ value, bad }: { value: string; bad: boolean }) {
+  return bad ? (
+    <Badge variant="destructive">{value}</Badge>
+  ) : (
+    <Badge variant="secondary">{value}</Badge>
+  );
+}
 
 export default function OrderDataView({
   order,
@@ -85,378 +98,297 @@ export default function OrderDataView({
   );
   const actualOrderPrice = order.totalAmountInRs - totalAdditionalCharge;
 
+  const canUpdateStatus = !updatingShippingStatus && order.orderStatus === 'order_confirmed';
+
   return (
-    <Box className="order-data-container" component={Paper} elevation={2} borderRadius={0}>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="order-data-grid"
-      >
-        <Grid item xs={12}>
-          <Typography variant="h5">Order Details</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Order ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{order.orderId}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Order Date Time</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{dateStr}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Order Address</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          {order.address?.split('\n').map((line, index) => (
-            <Typography key={index}>{line}</Typography>
-          ))}
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Razorpay Order ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{order.razOrderId}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Actual Order Price</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{`${actualOrderPrice} Rs`}</Typography>
-        </Grid>
+    <div className="grid gap-6">
+      <div className="grid gap-6 xl:grid-cols-2">
+        <DetailCard
+          title="Order details"
+          items={[
+            {
+              label: 'Order ID',
+              value: <span className="font-mono text-xs">{order.orderId}</span>,
+            },
+            { label: 'Order date time', value: dateStr },
+            {
+              label: 'Order address',
+              value: order.address?.split('\n').map((line, index) => <div key={index}>{line}</div>),
+            },
+            {
+              label: 'Razorpay order ID',
+              value: <span className="font-mono text-xs">{order.razOrderId}</span>,
+            },
+            { label: 'Actual order price', value: `${actualOrderPrice} Rs` },
+            { label: 'Total amount paid by user', value: `${order.totalAmountInRs} Rs` },
+            {
+              label: 'Additional charges',
+              value:
+                order.additionalCharges.length === 0 ? (
+                  'No additional charges'
+                ) : (
+                  <ul className="space-y-0.5">
+                    {order.additionalCharges.map((charge, index) => (
+                      <li key={index} className="flex justify-between gap-4">
+                        <span>{charge.chargeType}</span>
+                        <span className="tabular-nums">{`${charge.chargeAmountInRs} Rs`}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ),
+            },
+          ]}
+        />
 
-        <Grid item xs={6}>
-          <Typography>Additional Charges</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          {order.additionalCharges.length === 0 ? (
-            <Typography>No Additional Charges</Typography>
-          ) : (
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Charge Name</StyledTableCell>
-                    <StyledTableCell>Charge Amount</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {order.additionalCharges.map((charge, index) => (
-                    <TableRow key={index}>
-                      <StyledTableCell>{charge.chargeType}</StyledTableCell>
-                      <StyledTableCell>{`${charge.chargeAmountInRs} Rs`}</StyledTableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Total Amount paid by user</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{`${order.totalAmountInRs} Rs`}</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Order Status Info</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Delivery Tracking ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{order.trackingId ?? '<NO TRACKING ID WAS PROVIDED>'}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Order Status</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography color={order.orderStatus !== 'order_confirmed' ? 'error' : ''}>
-            {order.orderStatus}
-          </Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Payment Status</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography color={order.paymentStatus !== 'payment_received' ? 'error' : ''}>
-            {order.paymentStatus}
-          </Typography>
-        </Grid>
-        {order.isSelfPickup ? (
-          <>
-            <Grid item xs={6}>
-              <Typography>Pickup Status</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography>{order.selfpickupStatus}</Typography>
-            </Grid>
-
-            <Grid item xs={3}>
-              <Button
-                disabled={updatingShippingStatus || order.orderStatus !== 'order_confirmed'}
-                size="small"
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setSelfPickupDialogOpen(true);
-                }}
-              >
-                Update Pickup Status
-              </Button>
-            </Grid>
-            <Grid item xs={9}>
-              <Button
-                size="small"
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setSelfPickupStatusHelpDialogOpen(!selfPickupStatusHelpDialogOpen);
-                }}
-              >
-                Open Help
-              </Button>
-            </Grid>
-          </>
-        ) : (
-          <>
-            <Grid item xs={6}>
-              <Typography>Shipping Status</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography
-                color={
-                  order.shippingStatus === 'not_shipped' || order.shippingStatus === 'processing'
-                    ? 'error'
-                    : ''
+        <DetailCard
+          title="Order status"
+          items={[
+            {
+              label: 'Delivery tracking ID',
+              value: order.trackingId ?? (
+                <span className="text-muted-foreground">No tracking ID was provided</span>
+              ),
+            },
+            {
+              label: 'Order status',
+              value: (
+                <StatusBadge
+                  value={order.orderStatus}
+                  bad={order.orderStatus !== 'order_confirmed'}
+                />
+              ),
+            },
+            {
+              label: 'Payment status',
+              value: (
+                <StatusBadge
+                  value={order.paymentStatus}
+                  bad={order.paymentStatus !== 'payment_received'}
+                />
+              ),
+            },
+            order.isSelfPickup
+              ? {
+                  label: 'Pickup status',
+                  value: <StatusBadge value={order.selfpickupStatus} bad={false} />,
                 }
-              >
-                {order.shippingStatus}
-              </Typography>
-            </Grid>
+              : {
+                  label: 'Shipping status',
+                  value: (
+                    <StatusBadge
+                      value={order.shippingStatus}
+                      bad={
+                        order.shippingStatus === 'not_shipped' ||
+                        order.shippingStatus === 'processing'
+                      }
+                    />
+                  ),
+                },
+            {
+              label: 'Actions',
+              value: (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    disabled={!canUpdateStatus}
+                    onClick={() =>
+                      order.isSelfPickup
+                        ? setSelfPickupDialogOpen(true)
+                        : setShippingDialogOpen(true)
+                    }
+                  >
+                    {order.isSelfPickup ? 'Update pickup status' : 'Update shipping status'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      order.isSelfPickup
+                        ? setSelfPickupStatusHelpDialogOpen(true)
+                        : setShippingStatusHelpDialogOpen(true)
+                    }
+                  >
+                    <QuestionIcon /> Help
+                  </Button>
+                </div>
+              ),
+            },
+          ]}
+        />
+      </div>
 
-            <Grid item xs={3}>
-              <Button
-                disabled={updatingShippingStatus || order.orderStatus !== 'order_confirmed'}
-                size="small"
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setShippingDialogOpen(true);
-                }}
-              >
-                Update Shipping Status
-              </Button>
-            </Grid>
-            <Grid item xs={9}>
-              <Button
-                size="small"
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setShippingStatusHelpDialogOpen(!shippingStatusHelpDialogOpen);
-                }}
-              >
-                Open Help
-              </Button>
-            </Grid>
-          </>
-        )}
+      <DetailCard
+        title="User details"
+        columns={3}
+        items={[
+          { label: 'User name', value: order.user?.name },
+          { label: 'User email', value: order.user?.email },
+          { label: 'User phone', value: order.user?.phoneNumber },
+        ]}
+      />
 
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">User Details</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>User Name</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{order.user?.name}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>User Email</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{order.user?.email}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>User Phone</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{order.user?.phoneNumber}</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-
-        <Grid item xs={12}>
-          <Typography variant="h5">Order Items</Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <TableContainer component={Paper}>
+      <Card>
+        <CardHeader>
+          <CardTitle>Order items</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-lg border">
             <Table>
-              <TableHead>
+              <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <StyledTableCell>Item Name</StyledTableCell>
-                  <StyledTableCell>Size</StyledTableCell>
-                  <StyledTableCell>Color</StyledTableCell>
-                  <StyledTableCell>Quantity</StyledTableCell>
-                  <StyledTableCell>Price of each item</StyledTableCell>
-                  <StyledTableCell>Total item price</StyledTableCell>
+                  <TableHead>Item name</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Color</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead className="text-right">Price each</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {order.orderItems.map((item, index) => (
                   <TableRow key={index}>
-                    <StyledTableCell>{item.item.name}</StyledTableCell>
-                    <StyledTableCell>{item.sizeOption}</StyledTableCell>
-                    <StyledTableCell>{item.colorOption}</StyledTableCell>
-                    <StyledTableCell>{item.quantity}</StyledTableCell>
-                    <StyledTableCell>{`${item.price} Rs`}</StyledTableCell>
-                    <StyledTableCell>{`${item.price * item.quantity} Rs`}</StyledTableCell>
+                    <TableCell className="font-medium">{item.item.name}</TableCell>
+                    <TableCell>{item.sizeOption}</TableCell>
+                    <TableCell>{item.colorOption}</TableCell>
+                    <TableCell className="text-right tabular-nums">{item.quantity}</TableCell>
+                    <TableCell className="text-right tabular-nums">{`${item.price} Rs`}</TableCell>
+                    <TableCell className="text-right tabular-nums">{`${item.price * item.quantity} Rs`}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </TableContainer>
-        </Grid>
-      </Grid>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Dialog open={shippingDialogOpen} onClose={handleShippingDialogClose} fullWidth maxWidth="sm">
-        <DialogTitle>Update Shipping Status</DialogTitle>
-        <DialogContent>
-          <Select
-            value={newShippingStatus}
-            onChange={(e) => {
-              setNewShippingStatus(e.target.value as EShippingStatus);
-            }}
-            fullWidth
-          >
-            {Object.values(EShippingStatus).map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </Select>
-          <br />
-          <br />
-          <TextField
-            id="trackingId"
-            label="Tracking ID"
-            type="text"
-            fullWidth
-            disabled={updatingShippingStatus}
-            value={newTrackingId}
-            onChange={(e) => {
-              setNewTrackingId(e.target.value);
-            }}
-            helperText="Enter the tracking ID of the shipment. This will be shown to the user."
-          />
-          <br />
-          <br />
-          {newShippingStatus === 'shipping' && order.shippingStatus !== 'shipping' && (
-            <Typography color="error" variant="body2" align="center">
-              Warning: The user will get a notification stating that the order has been shipped.
-            </Typography>
-          )}
+      <Dialog
+        open={shippingDialogOpen}
+        onOpenChange={(open) => !open && handleShippingDialogClose()}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update shipping status</DialogTitle>
+            <DialogDescription>Set the shipping status and tracking ID.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-1.5">
+              <Label>Shipping status</Label>
+              <Select
+                value={newShippingStatus}
+                onValueChange={(v) => setNewShippingStatus(v as EShippingStatus)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(EShippingStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="trackingId">Tracking ID</Label>
+              <Input
+                id="trackingId"
+                disabled={updatingShippingStatus}
+                value={newTrackingId ?? ''}
+                onChange={(e) => setNewTrackingId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter the tracking ID of the shipment. This will be shown to the user.
+              </p>
+            </div>
+            {newShippingStatus === 'shipping' && order.shippingStatus !== 'shipping' && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Warning: The user will get a notification stating that the order has been shipped.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleShippingDialogClose}
+              disabled={updatingShippingStatus}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() =>
+                updateOrderShippingStatus(order.orderId, newShippingStatus, newTrackingId)
+              }
+              disabled={updatingShippingStatus}
+            >
+              {updatingShippingStatus ? <Spinner /> : <FloppyDiskIcon />}
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button
-            autoFocus
-            onClick={() => {
-              updateOrderShippingStatus(order.orderId, newShippingStatus, newTrackingId);
-            }}
-            disabled={updatingShippingStatus}
-            startIcon={<SaveIcon />}
-            variant="contained"
-          >
-            Save
-          </Button>
-          <Button
-            onClick={handleShippingDialogClose}
-            autoFocus
-            disabled={updatingShippingStatus}
-            startIcon={<CancelIcon />}
-            variant="contained"
-          >
-            Cancel
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <Dialog
         open={selfPickupDialogOpen}
-        onClose={handleSelfPickupDialogClose}
-        fullWidth
-        maxWidth="sm"
+        onOpenChange={(open) => !open && handleSelfPickupDialogClose()}
       >
-        <DialogTitle>Update Pickup Status</DialogTitle>
-        <DialogContent>
-          <Select
-            value={newSelfPickupStatus}
-            onChange={(e) => {
-              setNewSelfPickupStatus(e.target.value as ESelfPickupStatus);
-            }}
-            fullWidth
-          >
-            {Object.values(ESelfPickupStatus).map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </Select>
-          <br />
-          <br />
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update pickup status</DialogTitle>
+            <DialogDescription>Set the self pickup status of this order.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-1.5">
+            <Label>Pickup status</Label>
+            <Select
+              value={newSelfPickupStatus}
+              onValueChange={(v) => setNewSelfPickupStatus(v as ESelfPickupStatus)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(ESelfPickupStatus).map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleSelfPickupDialogClose}
+              disabled={updatingSelfPickupStatus}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => updateOrderSelfPickupStatus(order.orderId, newSelfPickupStatus)}
+              disabled={updatingSelfPickupStatus}
+            >
+              {updatingSelfPickupStatus ? <Spinner /> : <FloppyDiskIcon />}
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button
-            autoFocus
-            onClick={() => {
-              updateOrderSelfPickupStatus(order.orderId, newSelfPickupStatus);
-            }}
-            disabled={updatingSelfPickupStatus}
-            startIcon={<SaveIcon />}
-            variant="contained"
-          >
-            Save
-          </Button>
-          <Button
-            onClick={handleSelfPickupDialogClose}
-            autoFocus
-            disabled={updatingSelfPickupStatus}
-            startIcon={<CancelIcon />}
-            variant="contained"
-          >
-            Cancel
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <Dialog
         open={selfPickupStatusHelpDialogOpen}
-        onClose={() => setSelfPickupStatusHelpDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
+        onOpenChange={setSelfPickupStatusHelpDialogOpen}
       >
-        <DialogTitle>Help</DialogTitle>
-        <DialogContent>
-          <Typography>
-            <strong>PIckup Status</strong> - This is the status of self pickup. It can be one of the
-            following:
-          </Typography>
-          <ul className="order-data-help-dialog">
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Help</DialogTitle>
+            <DialogDescription>
+              <strong>Pickup status</strong> is the status of self pickup. It can be one of the
+              following:
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="list-disc space-y-2 pl-5 text-sm">
             <li>
               <strong>not_ready_for_pickup</strong> - There isn't either enough stock or the order
               is simply not ready for pickup
@@ -471,35 +403,25 @@ export default function OrderDataView({
               required.
             </li>
           </ul>
-          <Typography>
-            <strong>Status Flow:</strong> not_ready_for_pickup -&gt; ready_for_pickup -&gt;
-            picked_up
-          </Typography>
+          <p className="text-sm">
+            <strong>Status flow:</strong> not_ready_for_pickup → ready_for_pickup → picked_up
+          </p>
+          <DialogFooter>
+            <Button onClick={() => setSelfPickupStatusHelpDialogOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button
-            autoFocus
-            onClick={() => setSelfPickupStatusHelpDialogOpen(false)}
-            variant="contained"
-          >
-            Close
-          </Button>
-        </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={shippingStatusHelpDialogOpen}
-        onClose={() => setShippingStatusHelpDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Help</DialogTitle>
-        <DialogContent>
-          <Typography>
-            <strong>Shipping Status</strong> - This is the status of the shipping. It can be one of
-            the following:
-          </Typography>
-          <ul className="order-data-help-dialog">
+      <Dialog open={shippingStatusHelpDialogOpen} onOpenChange={setShippingStatusHelpDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Help</DialogTitle>
+            <DialogDescription>
+              <strong>Shipping status</strong> is the status of the shipping. It can be one of the
+              following:
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="list-disc space-y-2 pl-5 text-sm">
             <li>
               <strong>not_shipped</strong> - The order has not been shipped. This is the default
               status.
@@ -519,25 +441,18 @@ export default function OrderDataView({
               required.
             </li>
           </ul>
-          <Typography>
+          <p className="text-sm">
             <strong>Tracking ID</strong> - This is the tracking ID of the shipment. This will be
             shown to the user.
-          </Typography>
-          <Typography>
-            <strong>Status Flow:</strong> not_shipped -&gt; processing -&gt; shipping -&gt;
-            delivered
-          </Typography>
+          </p>
+          <p className="text-sm">
+            <strong>Status flow:</strong> not_shipped → processing → shipping → delivered
+          </p>
+          <DialogFooter>
+            <Button onClick={() => setShippingStatusHelpDialogOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button
-            autoFocus
-            onClick={() => setShippingStatusHelpDialogOpen(false)}
-            variant="contained"
-          >
-            Close
-          </Button>
-        </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 }

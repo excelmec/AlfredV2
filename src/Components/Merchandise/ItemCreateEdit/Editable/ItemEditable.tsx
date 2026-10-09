@@ -1,83 +1,42 @@
-import {
-  Grid,
-  Box,
-  Typography,
-  Paper,
-  Divider,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  // Input,
-  Select,
-  OutlinedInput,
-  Chip,
-  MenuItem,
-  IconButton,
-  TextField,
-  FormHelperText,
-  Checkbox,
-} from '@mui/material';
-
+import { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { CheckIcon, PlusIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
+import { ValidationError } from 'yup';
+import { debounce } from 'lodash';
 
-import CheckIcon from '@mui/icons-material/Check';
-import ClearIcon from '@mui/icons-material/Clear';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-
-import './ItemEditable.css';
-
-import { ReactElement, useEffect, useState } from 'react';
 import {
   IItemEditWithFile,
   IMediaObjectEditWithFile,
   IStockCountEdit,
 } from 'Hooks/Merchandise/create-update/itemEditTypes';
-import { EMediaObjectType, sizeOptions } from 'Hooks/Merchandise/itemTypes';
-import { ValidationError } from 'yup';
-import { debounce } from 'lodash';
+import { EMediaObjectType, ESize, sizeOptions } from 'Hooks/Merchandise/itemTypes';
+import { FormField, FormSection, ToggleRow } from '@/Components/form-layout';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Input } from '@/Components/ui/input';
+import { Spinner } from '@/Components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/Components/ui/table';
+import { Textarea } from '@/Components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/Components/ui/toggle-group';
+import { cn } from '@/lib/utils';
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
-/**DRAG START */
-
-const grid = 8;
-
-const getItemStyle = (isDragging: any, draggableStyle: any) => ({
-  width: '150px',
-  aspectRation: 'initial',
-  userSelect: 'none',
-  margin: `0 ${grid * 2}px 0 0`,
-  background: isDragging ? 'lightgreen' : 'none',
-  cursor: 'pointer',
-  position: 'relative',
-  ...draggableStyle,
-});
-
-const getListStyle = (isDraggingOver: any) => ({
-  background: isDraggingOver ? 'lightblue' : 'lightgrey',
-  display: 'flex',
-  padding: grid * 2,
-  paddingRight: 0,
-  overflow: 'auto',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  width: '80%',
-});
-
-/** DRAG END */
+interface ItemEditableProps {
+  itemId?: number;
+  item: IItemEditWithFile;
+  setItem: React.Dispatch<React.SetStateAction<IItemEditWithFile>>;
+  imagesLoading?: boolean;
+  validateEvent: () => boolean;
+  validationErrors: ValidationError[];
+}
 
 export default function ItemEditable({
   itemId,
@@ -86,410 +45,135 @@ export default function ItemEditable({
   imagesLoading,
   validateEvent,
   validationErrors,
-}: {
-  itemId?: number;
-  item: IItemEditWithFile;
-  setItem: React.Dispatch<React.SetStateAction<IItemEditWithFile>>;
-  imagesLoading?: boolean;
-  validateEvent: () => boolean;
-  validationErrors: ValidationError[];
-}) {
+}: ItemEditableProps) {
   const [newColorOption, setNewColorOption] = useState<string>('');
 
-  function StockRow({ color }: { color: string }) {
+  const errorOf = (field: string) =>
+    validationErrors.find((error) => error.path === field)?.message;
+
+  /** Called as a function (not a component) so inputs keep focus while typing */
+  function stockRow(color: string) {
     const stockErrors = validationErrors.filter((error) => {
       return error.path?.startsWith('stockCount') && error.path.endsWith('count');
     });
 
-    const tableCells: ReactElement[] = [];
-
-    item.sizeOptions.forEach((size) => {
-      const stock = item.stockCount.find(
-        (stock) => stock.colorOption === color && stock.sizeOption === size,
-      );
-
-      if (!stock) {
-        item.stockCount.push({
-          colorOption: color,
-          sizeOption: size,
-          count: 0,
-        });
-      }
-
-      /**
-       * Path is in format stockCount[0].count
-       */
-
-      const extractedValidationError = stockErrors.find((error) => {
-        const pathString = error.path;
-        if (!pathString) {
-          return false;
-        }
-        const match = pathString.match(/\[(\d+)\]/);
-
-        const index = match && match[0] ? match[1] : undefined;
-
-        if (index === undefined || index === null) {
-          return false;
-        }
-
-        const indexNumber = parseInt(index);
-        if (isNaN(indexNumber)) {
-          return false;
-        }
-
-        return (
-          item.stockCount[indexNumber]?.colorOption === color &&
-          item.stockCount[indexNumber]?.sizeOption === size
-        );
-      });
-
-      const cellStockValue =
-        item.stockCount.find((stock) => stock.colorOption === color && stock.sizeOption === size)
-          ?.count ?? 0;
-
-      tableCells.push(
-        <TableCell align="center">
-          <TextField
-            name={`stockCount[${item.stockCount.findIndex(
-              (stock) => stock.colorOption === color && stock.sizeOption === size,
-            )}].count`}
-            variant="outlined"
-            fullWidth
-            error={extractedValidationError !== undefined}
-            helperText={extractedValidationError?.message ?? ''}
-            value={Number.isNaN(cellStockValue) ? '' : cellStockValue}
-            onChange={(e) => {
-              const {
-                target: { value },
-              } = e;
-
-              setItem({
-                ...item,
-                stockCount: item.stockCount.map((stock) => {
-                  if (stock.colorOption === color && stock.sizeOption === size) {
-                    return {
-                      ...stock,
-                      count: parseInt(value),
-                    };
-                  } else {
-                    return stock;
-                  }
-                }),
-              });
-            }}
-            placeholder="Stock Count"
-            type="number"
-          />
-        </TableCell>,
-      );
-    });
-
     return (
-      <TableRow>
-        <TableCell
-          align="center"
-          sx={{
-            fontWeight: 'bold',
-            borderRight: '1px solid #0000001f',
-          }}
-        >
-          {color}
-        </TableCell>
-        {tableCells}
+      <TableRow key={color}>
+        <TableCell className="border-r font-semibold">{color}</TableCell>
+        {item.sizeOptions.map((size) => {
+          const stock = item.stockCount.find(
+            (stock) => stock.colorOption === color && stock.sizeOption === size,
+          );
+
+          if (!stock) {
+            item.stockCount.push({
+              colorOption: color,
+              sizeOption: size,
+              count: 0,
+            });
+          }
+
+          /**
+           * Path is in format stockCount[0].count
+           */
+          const extractedValidationError = stockErrors.find((error) => {
+            const pathString = error.path;
+            if (!pathString) {
+              return false;
+            }
+            const match = pathString.match(/\[(\d+)\]/);
+
+            const index = match && match[0] ? match[1] : undefined;
+
+            if (index === undefined || index === null) {
+              return false;
+            }
+
+            const indexNumber = parseInt(index);
+            if (isNaN(indexNumber)) {
+              return false;
+            }
+
+            return (
+              item.stockCount[indexNumber]?.colorOption === color &&
+              item.stockCount[indexNumber]?.sizeOption === size
+            );
+          });
+
+          const cellStockValue =
+            item.stockCount.find(
+              (stock) => stock.colorOption === color && stock.sizeOption === size,
+            )?.count ?? 0;
+
+          return (
+            <TableCell key={size} className="min-w-28 align-top">
+              <Input
+                name={`stockCount[${item.stockCount.findIndex(
+                  (stock) => stock.colorOption === color && stock.sizeOption === size,
+                )}].count`}
+                aria-invalid={extractedValidationError !== undefined}
+                value={Number.isNaN(cellStockValue) ? '' : cellStockValue}
+                onChange={(e) => {
+                  const {
+                    target: { value },
+                  } = e;
+
+                  setItem({
+                    ...item,
+                    stockCount: item.stockCount.map((stock) => {
+                      if (stock.colorOption === color && stock.sizeOption === size) {
+                        return {
+                          ...stock,
+                          count: parseInt(value),
+                        };
+                      } else {
+                        return stock;
+                      }
+                    }),
+                  });
+                }}
+                placeholder="Stock"
+                type="number"
+                className="text-center"
+              />
+              {extractedValidationError && (
+                <p className="mt-1 text-xs font-medium text-destructive">
+                  {extractedValidationError.message}
+                </p>
+              )}
+            </TableCell>
+          );
+        })}
       </TableRow>
     );
   }
 
-  function SelectOptions({
-    itemField,
-    label,
-    options,
-  }: {
-    itemField: 'sizeOptions';
-    label: string;
-    options: IItemEditWithFile[typeof itemField];
-  }) {
-    const errMsg = validationErrors.find((error) => {
-      return error.path === 'sizeOptions';
-    })?.message;
-
-    return (
-      <>
-        <Select
-          fullWidth
-          multiple
-          value={item[itemField]}
-          onChange={(event) => {
-            const {
-              target: { value },
-            } = event;
-
-            if (!Array.isArray(value)) {
-              /**
-               * This happens on AutoFill
-               */
-              return;
-            }
-
-            const newSizes = value.filter((size) => {
-              return !item.sizeOptions.includes(size);
-            });
-
-            const newStocks: IStockCountEdit[] = newSizes
-              .map((size) => {
-                return item.colorOptions.map((color) => {
-                  return {
-                    colorOption: color,
-                    count: 0,
-                    sizeOption: size,
-                  };
-                });
-              })
-              .flat();
-
-            setItem({
-              ...item,
-              [itemField]: value,
-
-              stockCount: [
-                ...item.stockCount.filter((stock) => value.includes(stock.sizeOption)),
-                ...newStocks,
-              ],
-            });
-          }}
-          input={<OutlinedInput label={label} />}
-          renderValue={(selected) => (
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 0.5,
-              }}
-            >
-              {selected.map((value) => (
-                <Chip key={value} label={value} />
-              ))}
-            </Box>
-          )}
-          MenuProps={MenuProps}
-          error={errMsg !== undefined}
-          name={itemField}
-        >
-          {options.map((size) => (
-            <MenuItem key={size} value={size}>
-              {size}
-            </MenuItem>
-          ))}
-        </Select>
-        {errMsg && (
-          <FormHelperText
-            sx={{
-              color: '#d32e2e',
-            }}
-          >
-            {errMsg}
-          </FormHelperText>
-        )}
-      </>
-    );
-  }
-
-  /**DRAG START */
-
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
-
-    const color = result.destination.droppableId;
-    const sourceIndex = result.source.index;
-    const destinationIndex = result.destination.index;
-
-    const thisColorMediaObjects: IMediaObjectEditWithFile[] = [];
-    const otherColorMediaObjects: IMediaObjectEditWithFile[] = [];
-
-    item.mediaObjects.forEach((mediaObject) => {
-      if (mediaObject.colorOption === color) {
-        thisColorMediaObjects.push(mediaObject);
-      } else {
-        otherColorMediaObjects.push(mediaObject);
-      }
+  function handleSizesChange(value: ESize[]) {
+    const newSizes = value.filter((size) => {
+      return !item.sizeOptions.includes(size);
     });
 
-    const [deleted] = thisColorMediaObjects.splice(sourceIndex, 1);
-    thisColorMediaObjects.splice(destinationIndex, 0, deleted);
-
-    const viewOrderUpdatedMediaObjects = thisColorMediaObjects.map((mediaObject, index) => ({
-      ...mediaObject,
-      viewOrdering: index,
-    }));
-
-    const newMediaObjects = [...viewOrderUpdatedMediaObjects, ...otherColorMediaObjects];
+    const newStocks: IStockCountEdit[] = newSizes
+      .map((size) => {
+        return item.colorOptions.map((color) => {
+          return {
+            colorOption: color,
+            count: 0,
+            sizeOption: size,
+          };
+        });
+      })
+      .flat();
 
     setItem({
       ...item,
-      mediaObjects: newMediaObjects,
+      sizeOptions: value,
+
+      stockCount: [
+        ...item.stockCount.filter((stock) => value.includes(stock.sizeOption)),
+        ...newStocks,
+      ],
     });
-  };
-
-  function DraggableColorImages({ color }: { color: string }) {
-    const [loadingNewImage, setLoadingNewImage] = useState<boolean>(false);
-
-    if (imagesLoading) {
-      return <Typography>Loading Images...</Typography>;
-    }
-
-    const colorMediaItems = item.mediaObjects
-      .filter((mediaObject) => mediaObject.colorOption === color)
-      .sort((a, b) => a.viewOrdering - b.viewOrdering);
-
-    const errMsg = validationErrors.find((error) => {
-      return error.path === 'mediaObjects';
-    })?.message;
-
-    return (
-      <>
-        <div className="item-image-edit-row">
-          {colorMediaItems.length === 0 ? (
-            'No Images added'
-          ) : (
-            <>
-              <DragDropContext
-                onDragEnd={onDragEnd}
-                autoScrollerOptions={{
-                  disabled: false,
-                }}
-              >
-                <Droppable droppableId={color} direction="horizontal">
-                  {(provided, snapshot) => (
-                    <div
-                      className="item-edit-droppable-div"
-                      ref={provided.innerRef}
-                      style={getListStyle(snapshot.isDraggingOver)}
-                      {...provided.droppableProps}
-                    >
-                      {colorMediaItems.map((mediaObject, index) => (
-                        <Draggable
-                          key={mediaObject.fileName}
-                          draggableId={mediaObject.fileName}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={getItemStyle(
-                                snapshot.isDragging,
-                                provided.draggableProps.style,
-                              )}
-                            >
-                              <img
-                                alt={`${itemId}-${color}-${index}`}
-                                src={mediaObject.url}
-                                className="item-edit-draggable-img"
-                              />
-                              <div
-                                className="item-edit-draggable-delete"
-                                onClick={() => {
-                                  setItem({
-                                    ...item,
-                                    mediaObjects: item.mediaObjects.filter(
-                                      (eachMediaObject) =>
-                                        eachMediaObject.fileName !== mediaObject.fileName,
-                                    ),
-                                  });
-                                }}
-                              >
-                                <DeleteForeverIcon />
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            </>
-          )}
-          <label htmlFor={`item-image-add-${itemId}-${color}`}>
-            <div className={`item-edit-image-add ${loadingNewImage ? 'disabled' : ''}`}>
-              <AddIcon />
-              <span className="item-edit-image-add-text">
-                {loadingNewImage ? 'Loading...' : 'Add new image'}
-              </span>
-            </div>
-          </label>
-          <input
-            disabled={loadingNewImage}
-            accept="image/*"
-            type="file"
-            style={{ display: 'none' }}
-            id={`item-image-add-${itemId}-${color}`}
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setLoadingNewImage(true);
-
-                /**
-                 * The filename coming from user system might cuase clashes,
-                 * hence we generate a random name
-                 */
-                const min = 1,
-                  max = 10000;
-                const randomFileName = (Math.random() * (max - min) + min).toString();
-                const newImage = new File([e.target.files[0]], randomFileName, {
-                  type: e.target.files[0].type,
-                });
-
-                const maxViewOrdering = item.mediaObjects
-                  .filter((mediaObject) => {
-                    return mediaObject.colorOption === color;
-                  })
-                  .map((mediaObject) => {
-                    return mediaObject.viewOrdering;
-                  })
-                  .reduce((a, b) => Math.max(a, b), 0);
-
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                  const newMediaObject: IMediaObjectEditWithFile = {
-                    file: newImage,
-                    type: EMediaObjectType.image,
-                    colorOption: color,
-                    url: reader.result as string,
-                    fileName: newImage.name,
-                    viewOrdering: maxViewOrdering + 1,
-                  };
-                  setItem({
-                    ...item,
-                    mediaObjects: [...item.mediaObjects, newMediaObject],
-                  });
-
-                  setLoadingNewImage(false);
-                  e.target.value = '';
-                };
-                reader.onerror = (e) => {
-                  console.error(e);
-                };
-                reader.readAsDataURL(newImage);
-              }
-            }}
-          />
-        </div>
-        {errMsg && (
-          <FormHelperText
-            sx={{
-              color: '#d32e2e',
-            }}
-          >
-            {errMsg}
-          </FormHelperText>
-        )}
-      </>
-    );
   }
 
   function handleNewColorAddition() {
@@ -512,13 +196,8 @@ export default function ItemEditable({
       stockCount: [...item.stockCount, ...newStocks],
     });
 
-    console.log('ItemEditable: new color added', {
-      colors: [...item.colorOptions, newColorOptionTrimmed],
-    });
     setNewColorOption('');
   }
-
-  /**DRAG END */
 
   useEffect(() => {
     debounce(validateEvent, 300)();
@@ -527,282 +206,397 @@ export default function ItemEditable({
   }, [item]);
 
   return (
-    <Box className="item-editable-data-container" component={Paper} elevation={1} borderRadius={0}>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="item-editable-data-grid"
+    <div className="grid min-w-0 gap-6">
+      <FormSection
+        title="Basic details"
+        description={itemId ? `Item ID: ${itemId}` : 'Describe the item and how it is sold.'}
       >
-        <Grid item xs={12}>
-          <Typography variant="h5">Item Basic Details</Typography>
-        </Grid>
-        {!itemId && (
-          <>
-            <Grid item xs={6}>
-              <Typography>ID</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography>{itemId}</Typography>
-            </Grid>
-          </>
-        )}
-
-        <Grid item xs={6}>
-          <Typography>Name</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
+        <FormField label="Name" htmlFor="item-name" error={errorOf('name')}>
+          <Input
+            id="item-name"
             name="name"
-            variant="outlined"
-            fullWidth
             value={item.name}
             onChange={(e) => setItem({ ...item, name: e.target.value })}
             placeholder="Name"
-            error={validationErrors.some((error) => {
-              return error.path === 'name';
-            })}
-            helperText={
-              validationErrors.find((error) => {
-                return error.path === 'name';
-              })?.message ?? ''
-            }
+            aria-invalid={!!errorOf('name')}
           />
-        </Grid>
+        </FormField>
 
-        <Grid item xs={6}>
-          <Typography>Description</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
+        <FormField label="Price" htmlFor="item-price" error={errorOf('price')}>
+          <Input
+            id="item-price"
+            name="price"
+            type="number"
+            value={Number.isNaN(item.price) ? '' : item.price}
+            onChange={(e) => setItem({ ...item, price: parseInt(e.target.value) })}
+            placeholder="Price"
+            aria-invalid={!!errorOf('price')}
+          />
+        </FormField>
+
+        <FormField
+          label="Description"
+          htmlFor="item-description"
+          error={errorOf('description')}
+          wide
+        >
+          <Textarea
+            id="item-description"
             name="description"
-            variant="outlined"
-            fullWidth
+            rows={4}
             value={item.description}
             onChange={(e) => setItem({ ...item, description: e.target.value })}
             placeholder="Description"
-            multiline
-            error={validationErrors.some((error) => {
-              return error.path === 'description';
-            })}
-            helperText={
-              validationErrors.find((error) => {
-                return error.path === 'description';
-              })?.message ?? ''
-            }
+            aria-invalid={!!errorOf('description')}
           />
-        </Grid>
+        </FormField>
 
-        <Grid item xs={6}>
-          <Typography>Price</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            name="price"
-            variant="outlined"
-            fullWidth
-            value={item.price}
-            onChange={(e) =>
-              setItem({
-                ...item,
-                price: parseInt(e.target.value),
-              })
-            }
-            placeholder="Price"
-            multiline
-            type="number"
-            error={validationErrors.some((error) => {
-              return error.path === 'price';
-            })}
-            helperText={
-              validationErrors.find((error) => {
-                return error.path === 'price';
-              })?.message ?? ''
-            }
-          />
-        </Grid>
+        <FormField label="Size options" error={errorOf('sizeOptions')} wide>
+          <ToggleGroup
+            type="multiple"
+            variant="outline"
+            className="flex-wrap justify-start"
+            value={item.sizeOptions}
+            onValueChange={(v) => handleSizesChange(v as ESize[])}
+          >
+            {sizeOptions.map((size) => (
+              <ToggleGroupItem key={size} value={size} aria-label={size}>
+                {size}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </FormField>
 
-        <Grid item xs={6}>
-          <Typography>Size Options</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <SelectOptions itemField="sizeOptions" label="Size Options" options={sizeOptions} />
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Color Options</Typography>
-        </Grid>
-        <Grid item xs={6} container rowGap={2}>
-          <Grid item xs={12}>
-            <Box>
-              {item?.colorOptions?.length === 0 ? (
-                <Typography color="error">No Color Options Created</Typography>
-              ) : (
-                item?.colorOptions?.map((color) => (
-                  <Box
-                    sx={{
-                      display: 'inline-block',
-                      m: 0.5,
-                    }}
+        <FormField label="Color options" error={errorOf('colorOptions')} wide>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {item?.colorOptions?.length === 0 ? (
+              <span className="text-sm text-destructive">No color options created</span>
+            ) : (
+              item?.colorOptions?.map((color) => (
+                <Badge key={color} variant="outline" className="gap-1 py-3 pr-1.5 pl-2.5 text-sm">
+                  {color}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${color}`}
+                    className="rounded-full p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() =>
+                      setItem({
+                        ...item,
+                        colorOptions: item.colorOptions.filter((itemColor) => itemColor !== color),
+                        stockCount: item.stockCount.filter((stock) => stock.colorOption !== color),
+                        mediaObjects: item.mediaObjects.filter(
+                          (mediaObject) => mediaObject.colorOption !== color,
+                        ),
+                      })
+                    }
                   >
-                    <Chip
-                      key={color}
-                      label={color}
-                      variant="outlined"
-                      onDelete={(e) => {
-                        setItem({
-                          ...item,
-                          colorOptions: item.colorOptions.filter(
-                            (itemColor) => itemColor !== color,
-                          ),
-
-                          stockCount: item.stockCount.filter(
-                            (stock) => stock.colorOption !== color,
-                          ),
-
-                          mediaObjects: item.mediaObjects.filter(
-                            (mediaObject) => mediaObject.colorOption !== color,
-                          ),
-                        });
-                      }}
-                    />
-                  </Box>
-                ))
-              )}
-            </Box>
-          </Grid>
-          {/* <Grid item xs={6}>
-						<Typography>Add Color Option</Typography>
-					</Grid> */}
-          <Grid item xs={7}>
-            <TextField
+                    <XIcon className="size-3" weight="bold" />
+                  </button>
+                </Badge>
+              ))
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Input
               name="colorOptions"
-              fullWidth
               value={newColorOption}
               onChange={(e) => setNewColorOption(e.target.value)}
-              placeholder="Add new Color Option"
-              onKeyUp={(e) => {
+              placeholder="Add new color option"
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
+                  e.preventDefault();
                   handleNewColorAddition();
                 }
               }}
-              error={validationErrors.some((error) => {
-                return error.path === 'colorOptions';
-              })}
-              helperText={
-                validationErrors.find((error) => {
-                  return error.path === 'colorOptions';
-                })?.message ?? ''
-              }
+              aria-invalid={!!errorOf('colorOptions')}
             />
-          </Grid>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label="Add color"
+              disabled={newColorOption.trim() === ''}
+              onClick={handleNewColorAddition}
+            >
+              <CheckIcon />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Clear"
+              disabled={newColorOption === ''}
+              onClick={() => setNewColorOption('')}
+            >
+              <XIcon />
+            </Button>
+          </div>
+        </FormField>
 
-          <Grid item xs={5}>
-            <Box>
-              <IconButton
-                sx={{
-                  display: newColorOption.trim() === '' ? 'none' : '',
-                }}
-                onClick={handleNewColorAddition}
-              >
-                <CheckIcon />
-              </IconButton>
-              <IconButton
-                onClick={() => setNewColorOption('')}
-                sx={{
-                  display: newColorOption === '' ? 'none' : '',
-                }}
-              >
-                <ClearIcon />
-              </IconButton>
-            </Box>
-          </Grid>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Can Be Pre-ordered</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>
+        <div className="md:col-span-2">
+          <ToggleRow
+            label="Can be pre-ordered"
+            description="Allow orders while the item is out of stock."
+          >
             <Checkbox
-              // checked=
               name="canBePreordered"
               checked={item.canBePreordered}
-              onChange={(e) => {
-                console.log(`Checked: ${e.target.checked}`);
-                setItem({ ...item, canBePreordered: e.target.checked });
-                console.log(`Checked after: ${item.canBePreordered}`);
-              }}
+              onCheckedChange={(checked) => setItem({ ...item, canBePreordered: checked === true })}
             />
-          </Typography>
-        </Grid>
+          </ToggleRow>
+        </div>
+      </FormSection>
 
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Stock Details</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
+      <Card>
+        <CardHeader>
+          <CardTitle>Stock details</CardTitle>
+        </CardHeader>
+        <CardContent>
           {item.stockCount?.length !== 0 ? (
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }}>
-                <TableHead>
+            <div className="overflow-x-auto rounded-lg border">
+              <Table>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableCell
-                      align="center"
-                      width={100}
-                      sx={{
-                        fontWeight: 'bold',
-                        borderRight: '1px solid #0000001f',
-                      }}
-                    >
-                      {}
-                    </TableCell>
+                    <TableHead className="w-28 border-r" />
                     {item.sizeOptions?.map((size) => (
-                      <TableCell
-                        align="center"
-                        sx={{
-                          fontWeight: 'bold',
-                        }}
-                        width={100}
-                      >
+                      <TableHead key={size} className="text-center">
                         {size}
-                      </TableCell>
+                      </TableHead>
                     ))}
                   </TableRow>
-                </TableHead>
-                <TableBody>{item.colorOptions?.map((color) => StockRow({ color }))}</TableBody>
+                </TableHeader>
+                <TableBody>{item.colorOptions?.map((color) => stockRow(color))}</TableBody>
               </Table>
-            </TableContainer>
+            </div>
           ) : (
-            <Typography>No Stock Data Available</Typography>
+            <p className="text-sm text-muted-foreground">
+              Add size and color options to enter stock.
+            </p>
           )}
-        </Grid>
+        </CardContent>
+      </Card>
 
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
+      {item.colorOptions?.length === 0 ? (
+        <p className="text-sm text-destructive">No color options created</p>
+      ) : (
+        item.colorOptions?.map((color) => (
+          <ColorImages
+            key={color}
+            color={color}
+            item={item}
+            setItem={setItem}
+            itemId={itemId}
+            imagesLoading={imagesLoading}
+            error={errorOf('mediaObjects')}
+          />
+        ))
+      )}
+    </div>
+  );
+}
 
-        {item.colorOptions?.length === 0 ? (
-          <Grid item xs={12}>
-            <Typography color="error">No Color Options Created</Typography>
-          </Grid>
+function ColorImages({
+  color,
+  item,
+  setItem,
+  itemId,
+  imagesLoading,
+  error,
+}: {
+  color: string;
+  item: IItemEditWithFile;
+  setItem: React.Dispatch<React.SetStateAction<IItemEditWithFile>>;
+  itemId?: number;
+  imagesLoading?: boolean;
+  error?: string;
+}) {
+  const [loadingNewImage, setLoadingNewImage] = useState<boolean>(false);
+
+  const colorMediaItems = item.mediaObjects
+    .filter((mediaObject) => mediaObject.colorOption === color)
+    .sort((a, b) => a.viewOrdering - b.viewOrdering);
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    const thisColorMediaObjects: IMediaObjectEditWithFile[] = [];
+    const otherColorMediaObjects: IMediaObjectEditWithFile[] = [];
+
+    item.mediaObjects.forEach((mediaObject) => {
+      if (mediaObject.colorOption === color) {
+        thisColorMediaObjects.push(mediaObject);
+      } else {
+        otherColorMediaObjects.push(mediaObject);
+      }
+    });
+
+    const [deleted] = thisColorMediaObjects.splice(sourceIndex, 1);
+    thisColorMediaObjects.splice(destinationIndex, 0, deleted);
+
+    const viewOrderUpdatedMediaObjects = thisColorMediaObjects.map((mediaObject, index) => ({
+      ...mediaObject,
+      viewOrdering: index,
+    }));
+
+    setItem({
+      ...item,
+      mediaObjects: [...viewOrderUpdatedMediaObjects, ...otherColorMediaObjects],
+    });
+  };
+
+  function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files[0]) {
+      setLoadingNewImage(true);
+
+      /**
+       * The filename coming from user system might cause clashes,
+       * hence we generate a random name
+       */
+      const min = 1,
+        max = 10000;
+      const randomFileName = (Math.random() * (max - min) + min).toString();
+      const newImage = new File([e.target.files[0]], randomFileName, {
+        type: e.target.files[0].type,
+      });
+
+      const maxViewOrdering = item.mediaObjects
+        .filter((mediaObject) => mediaObject.colorOption === color)
+        .map((mediaObject) => mediaObject.viewOrdering)
+        .reduce((a, b) => Math.max(a, b), 0);
+
+      const input = e.target;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newMediaObject: IMediaObjectEditWithFile = {
+          file: newImage,
+          type: EMediaObjectType.image,
+          colorOption: color,
+          url: reader.result as string,
+          fileName: newImage.name,
+          viewOrdering: maxViewOrdering + 1,
+        };
+        setItem({
+          ...item,
+          mediaObjects: [...item.mediaObjects, newMediaObject],
+        });
+
+        setLoadingNewImage(false);
+        input.value = '';
+      };
+      reader.onerror = (err) => {
+        console.error(err);
+      };
+      reader.readAsDataURL(newImage);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Images for {color}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-3">
+        {imagesLoading ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Spinner /> Loading images...
+          </p>
         ) : (
-          item.colorOptions?.map((color) => (
-            <>
-              <Grid item xs={12}>
-                <Typography variant="h5">Images for color: {color}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <DraggableColorImages color={color} />
-              </Grid>
-            </>
-          ))
+          <div className="flex flex-wrap items-center gap-4">
+            {colorMediaItems.length > 0 && (
+              <DragDropContext onDragEnd={onDragEnd} autoScrollerOptions={{ disabled: false }}>
+                <Droppable droppableId={color} direction="horizontal">
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={cn(
+                        'flex max-w-full items-center gap-3 overflow-auto rounded-lg border border-dashed p-3 transition-colors',
+                        snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'bg-muted/40',
+                      )}
+                    >
+                      {colorMediaItems.map((mediaObject, index) => (
+                        <Draggable
+                          key={mediaObject.fileName}
+                          draggableId={mediaObject.fileName}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={provided.draggableProps.style}
+                              className={cn(
+                                'group relative w-36 shrink-0 cursor-grab overflow-hidden rounded-lg border bg-card select-none',
+                                snapshot.isDragging && 'shadow-lg ring-2 ring-primary',
+                              )}
+                            >
+                              <img
+                                alt={`${itemId}-${color}-${index}`}
+                                src={mediaObject.url}
+                                className="w-full"
+                              />
+                              <button
+                                type="button"
+                                aria-label="Delete image"
+                                className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-md bg-background/90 text-destructive opacity-0 shadow transition-opacity group-hover:opacity-100 hover:bg-destructive hover:text-white focus-visible:opacity-100"
+                                onClick={() =>
+                                  setItem({
+                                    ...item,
+                                    mediaObjects: item.mediaObjects.filter(
+                                      (eachMediaObject) =>
+                                        eachMediaObject.fileName !== mediaObject.fileName,
+                                    ),
+                                  })
+                                }
+                              >
+                                <TrashIcon />
+                              </button>
+                              <span className="absolute bottom-1.5 left-1.5 flex size-6 items-center justify-center rounded-full bg-background/90 text-xs font-semibold shadow">
+                                {index + 1}
+                              </span>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
+
+            <label
+              htmlFor={`item-image-add-${itemId}-${color}`}
+              className={cn(
+                'flex size-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary',
+                loadingNewImage && 'pointer-events-none opacity-50',
+              )}
+            >
+              {loadingNewImage ? <Spinner /> : <PlusIcon className="size-5" />}
+              {loadingNewImage
+                ? 'Loading...'
+                : colorMediaItems.length === 0
+                  ? 'Add first image'
+                  : 'Add new image'}
+            </label>
+            <input
+              disabled={loadingNewImage}
+              accept="image/*"
+              type="file"
+              className="hidden"
+              id={`item-image-add-${itemId}-${color}`}
+              onChange={handleFileChosen}
+            />
+          </div>
         )}
-      </Grid>
-    </Box>
+        {error && <p className="text-xs font-medium text-destructive">{error}</p>}
+      </CardContent>
+    </Card>
   );
 }

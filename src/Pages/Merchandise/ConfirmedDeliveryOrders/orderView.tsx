@@ -1,8 +1,9 @@
-import { Box, Typography } from '@mui/material';
-import OrderDataView from 'Components/Merchandise/Order/OrderView/OrderDataView';
-import { useOrderEach } from 'Hooks/Merchandise/useOrderEach';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import OrderDataView from 'Components/Merchandise/Order/OrderView/OrderDataView';
+import { useOrderEach } from 'Hooks/Merchandise/useOrderEach';
+import { PageHeader } from '@/Components/page-header';
+import { PageError, PageLoading } from '@/Components/page-state';
 
 export default function OrderViewPage() {
   const { orderId } = useParams();
@@ -24,30 +25,16 @@ export default function OrderViewPage() {
   }, [orderId]);
 
   if (loading) {
-    return (
-      <Typography variant="h5" noWrap component="div">
-        Loading...
-      </Typography>
-    );
+    return <PageLoading />;
   }
 
   if (error) {
-    return (
-      <Typography variant="h5" noWrap component="div">
-        {error}
-      </Typography>
-    );
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Box>
-        <Typography variant="h5" noWrap component="div">
-          Order View
-        </Typography>
-      </Box>
-      <br />
+      <PageHeader title="Order" description="Order details, status and items." />
       <OrderDataView
         order={order!}
         updateOrderShippingStatus={updateOrderShippingStatus}
@@ -55,7 +42,6 @@ export default function OrderViewPage() {
         updateOrderSelfPickupStatus={updateOrderSelfPickupStatus}
         updatingSelfPickupStatus={updatingSelfPickupStatus}
       />
-      ,
     </>
   );
 }

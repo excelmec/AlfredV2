@@ -1,20 +1,14 @@
-import { Checkbox, FormControlLabel, Typography } from '@mui/material';
-
-import {
-  DataGrid,
-  GridActionsCellItem,
-  GridRowParams,
-  GridToolbar,
-  GridToolbarContainer,
-} from '@mui/x-data-grid';
-
 import { useEffect, useState } from 'react';
-
 import { useNavigate } from 'react-router-dom';
-
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import { EyeIcon } from '@phosphor-icons/react';
 import { useOrderList } from 'Hooks/Merchandise/useOrderList';
 import { IOrder, EShippingStatus } from 'Hooks/Merchandise/orderTypes';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { StatusFilter } from '@/Components/status-filter';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
 
 function getRowId(row: IOrder) {
   return row.orderId;
@@ -36,19 +30,19 @@ export default function ConfirmedDeliveryOrdersListPage() {
 
   const navigate = useNavigate();
 
-  const muiColumns = [
+  const tableColumns: DataColumn<IOrder>[] = [
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
       width: 70,
-      getActions: (params: GridRowParams<IOrder>) => [
-        <GridActionsCellItem
-          icon={<VisibilityIcon color="primary" />}
+      getActions: (params) => [
+        <RowAction
+          key="view"
+          icon={<EyeIcon />}
           label="View"
-          onClick={() => {
-            navigate(`/merch/orders/view/${params.row.orderId}`);
-          }}
+          tone="primary"
+          onClick={() => navigate(`/merch/orders/view/${params.row.orderId}`)}
         />,
       ],
     },
@@ -62,139 +56,34 @@ export default function ConfirmedDeliveryOrdersListPage() {
   }, []);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
-  }
-
-  function CustomToolbar() {
-    return (
-      <>
-        <GridToolbarContainer>
-          <GridToolbar />
-        </GridToolbarContainer>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            fontSize: '0.8rem !important',
-            padding: '0.2rem 1rem',
-          }}
-        >
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={shippingStatusToShow.includes(EShippingStatus.not_shipped)}
-                size="small"
-                onChange={() => {
-                  setShippingStatusToShow((prev) => {
-                    if (prev.includes(EShippingStatus.not_shipped)) {
-                      return prev.filter((status) => status !== EShippingStatus.not_shipped);
-                    }
-                    return [...prev, EShippingStatus.not_shipped];
-                  });
-                }}
-              />
-            }
-            label="Show new orders"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={shippingStatusToShow.includes(EShippingStatus.processing)}
-                size="small"
-                onChange={() => {
-                  setShippingStatusToShow((prev) => {
-                    if (prev.includes(EShippingStatus.processing)) {
-                      return prev.filter((status) => status !== EShippingStatus.processing);
-                    }
-                    return [...prev, EShippingStatus.processing];
-                  });
-                }}
-              />
-            }
-            label="Show processing orders"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={shippingStatusToShow.includes(EShippingStatus.shipping)}
-                size="small"
-                onChange={() => {
-                  setShippingStatusToShow((prev) => {
-                    if (prev.includes(EShippingStatus.shipping)) {
-                      return prev.filter((status) => status !== EShippingStatus.shipping);
-                    }
-                    return [...prev, EShippingStatus.shipping];
-                  });
-                }}
-              />
-            }
-            label="Show shipping orders"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={shippingStatusToShow.includes(EShippingStatus.delivered)}
-                size="small"
-                onChange={() => {
-                  setShippingStatusToShow((prev) => {
-                    if (prev.includes(EShippingStatus.delivered)) {
-                      return prev.filter((status) => status !== EShippingStatus.delivered);
-                    }
-                    return [...prev, EShippingStatus.delivered];
-                  });
-                }}
-              />
-            }
-            label="Show delivered orders"
-          />
-        </div>
-      </>
-    );
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Confirmed Delivery Order List
-      </Typography>
-      <br />
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
+      <PageHeader
+        title="Confirmed delivery orders"
+        description="Paid orders that are shipped to the customer."
+      />
+      <StatusFilter
+        selected={shippingStatusToShow}
+        onChange={setShippingStatusToShow}
+        options={[
+          { value: EShippingStatus.not_shipped, label: 'Show new orders' },
+          { value: EShippingStatus.processing, label: 'Show processing orders' },
+          { value: EShippingStatus.shipping, label: 'Show shipping orders' },
+          { value: EShippingStatus.delivered, label: 'Show delivered orders' },
+        ]}
+      />
+      <DataTable
+        columns={tableColumns}
         rows={filteredOrderList}
-        columns={muiColumns}
+        getRowId={getRowId}
         loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        autoPageSize
-        slots={{ toolbar: CustomToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
-        showCellVerticalBorder
-        showColumnVerticalBorder
-        rowHeight={60}
-        initialState={{
-          columns: {
-            columnVisibilityModel: {
-              // Hide orderStatus and paymentStatus, the other columns will remain visible
-              orderStatus: false,
-              paymentStatus: false,
-            },
-          },
-          sorting: {
-            sortModel: [{ field: 'orderDate', sort: 'desc' }],
-          },
-        }}
+        exportFileName="confirmed-delivery-orders"
+        searchPlaceholder="Search orders..."
+        initialColumnVisibility={{ orderStatus: false, paymentStatus: false }}
+        initialSorting={[{ id: 'orderDate', desc: true }]}
       />
     </>
   );

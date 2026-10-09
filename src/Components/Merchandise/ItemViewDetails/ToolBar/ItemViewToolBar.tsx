@@ -1,47 +1,21 @@
-import { Box, Button, Paper } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EditIcon from '@mui/icons-material/Edit';
-import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
-
-import './ItemViewToolBar.css';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon, ListChecksIcon, PencilSimpleIcon } from '@phosphor-icons/react';
+import { Button } from '@/Components/ui/button';
 
 export default function ItemViewToolBar({ itemId }: { itemId: number }) {
   const navigate = useNavigate();
   return (
-    <Box className="item-view-toolbar" component={Paper} elevation={2} borderRadius={0} zIndex={5}>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<ArrowBackIcon />}
-        className="toolbutton"
-        onClick={() => {
-          navigate('/merch/items');
-        }}
-      >
-        Back
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="outline" onClick={() => navigate('/merch/items')}>
+        <ArrowLeftIcon /> Back
       </Button>
-      <Box sx={{ flexGrow: 1 }} />
-
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<EditIcon />}
-        className="toolbutton"
-        onClick={() => {
-          navigate(`/merch/items/edit/${itemId}`);
-        }}
-      >
-        Edit
+      <div className="flex-1" />
+      <Button variant="outline">
+        <ListChecksIcon /> Orders
       </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<MilitaryTechIcon />}
-        className="toolbutton"
-      >
-        Orders
+      <Button onClick={() => navigate(`/merch/items/edit/${itemId}`)}>
+        <PencilSimpleIcon /> Edit
       </Button>
-    </Box>
+    </div>
   );
 }

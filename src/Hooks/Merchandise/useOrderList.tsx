@@ -45,17 +45,7 @@ export function useOrderList() {
       headerAlign: 'center',
       width: 200,
       renderCell: ({ row }: GridRenderCellParams<IOrder>) => {
-        return (
-          <span
-            style={{
-              whiteSpace: 'normal',
-              wordWrap: 'break-word',
-              fontSize: '0.7rem',
-            }}
-          >
-            {row.orderId}
-          </span>
-        );
+        return <span className="font-mono text-xs break-all">{row.orderId}</span>;
       },
     },
     {
