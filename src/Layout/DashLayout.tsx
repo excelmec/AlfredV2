@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { ErrorBoundary } from '@/Components/error-boundary';
 import { PageLoading } from '@/Components/page-state';
 import { Toaster } from '@/Components/ui/sonner';
 import { TooltipProvider } from '@/Components/ui/tooltip';
@@ -28,9 +29,11 @@ export default function DashLayout() {
             </div>
           </header>
           <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-6">
-            <Suspense fallback={<PageLoading />}>
-              <Outlet />
-            </Suspense>
+            <ErrorBoundary key={pathname}>
+              <Suspense fallback={<PageLoading />}>
+                <Outlet />
+              </Suspense>
+            </ErrorBoundary>
           </main>
         </SidebarInset>
         <Toaster richColors closeButton position="top-right" />

@@ -5,8 +5,14 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import useRazorpay from 'react-razorpay';
+import * as razorpayModule from 'react-razorpay';
 import { useEffect, useState } from 'react';
+
+// react-razorpay ships CommonJS, so under Vite the hook can arrive as the default export or the module itself
+const useRazorpay: typeof razorpayModule.default =
+  (razorpayModule as any).default?.default ??
+  (razorpayModule as any).default ??
+  (razorpayModule as any);
 
 const rzpKey = import.meta.env.REACT_APP_RAZORPAY_KEY_ID;
 
