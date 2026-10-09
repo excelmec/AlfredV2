@@ -13,7 +13,6 @@ import {
 } from 'Hooks/Event/eventRoles';
 import { ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
 
-const Home = lazy(() => import('Pages/Home'));
 const Contact = lazy(() => import('Pages/Contact'));
 const NotFound = lazy(() => import('Pages/NotFound'));
 const CaListPage = lazy(() => import('Pages/CampusAmbassador/CaList'));
@@ -66,7 +65,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<DashLayout />}>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<Navigate to="/events" replace />} />
 
                 {withKeys(UserRoutes())}
 

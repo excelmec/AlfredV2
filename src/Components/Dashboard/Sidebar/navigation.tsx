@@ -6,7 +6,6 @@ import {
   ClockIcon,
   CreditCardIcon,
   HeadsetIcon,
-  HouseIcon,
   ListNumbersIcon,
   MegaphoneIcon,
   PackageIcon,
@@ -37,10 +36,7 @@ export interface NavGroup {
   items: NavLeaf[];
 }
 
-export const topLinks: NavLeaf[] = [
-  { title: 'Home', to: '/', icon: HouseIcon },
-  { title: 'Users', to: '/users', icon: UsersIcon },
-];
+export const topLinks: NavLeaf[] = [{ title: 'Users', to: '/users', icon: UsersIcon }];
 
 export const bottomLinks: NavLeaf[] = [{ title: 'Contact', to: '/contact', icon: AddressBookIcon }];
 
@@ -104,7 +100,6 @@ export const navGroups: NavGroup[] = [
 
 /** Resolve a human readable page section for the header from the current path */
 export function sectionTitleForPath(pathname: string): string {
-  if (pathname === '/') return 'Home';
   const group = navGroups.find((g) => pathname.startsWith(g.prefix));
   if (group) return group.title;
   const link = [...topLinks, ...bottomLinks].find((l) => l.to !== '/' && pathname.startsWith(l.to));
