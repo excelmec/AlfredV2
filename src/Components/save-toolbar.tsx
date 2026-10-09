@@ -32,7 +32,7 @@ export default function SaveToolbar({ onSave, hasUnsavedChanges, saving }: SaveT
   }, [hasUnsavedChanges]);
 
   return (
-    <div className="sticky top-14 z-10 -mx-1 flex items-center gap-2 rounded-xl border bg-card/90 px-4 py-2.5 shadow-sm backdrop-blur">
+    <div className="sticky top-0 z-10 -mx-1 flex items-center gap-2 rounded-xl border bg-card/90 px-4 py-2.5 shadow-sm backdrop-blur">
       {hasUnsavedChanges ? (
         <Badge variant="secondary" className="bg-amber-500/15 text-amber-700 dark:text-amber-300">
           Unsaved changes

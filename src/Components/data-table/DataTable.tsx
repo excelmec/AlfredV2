@@ -229,7 +229,7 @@ export function DataTable<R>({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className={cn('flex min-w-0 flex-col gap-3', className)}>
+      <div className={cn('flex min-h-0 min-w-0 flex-1 flex-col gap-3', className)}>
         {(searchable || exportable || toolbar) && (
           <div className="flex flex-wrap items-center gap-2">
             {searchable && (
@@ -286,9 +286,9 @@ export function DataTable<R>({
           </div>
         )}
 
-        <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+        <div className="min-h-48 flex-1 overflow-hidden rounded-xl border bg-card shadow-xs [&_[data-slot=table-container]]:h-full [&_[data-slot=table-container]]:overflow-auto [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10">
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader className="bg-muted">
               {table.getHeaderGroups().map((group) => (
                 <TableRow key={group.id} className="hover:bg-transparent">
                   {group.headers.map((header) => {
