@@ -9,6 +9,7 @@ import {
   ListNumbersIcon,
   MegaphoneIcon,
   PackageIcon,
+  PersonSimpleRunIcon,
   QrCodeIcon,
   StorefrontIcon,
   TicketIcon,
@@ -87,13 +88,23 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: 'Tickets',
-    prefix: '/ticket',
+    title: 'Proshow Tickets',
+    prefix: '/tickets',
     icon: TicketIcon,
     items: [
       { title: 'Proshows', to: '/tickets/proshows', icon: TicketIcon, roles: ticketScanRoles },
       { title: 'Attendees', to: '/tickets', icon: UsersIcon, roles: ticketScanRoles },
       { title: 'Scan', to: '/tickets/scan', icon: QrCodeIcon, roles: ticketScanRoles },
+    ],
+  },
+  {
+    title: 'Marathon',
+    prefix: '/marathon',
+    icon: PersonSimpleRunIcon,
+    items: [
+      { title: 'Events', to: '/marathon', icon: TicketIcon, roles: ticketScanRoles },
+      { title: 'Participants', to: '/marathon/attendees', icon: UsersIcon, roles: ticketScanRoles },
+      { title: 'Scan', to: '/marathon/scan', icon: QrCodeIcon, roles: ticketScanRoles },
     ],
   },
 ];

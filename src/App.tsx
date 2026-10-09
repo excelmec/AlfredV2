@@ -46,6 +46,8 @@ const EventStatsPage = lazy(() => import('Pages/Events/EventStats'));
 const TicketUserList = lazy(() => import('./Pages/Ticket/TicketUserList'));
 const ProshowList = lazy(() => import('./Pages/Ticket/ProshowList'));
 const TicketValidator = lazy(() => import('./Pages/Ticket/TicketValidator'));
+const MarathonList = lazy(() => import('./Pages/Ticket/MarathonList'));
+const MarathonAttendees = lazy(() => import('./Pages/Ticket/MarathonAttendees'));
 const EventScheduleCreate = lazy(() => import('Pages/Events/EventScheduleCreate'));
 const EventResults = lazy(() => import('Pages/Events/EventResults'));
 
@@ -376,6 +378,14 @@ function TicketRoutes() {
           </ProtectedRoute>
         }
       />,
+      <Route
+        path="/marathon/*"
+        element={
+          <ProtectedRoute allowedRoles={ticketScanRoles}>
+            <ErrorPage errMsg="Tickets Features are disabled as tickets backend url is not set" />
+          </ProtectedRoute>
+        }
+      />,
     ];
 
   return [
@@ -400,6 +410,30 @@ function TicketRoutes() {
       element={
         <ProtectedRoute allowedRoles={ticketScanRoles}>
           <TicketValidator />
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      path="/marathon"
+      element={
+        <ProtectedRoute allowedRoles={ticketScanRoles}>
+          <MarathonList />
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      path="/marathon/attendees"
+      element={
+        <ProtectedRoute allowedRoles={ticketScanRoles}>
+          <MarathonAttendees />
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      path="/marathon/scan"
+      element={
+        <ProtectedRoute allowedRoles={ticketScanRoles}>
+          <TicketValidator marathon />
         </ProtectedRoute>
       }
     />,

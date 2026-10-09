@@ -27,6 +27,7 @@ interface ITicketData {
   name: string;
   email: string;
   proshow: string;
+  stage?: string;
 }
 
 interface IScanResponse {
@@ -43,8 +44,12 @@ interface IScanHistoryItem {
   qrCode: string;
 }
 
-export default function TicketValidator() {
+type MarathonStage = 'COLLECTION' | 'CHECKIN';
+
+export default function TicketValidator({ marathon = false }: { marathon?: boolean }) {
   const { axiosTicketsPrivate } = useContext(ApiContext);
+  const [stage, setStage] = useState<MarathonStage>('CHECKIN');
+  const stageRef = useRef<MarathonStage>('CHECKIN');
   const [scanHistory, setScanHistory] = useState<IScanHistoryItem[]>([]);
   const [currentResult, setCurrentResult] = useState<IScanResponse | null>(null);
   const [inlineResult, setInlineResult] = useState<IScanResponse | null>(null);
@@ -222,9 +227,14 @@ export default function TicketValidator() {
     lastScanTimeRef.current = now;
 
     try {
-      const response = await axiosTicketsPrivate.post<IScanResponse>('/validate', {
-        token: decodedText,
-      });
+      const response = marathon
+        ? await axiosTicketsPrivate.post<IScanResponse>('/marathon/validate', {
+            token: decodedText,
+            stage: stageRef.current,
+          })
+        : await axiosTicketsPrivate.post<IScanResponse>('/validate', {
+            token: decodedText,
+          });
       processResult(response.data, decodedText);
     } catch (err: any) {
       processResult(
@@ -283,12 +293,30 @@ export default function TicketValidator() {
       <div className="flex min-h-0 flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Ticket validator</h2>
+            <h2 className="text-2xl font-bold tracking-tight">
+              {marathon ? 'Marathon ticket validator' : 'Ticket validator'}
+            </h2>
             <p className="text-sm text-muted-foreground">
               Point the camera at a ticket QR code to validate it.
             </p>
           </div>
           <div className="flex gap-2">
+            {marathon && (
+              <>
+                {(['COLLECTION', 'CHECKIN'] as const).map((value) => (
+                  <Button
+                    key={value}
+                    variant={stage === value ? 'default' : 'outline'}
+                    onClick={() => {
+                      setStage(value);
+                      stageRef.current = value;
+                    }}
+                  >
+                    {value === 'COLLECTION' ? 'Bib collection' : 'Race check-in'}
+                  </Button>
+                ))}
+              </>
+            )}
             {availableCameras.length > 1 && isScanning && (
               <Button variant="outline" onClick={switchCamera}>
                 <CameraRotateIcon /> Switch

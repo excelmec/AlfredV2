@@ -65,3 +65,38 @@ export interface IAttendeeUploadResponse {
     error: string;
   }>;
 }
+
+export interface IMarathonEventCreate {
+  title: string;
+  location: string;
+  event_time: string;
+}
+
+export interface IMarathonEventResponse {
+  id: string;
+  title: string;
+  location: string;
+  event_time: string;
+  created_at: string;
+}
+
+export interface IMarathonAttendee {
+  ticket_id: string;
+  name: string;
+  email: string;
+  event_title: string;
+  status: string;
+  emailed_at: string | null;
+  bib_collected_at: string | null;
+  checked_in_at: string | null;
+}
+
+export interface IMarathonStats {
+  event_title: string;
+  total: number;
+  created: number;
+  emailed: number;
+  email_failed: number;
+  bib_collected: number;
+  checked_in: number;
+}
