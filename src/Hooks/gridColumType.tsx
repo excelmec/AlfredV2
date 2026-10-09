@@ -1,15 +1,4 @@
-import { GridColDef } from '@mui/x-data-grid';
+import type { DataColumn } from '@/Components/data-table/types';
 
-export type TypeSafeColDef<T> = GridColDef &
-  (
-    | {
-        field: keyof T | 'actions';
-      }
-    | {
-        field?: string;
-        valueGetter: (params: any) => string;
-      }
-    | {
-        renderCell?: (params: { row: T; value: any }) => JSX.Element;
-      }
-  );
+/** Column definition used by every list page; see Components/data-table */
+export type TypeSafeColDef<T> = DataColumn<T>;

@@ -1,15 +1,10 @@
-import { Box, Typography } from '@mui/material';
 import ManageTeam from 'Components/CampusAmbassador/ManageTeam';
+import { PageHeader } from '@/Components/page-header';
 
 export default function CaTeamView() {
   return (
     <>
-      <Box>
-        <Typography variant="h5" noWrap component="div">
-          CA Team View
-        </Typography>
-      </Box>
-      <br />
+      <PageHeader title="Team" description="Manage the team name and its ambassadors." />
       <ManageTeam />
     </>
   );

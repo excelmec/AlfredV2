@@ -1,30 +1,31 @@
-import {
-  Grid,
-  Box,
-  Typography,
-  Paper,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableBody,
-  IconButton,
-  Button,
-  Autocomplete,
-  TextField,
-} from '@mui/material';
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import SaveIcon from '@mui/icons-material/Save';
-import EditIcon from '@mui/icons-material/Edit';
-import CancelIcon from '@mui/icons-material/Cancel';
-import './ManageTeam.css';
-
-import { useCaTeam } from 'Hooks/CampusAmbassador/useCaTeam';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import {
+  FloppyDiskIcon,
+  MinusCircleIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  XIcon,
+} from '@phosphor-icons/react';
+import { useCaTeam } from 'Hooks/CampusAmbassador/useCaTeam';
 import { maxCaTeamSize } from 'Hooks/CampusAmbassador/constants';
-import { StyledTableCell } from '../Commons/TableCell';
+import { Combobox } from '@/Components/combobox';
+import { ConfirmDialog } from '@/Components/confirm-dialog';
+import { DetailCard } from '@/Components/detail-card';
+import { PageError, PageLoading } from '@/Components/page-state';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Spinner } from '@/Components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/Components/ui/table';
 
 export default function ManageTeam() {
   const { teamId } = useParams();
@@ -33,6 +34,10 @@ export default function ManageTeam() {
   const [chosenAmbassadorId, setChosenAmbassadorId] = useState<number>(0);
 
   const [editingTeamName, setEditingTeamName] = useState<boolean>(false);
+  const [ambassadorToRemove, setAmbassadorToRemove] = useState<{
+    ambassadorId: number;
+    name: string;
+  } | null>(null);
   const {
     caTeam,
     fetchCaTeam,
@@ -76,252 +81,186 @@ export default function ManageTeam() {
   }
 
   if (loading) {
-    return <Typography variant="h5">Loading...</Typography>;
+    return <PageLoading />;
   }
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
-  function AmbassadorTable() {
-    return (
-      <TableContainer component={Box}>
-        <Table sx={{ width: '100%' }} size="small">
-          <TableHead>
-            <TableRow>
-              <StyledTableCell colSpan={6}>Ambassadors</StyledTableCell>
-            </TableRow>
-            <TableRow>
-              <StyledTableCell>Name</StyledTableCell>
-              <StyledTableCell>Email</StyledTableCell>
-              <StyledTableCell>AmbassadorId</StyledTableCell>
-              <StyledTableCell>Bonus Points</StyledTableCell>
-              <StyledTableCell>Referral Points</StyledTableCell>
-              <StyledTableCell>Remove From Team</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {caTeam.ambassadors.map((row) => (
-              <TableRow key={row.email}>
-                <StyledTableCell component="th" scope="row">
-                  {row.name}
-                </StyledTableCell>
-                <StyledTableCell align="right">{row.email}</StyledTableCell>
-                <StyledTableCell align="right">{row.ambassadorId}</StyledTableCell>
-                <StyledTableCell align="right">{row.bonusPoints}</StyledTableCell>
-                <StyledTableCell align="right">{row.referralPoints}</StyledTableCell>
-                <StyledTableCell align="right">
-                  <IconButton
-                    aria-label="delete"
-                    color="error"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Are you sure you want to remove "${row.name}" from the Team: "${caTeam.name}"?`,
-                        )
-                      ) {
-                        removeAmbassador(Number(teamId), row.ambassadorId);
-                      }
-                    }}
-                    disabled={removingAmbassador}
-                  >
-                    <RemoveCircleIcon />
-                  </IconButton>
-                </StyledTableCell>
-              </TableRow>
-            ))}
-            {!addingAmbassador && caTeam.ambassadors?.length < maxCaTeamSize && (
-              <TableRow>
-                <StyledTableCell colSpan={6}>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={() => {
-                      setAddingAmbassador(true);
-                    }}
-                  >
-                    Add Ambassador
-                  </Button>
-                </StyledTableCell>
-              </TableRow>
-            )}
-            {addingAmbassador && (
-              <TableRow>
-                <StyledTableCell colSpan={4}>
-                  <Autocomplete
-                    sx={{ width: '100%' }}
-                    options={choosableCaList}
-                    autoHighlight
-                    getOptionLabel={(option) => option.name}
-                    onChange={(event, newValue) => {
-                      if (newValue) {
-                        setChosenAmbassadorId(newValue.ambassadorId);
-                      }
-                    }}
-                    disabled={savingAmbassador}
-                    value={choosableCaList.find((CA) => {
-                      return CA.ambassadorId === chosenAmbassadorId;
-                    })}
-                    renderOption={(props, ca) => (
-                      <Box component="li" {...props}>
-                        <StyledTableCell
-                          sx={{
-                            width: '50%',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {ca.name}
-                        </StyledTableCell>
-                        <StyledTableCell
-                          sx={{
-                            width: '50%',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {ca.email}
-                        </StyledTableCell>
-                      </Box>
-                    )}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Choose a Ambassador"
-                        inputProps={{
-                          ...params.inputProps,
-                          autoComplete: 'new-password', // disable autocomplete and autofill
-                        }}
-                      />
-                    )}
-                  />
-                </StyledTableCell>
-                <StyledTableCell>
-                  <Button
-                    variant="contained"
-                    startIcon={<SaveIcon />}
-                    onClick={addNewAmbassador}
-                    disabled={savingAmbassador}
-                  >
-                    Save
-                  </Button>
-                </StyledTableCell>
-                <StyledTableCell>
-                  <Button
-                    variant="contained"
-                    startIcon={<CancelIcon />}
-                    onClick={() => {
-                      setAddingAmbassador(false);
-                    }}
-                    disabled={savingAmbassador}
-                  >
-                    Cancel
-                  </Button>
-                </StyledTableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    );
-  }
+  const teamSize = caTeam.ambassadors?.length ?? 0;
 
   return (
-    <Box className="ca-team-data-container" component={Paper} elevation={2} borderRadius={0}>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="ca-team-data-grid"
-      >
-        <Grid item xs={6}>
-          <Typography>Team ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{caTeam.id}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Name</Typography>
-        </Grid>
-        <Grid
-          item
-          xs={6}
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-          }}
-          container
-        >
-          {editingTeamName ? (
-            <>
-              <Grid item xs={8}>
-                <TextField
-                  label="Team Name"
+    <div className="grid gap-6">
+      <DetailCard
+        title="Team details"
+        columns={3}
+        items={[
+          { label: 'Team ID', value: caTeam.id },
+          {
+            label: 'Name',
+            value: editingTeamName ? (
+              <div className="flex items-center gap-1">
+                <Input
+                  autoFocus
                   value={newTeamName}
-                  onChange={(e) => {
-                    setNewTeamName(e.target.value);
-                  }}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  className="h-8"
                 />
-              </Grid>
-              <Grid item xs={2}>
-                <IconButton onClick={saveTeamName} disabled={savingTeamName}>
-                  <SaveIcon />
-                </IconButton>
-              </Grid>
-              <Grid item xs={2}>
-                <IconButton
+                <Button
+                  size="icon-sm"
+                  aria-label="Save name"
+                  onClick={saveTeamName}
+                  disabled={savingTeamName}
+                >
+                  {savingTeamName ? <Spinner /> : <FloppyDiskIcon />}
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="outline"
+                  aria-label="Cancel"
+                  disabled={savingTeamName}
                   onClick={() => {
                     setEditingTeamName(false);
                     setNewTeamName(caTeam.name);
                   }}
-                  disabled={savingTeamName}
                 >
-                  <CancelIcon />
-                </IconButton>
-              </Grid>
-            </>
-          ) : (
-            <>
-              <Typography sx={{ display: 'inline', paddingRight: '10px' }}>
-                {caTeam?.name}
-              </Typography>
-              <IconButton
-                onClick={() => {
-                  setEditingTeamName(true);
-                }}
-              >
-                <EditIcon />
-              </IconButton>
-            </>
+                  <XIcon />
+                </Button>
+              </div>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                {caTeam.name}
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  aria-label="Edit name"
+                  onClick={() => setEditingTeamName(true)}
+                >
+                  <PencilSimpleIcon />
+                </Button>
+              </span>
+            ),
+          },
+          { label: 'Total bonus points', value: caTeam.totalBonusPoints },
+          { label: 'Total referral points', value: caTeam.totalRefPoints },
+          {
+            label: 'Team capacity',
+            value: (
+              <Badge variant="secondary">
+                {teamSize}/{maxCaTeamSize}
+              </Badge>
+            ),
+          },
+        ]}
+      />
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Ambassadors</CardTitle>
+          {!addingAmbassador && teamSize < maxCaTeamSize && (
+            <Button size="sm" onClick={() => setAddingAmbassador(true)}>
+              <PlusIcon weight="bold" /> Add ambassador
+            </Button>
           )}
-        </Grid>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          {addingAmbassador && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3">
+              <Combobox
+                className="min-w-64 flex-1 sm:w-auto"
+                options={(choosableCaList ?? []).map((ca) => ({
+                  value: String(ca.ambassadorId),
+                  label: ca.name,
+                  description: ca.email,
+                }))}
+                value={chosenAmbassadorId ? String(chosenAmbassadorId) : ''}
+                onChange={(v) => setChosenAmbassadorId(Number(v))}
+                placeholder="Choose an ambassador"
+                searchPlaceholder="Search by name or email..."
+                disabled={savingAmbassador}
+              />
+              <Button onClick={addNewAmbassador} disabled={savingAmbassador || !chosenAmbassadorId}>
+                {savingAmbassador && <Spinner />}
+                Save
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setAddingAmbassador(false)}
+                disabled={savingAmbassador}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
 
-        <Grid item xs={6}>
-          <Typography>Total Bonus Points</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{caTeam.totalBonusPoints}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Total Referral Points</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{caTeam.totalRefPoints}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Team Capacity</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>
-            {caTeam.ambassadors?.length ?? 0}/{maxCaTeamSize}
-          </Typography>
-        </Grid>
+          <div className="overflow-hidden rounded-lg border">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Ambassador ID</TableHead>
+                  <TableHead className="text-right">Bonus pts</TableHead>
+                  <TableHead className="text-right">Referral pts</TableHead>
+                  <TableHead className="w-12" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {teamSize === 0 && (
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                      No ambassadors in this team yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {caTeam.ambassadors?.map((row) => (
+                  <TableRow key={row.email}>
+                    <TableCell className="font-medium">{row.name}</TableCell>
+                    <TableCell>{row.email}</TableCell>
+                    <TableCell>{row.ambassadorId}</TableCell>
+                    <TableCell className="text-right tabular-nums">{row.bonusPoints}</TableCell>
+                    <TableCell className="text-right tabular-nums">{row.referralPoints}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="Remove from team"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() =>
+                          setAmbassadorToRemove({
+                            ambassadorId: row.ambassadorId,
+                            name: row.name,
+                          })
+                        }
+                        disabled={removingAmbassador}
+                      >
+                        <MinusCircleIcon />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Grid item xs={12}>
-          <AmbassadorTable />
-        </Grid>
-      </Grid>
-    </Box>
+      <ConfirmDialog
+        open={ambassadorToRemove !== null}
+        title="Remove from team"
+        description={`Are you sure you want to remove "${ambassadorToRemove?.name}" from the team "${caTeam.name}"?`}
+        confirmLabel="Remove"
+        destructive
+        loading={removingAmbassador}
+        onCancel={() => setAmbassadorToRemove(null)}
+        onConfirm={async () => {
+          if (ambassadorToRemove) {
+            await removeAmbassador(Number(teamId), ambassadorToRemove.ambassadorId);
+          }
+          setAmbassadorToRemove(null);
+        }}
+      />
+    </div>
   );
 }

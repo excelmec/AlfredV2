@@ -3,7 +3,7 @@ import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { IOrder } from './orderTypes';
-import { GridRenderCellParams, GridValueFormatterParams } from '@mui/x-data-grid';
+import { GridRenderCellParams, GridValueFormatterParams } from '@/Components/data-table/types';
 
 export function useOrderList() {
   const [confirmedOrderList, setConfirmedOrderList] = useState<IOrder[]>([]);

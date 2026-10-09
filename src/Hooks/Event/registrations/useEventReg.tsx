@@ -3,7 +3,7 @@ import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { IRegistration, ITeam } from '../registrationTypes';
-import { GridValueGetterParams } from '@mui/x-data-grid';
+import { GridValueGetterParams } from '@/Components/data-table/types';
 import { useEventDesc } from '../useEventDesc';
 import UserContext from 'Contexts/User/UserContext';
 import { allEventEditRoles, allEventViewRoles, specificEventViewRoles } from '../eventRoles';

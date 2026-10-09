@@ -1,108 +1,49 @@
+import { useState } from 'react';
+import { FloppyDiskIcon, MinusCircleIcon, PlusIcon, XIcon } from '@phosphor-icons/react';
+import { CaData, CaPointLog } from 'Hooks/CampusAmbassador/useCa';
+import { ConfirmDialog } from '@/Components/confirm-dialog';
+import { DetailCard } from '@/Components/detail-card';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Spinner } from '@/Components/ui/spinner';
 import {
-  Box,
-  Button,
-  Grid,
-  IconButton,
-  Paper,
   Table,
   TableBody,
-  TableContainer,
+  TableCell,
   TableHead,
+  TableHeader,
   TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { CaData, CaPointLog } from 'Hooks/CampusAmbassador/useCa';
-import { StyledTableCell } from '../Commons/TableCell';
+} from '@/Components/ui/table';
 
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-
-import './CaData.css';
-
-import { useState } from 'react';
-
-export default function CaDataView({
-  ca,
-  caPointLog,
-  addNewPoint,
-  savingNewPoint,
-  deletePoint,
-  deletingPoint,
-}: {
+interface CaDataViewProps {
   ca: CaData;
   caPointLog: CaPointLog[];
   addNewPoint: (point: Omit<CaPointLog, 'id'>) => Promise<void>;
   savingNewPoint: boolean;
   deletePoint: (pointId: number) => Promise<void>;
   deletingPoint: boolean;
-}) {
-  return (
-    <Box className="ca-data-container" component={Paper} elevation={2} borderRadius={0}>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="ca-data-grid"
-      >
-        <Grid item xs={6}>
-          <Typography>Ambassador ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{ca.ambassadorId}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Name</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{ca.name}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Email</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{ca.email}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Referral Points</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{ca.referralPoints}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Bonus Points</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{ca.bonusPoints}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Total Points</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{ca.totalPoints}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Team Name</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{ca.teamName}</Typography>
-        </Grid>
+}
 
-        <Grid item xs={12}>
-          <PointLogTable
-            addNewPoint={addNewPoint}
-            ca={ca}
-            caPointLog={caPointLog}
-            savingNewPoint={savingNewPoint}
-            deletePoint={deletePoint}
-            deletingPoint={deletingPoint}
-          />
-        </Grid>
-      </Grid>
-    </Box>
+export default function CaDataView(props: CaDataViewProps) {
+  const { ca } = props;
+  return (
+    <div className="grid gap-6">
+      <DetailCard
+        title={ca.name}
+        description={ca.email}
+        columns={3}
+        items={[
+          { label: 'Ambassador ID', value: ca.ambassadorId },
+          { label: 'Team', value: ca.teamName },
+          { label: 'Referral points', value: ca.referralPoints },
+          { label: 'Bonus points', value: ca.bonusPoints },
+          { label: 'Total points', value: <Badge>{ca.totalPoints}</Badge> },
+        ]}
+      />
+      <PointLogTable {...props} />
+    </div>
   );
 }
 
@@ -113,17 +54,12 @@ function PointLogTable({
   savingNewPoint,
   deletePoint,
   deletingPoint,
-}: {
-  ca: CaData;
-  caPointLog: CaPointLog[];
-  addNewPoint: (point: Omit<CaPointLog, 'id'>) => Promise<void>;
-  savingNewPoint: boolean;
-  deletePoint: (pointId: number) => Promise<void>;
-  deletingPoint: boolean;
-}) {
+}: CaDataViewProps) {
   const [addingNewPoint, setAddingNewPoint] = useState<boolean>(false);
   const [newPointDescription, setNewPointDescription] = useState<string>('');
   const [newPointValue, setNewPointValue] = useState<string>('');
+  const [pointToDelete, setPointToDelete] = useState<number | null>(null);
+
   async function saveNewPoint() {
     await addNewPoint({
       description: newPointDescription,
@@ -136,110 +72,115 @@ function PointLogTable({
     setNewPointDescription('');
     setNewPointValue('');
   }
+
   return (
-    <TableContainer component={Box}>
-      <Table sx={{ width: '100%' }} size="small">
-        <TableHead>
-          <TableRow>
-            <StyledTableCell colSpan={6}>Points Awarded</StyledTableCell>
-          </TableRow>
-          <TableRow>
-            <StyledTableCell>Date Time</StyledTableCell>
-            <StyledTableCell>Description</StyledTableCell>
-            <StyledTableCell>Points Awarded</StyledTableCell>
-            <StyledTableCell>Remove Point</StyledTableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {caPointLog.map((row) => (
-            <TableRow key={row.id}>
-              <StyledTableCell component="th" scope="row">
-                {row.dateTime}
-              </StyledTableCell>
-              <StyledTableCell align="right">{row.description}</StyledTableCell>
-              <StyledTableCell align="right">{row.pointAwarded}</StyledTableCell>
-              <StyledTableCell align="right">
-                <IconButton
-                  aria-label="delete"
-                  color="error"
-                  onClick={() => {
-                    if (window.confirm('Do you want to delete this point?')) {
-                      deletePoint(row.id);
-                    }
-                  }}
-                  disabled={deletingPoint}
-                >
-                  <RemoveCircleIcon />
-                </IconButton>
-              </StyledTableCell>
-            </TableRow>
-          ))}
-          {!addingNewPoint && (
-            <TableRow>
-              <StyledTableCell colSpan={6}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => {
-                    setAddingNewPoint(true);
-                  }}
-                >
-                  Add New Point
-                </Button>
-              </StyledTableCell>
-            </TableRow>
-          )}
-          {addingNewPoint && (
-            <TableRow>
-              <StyledTableCell>
-                <TextField
-                  label="Points Awarded"
-                  variant="outlined"
-                  fullWidth
-                  value={newPointValue}
-                  type="number"
-                  onChange={(e) => {
-                    setNewPointValue(e.target.value);
-                  }}
-                />
-              </StyledTableCell>
-              <StyledTableCell>
-                <TextField
-                  label="Description"
-                  variant="outlined"
-                  fullWidth
-                  value={newPointDescription}
-                  onChange={(e) => {
-                    setNewPointDescription(e.target.value);
-                  }}
-                />
-              </StyledTableCell>
-              <StyledTableCell>
-                <Button
-                  variant="contained"
-                  startIcon={<SaveIcon />}
-                  onClick={saveNewPoint}
-                  disabled={savingNewPoint}
-                >
-                  Save
-                </Button>
-              </StyledTableCell>
-              <StyledTableCell>
-                <Button
-                  variant="contained"
-                  startIcon={<CancelIcon />}
-                  onClick={() => {
-                    setAddingNewPoint(false);
-                  }}
-                  disabled={savingNewPoint}
-                >
-                  Cancel
-                </Button>
-              </StyledTableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Points awarded</CardTitle>
+        {!addingNewPoint && (
+          <Button size="sm" onClick={() => setAddingNewPoint(true)}>
+            <PlusIcon weight="bold" /> Add point
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-hidden rounded-lg border">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>Date time</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Points</TableHead>
+                <TableHead className="w-12" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {caPointLog.length === 0 && !addingNewPoint && (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                    No points awarded yet.
+                  </TableCell>
+                </TableRow>
+              )}
+              {caPointLog.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell className="whitespace-nowrap">{row.dateTime}</TableCell>
+                  <TableCell>{row.description}</TableCell>
+                  <TableCell className="text-right tabular-nums">{row.pointAwarded}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Delete point"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => setPointToDelete(row.id)}
+                      disabled={deletingPoint}
+                    >
+                      <MinusCircleIcon />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {addingNewPoint && (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell className="text-muted-foreground">Now</TableCell>
+                  <TableCell>
+                    <Input
+                      placeholder="Description"
+                      value={newPointDescription}
+                      onChange={(e) => setNewPointDescription(e.target.value)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      placeholder="Points"
+                      className="ml-auto w-24 text-right"
+                      value={newPointValue}
+                      onChange={(e) => setNewPointValue(e.target.value)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button
+                        size="icon-sm"
+                        aria-label="Save"
+                        onClick={saveNewPoint}
+                        disabled={savingNewPoint}
+                      >
+                        {savingNewPoint ? <Spinner /> : <FloppyDiskIcon />}
+                      </Button>
+                      <Button
+                        size="icon-sm"
+                        variant="outline"
+                        aria-label="Cancel"
+                        onClick={() => setAddingNewPoint(false)}
+                        disabled={savingNewPoint}
+                      >
+                        <XIcon />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+
+      <ConfirmDialog
+        open={pointToDelete !== null}
+        title="Delete point"
+        description="Do you want to delete this point?"
+        confirmLabel="Delete"
+        destructive
+        loading={deletingPoint}
+        onCancel={() => setPointToDelete(null)}
+        onConfirm={async () => {
+          if (pointToDelete !== null) await deletePoint(pointToDelete);
+          setPointToDelete(null);
+        }}
+      />
+    </Card>
   );
 }

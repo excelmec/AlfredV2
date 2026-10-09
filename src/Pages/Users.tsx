@@ -1,20 +1,23 @@
-import {
-  TextField,
-  Typography,
-  IconButton,
-  Modal,
-  Box,
-  FormControl,
-  FormLabel,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
-  Button,
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import { DataGrid, GridColDef, GridRenderEditCellParams, GridToolbar } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
+import { PencilSimpleIcon } from '@phosphor-icons/react';
 import { IUser, useUserList } from '../Hooks/useUserList';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { Label } from '@/Components/ui/label';
 
 const roles = [
   'Admin',
@@ -27,6 +30,10 @@ const roles = [
   'MerchManage',
   'MECLabsAdmin',
 ];
+
+function getRowId(row: IUser) {
+  return row.email;
+}
 
 export default function UserListPage() {
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
@@ -62,92 +69,40 @@ export default function UserListPage() {
     }
   };
 
-  const columns: GridColDef[] = [
-    {
-      field: 'id',
-      headerName: 'Excel ID',
-      type: 'number',
-      width: 100,
-
-      valueFormatter: ({ value }) => {
-        /**
-         * To remove comma from the number
-         */
-        return value;
-      },
-    },
-    {
-      field: 'name',
-      headerName: 'Name',
-      type: 'string',
-      width: 150,
-      ...expandOnDoubleClick,
-    },
-    {
-      field: 'email',
-      headerName: 'Email ID',
-      type: 'string',
-      width: 250,
-      ...expandOnDoubleClick,
-    },
-    {
-      field: 'gender',
-      headerName: 'Gender',
-      type: 'string',
-      width: 70,
-    },
-    {
-      field: 'mobileNumber',
-      headerName: 'Mobile Number',
-      type: 'string',
-      width: 100,
-    },
-    {
-      field: 'institution',
-      headerName: 'Institution',
-      type: 'string',
-      width: 150,
-      ...expandOnDoubleClick,
-    },
+  const columns: DataColumn<IUser>[] = [
+    { field: 'id', headerName: 'Excel ID', type: 'number', width: 90 },
+    { field: 'name', headerName: 'Name', type: 'string', width: 150 },
+    { field: 'email', headerName: 'Email ID', type: 'string', width: 220 },
+    { field: 'gender', headerName: 'Gender', type: 'string', width: 80 },
+    { field: 'mobileNumber', headerName: 'Mobile Number', type: 'string', width: 120 },
+    { field: 'institution', headerName: 'Institution', type: 'string', width: 180 },
     {
       field: 'role',
       headerName: 'Role',
       type: 'string',
       width: 200,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <Typography
-            variant="body2"
-            sx={{
-              flexGrow: 1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              marginRight: 1,
-            }}
-          >
-            {params.value}
-          </Typography>
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenModal(params.row);
-            }}
-            sx={{ flexShrink: 0 }}
-          >
-            <EditIcon fontSize="small" color="secondary" />
-          </IconButton>
-        </Box>
+        <div className="flex items-center gap-1">
+          <div className="flex flex-wrap gap-1">
+            {String(params.value ?? '')
+              .split(',')
+              .filter(Boolean)
+              .map((role) => (
+                <Badge key={role} variant={role === 'Admin' ? 'default' : 'secondary'}>
+                  {role}
+                </Badge>
+              ))}
+          </div>
+          <RowAction
+            icon={<PencilSimpleIcon />}
+            label="Edit roles"
+            tone="primary"
+            onClick={() => handleOpenModal(params.row)}
+          />
+        </div>
       ),
-      ...expandOnDoubleClick,
     },
-    {
-      field: 'category',
-      headerName: 'Category',
-      type: 'string',
-      width: 150,
-    },
+    { field: 'category', headerName: 'Category', type: 'string', width: 120 },
   ];
 
   useEffect(() => {
@@ -157,107 +112,51 @@ export default function UserListPage() {
   }, []);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Users List
-      </Typography>
-      <br />
-      <DataGrid
-        disableRowSelectionOnClick
-        density="compact"
-        getRowId={getRowId}
-        rows={userList}
+      <PageHeader title="Users" description="Browse Excel accounts and manage their roles." />
+      <DataTable
         columns={columns}
+        rows={userList}
+        getRowId={getRowId}
         loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        autoPageSize
-        slots={{
-          toolbar: GridToolbar,
-        }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
+        exportFileName="users"
+        searchPlaceholder="Search users..."
       />
-      <Modal open={openModal} onClose={handleCloseModal} aria-labelledby="role-modal-title">
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
-          <Typography id="role-modal-title" variant="h6" component="h2" gutterBottom>
-            Edit User Roles
-          </Typography>
-          <FormControl component="fieldset" variant="standard">
-            <FormLabel component="legend">Select Roles</FormLabel>
-            <FormGroup>
-              {roles.map((role, index) => (
-                <FormControlLabel
-                  key={index}
-                  control={
-                    <Checkbox
-                      checked={selectedRoles.includes(role)}
-                      onChange={() => handleRoleChange(role)}
-                    />
-                  }
-                  label={role}
+
+      <Dialog open={openModal} onOpenChange={(open) => !open && handleCloseModal()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit user roles</DialogTitle>
+            <DialogDescription>
+              {selectedUser ? `Select the roles for ${selectedUser.name}.` : 'Select roles.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3">
+            {roles.map((role) => (
+              <Label
+                key={role}
+                className="flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 font-medium has-[[data-state=checked]]:border-primary/50 has-[[data-state=checked]]:bg-primary/5"
+              >
+                <Checkbox
+                  checked={selectedRoles.includes(role)}
+                  onCheckedChange={() => handleRoleChange(role)}
                 />
-              ))}
-            </FormGroup>
-          </FormControl>
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            <Button onClick={handleCloseModal}>Cancel</Button>
-            <Button onClick={handleSaveRoles} variant="contained">
-              Save
+                {role}
+              </Label>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseModal}>
+              Cancel
             </Button>
-          </Box>
-        </Box>
-      </Modal>
+            <Button onClick={handleSaveRoles}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
-function getRowId(row: IUser) {
-  return row.email;
-}
-
-const expandOnDoubleClick = {
-  /**
-   * Editting is not supported
-   * this only lets the user to expand the cell in order to see the full text
-   */
-  editable: true,
-  renderEditCell: (params: GridRenderEditCellParams) => (
-    <TextField
-      variant="outlined"
-      sx={{
-        position: 'absolute',
-        backgroundColor: 'white',
-      }}
-      InputProps={{
-        style: { width: `${params.value.toString().length + 10}ch` },
-      }}
-      value={params.value}
-    />
-  ),
-};

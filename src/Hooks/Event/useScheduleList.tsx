@@ -9,7 +9,7 @@ import {
 } from 'Hooks/errorParser';
 import { IScheduleItem } from './eventTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
-import { GridValueGetterParams } from '@mui/x-data-grid';
+import { GridValueGetterParams } from '@/Components/data-table/types';
 import {
   createEventScheduleValidationSchema,
   defaultDummyEvent,

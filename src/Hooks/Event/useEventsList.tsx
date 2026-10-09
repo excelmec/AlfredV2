@@ -3,7 +3,7 @@ import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import { IEventListItem } from './eventTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
-import { GridRenderCellParams, GridValueGetterParams } from '@mui/x-data-grid';
+import { GridRenderCellParams, GridValueGetterParams } from '@/Components/data-table/types';
 
 export function useEventList() {
   const [eventList, setEventList] = useState<IEventListItem[]>([]);
@@ -85,11 +85,8 @@ export function useEventList() {
         return (
           <img
             src={params.value}
-            alt={'icon'}
-            style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
-            }}
+            alt="icon"
+            className="size-8 rounded-md object-cover"
             referrerPolicy="no-referrer"
           />
         );

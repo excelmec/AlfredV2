@@ -4,7 +4,7 @@ import { getErrMsg } from 'Hooks/errorParser';
 import { CAEvents } from './useCaList';
 
 import { TypeSafeColDef } from 'Hooks/gridColumType';
-import { GridValueGetterParams } from '@mui/x-data-grid';
+import { GridValueGetterParams } from '@/Components/data-table/types';
 
 export interface CaAccounts {
   ambassadorId: number;

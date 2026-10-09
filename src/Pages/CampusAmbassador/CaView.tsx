@@ -1,8 +1,9 @@
-import { Box, Typography } from '@mui/material';
-import CaDataView from 'Components/CampusAmbassador/CaData';
-import { useCa } from 'Hooks/CampusAmbassador/useCa';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import CaDataView from 'Components/CampusAmbassador/CaData';
+import { useCa } from 'Hooks/CampusAmbassador/useCa';
+import { PageHeader } from '@/Components/page-header';
+import { PageError, PageLoading } from '@/Components/page-state';
 
 export default function CaViewPage() {
   const { ambassadorId } = useParams();
@@ -27,30 +28,16 @@ export default function CaViewPage() {
   }, [ambassadorId]);
 
   if (loading) {
-    return (
-      <Typography variant="h5" noWrap component="div">
-        Loading...
-      </Typography>
-    );
+    return <PageLoading />;
   }
 
   if (error) {
-    return (
-      <Typography variant="h5" noWrap component="div">
-        {error}
-      </Typography>
-    );
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <Box>
-        <Typography variant="h5" noWrap component="div">
-          Campus Ambassador View
-        </Typography>
-      </Box>
-      <br />
-
+      <PageHeader title="Campus Ambassador" description="Details and points history." />
       <CaDataView
         ca={ca}
         caPointLog={caPointLog}

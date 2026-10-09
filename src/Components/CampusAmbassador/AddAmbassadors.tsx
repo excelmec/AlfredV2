@@ -1,20 +1,23 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  LinearProgress,
-  Stack,
-  TextField,
-} from '@mui/material';
 import { ChangeEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { PlusIcon, UploadSimpleIcon } from '@phosphor-icons/react';
 import { getErrMsg } from 'Hooks/errorParser';
 import { CaListRes } from 'Hooks/CampusAmbassador/useCaList';
 import { NewAmbassador, caCodePattern, parseCaCsv } from 'Hooks/CampusAmbassador/parseCaCsv';
+import { Button } from '@/Components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Progress } from '@/Components/ui/progress';
+import { ScrollArea } from '@/Components/ui/scroll-area';
+import { Spinner } from '@/Components/ui/spinner';
 
 interface AddAmbassadorsProps {
   /** Existing ambassadors, used to skip emails and codes that are already registered. */
@@ -168,132 +171,148 @@ export default function AddAmbassadors({ caList, addAmbassador, onAdded }: AddAm
 
   return (
     <>
-      <Stack direction="row" spacing={2}>
-        <Button onClick={() => setAddOpen(true)} variant="contained">
-          Add Ambassador
-        </Button>
-        <Button onClick={() => fileInput.current?.click()} variant="outlined">
-          Import CSV
-        </Button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".csv,text/csv"
-          hidden
-          onChange={handleFileChosen}
-        />
-      </Stack>
+      <Button onClick={() => fileInput.current?.click()} variant="outline">
+        <UploadSimpleIcon /> Import CSV
+      </Button>
+      <Button onClick={() => setAddOpen(true)}>
+        <PlusIcon weight="bold" /> Add ambassador
+      </Button>
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".csv,text/csv"
+        hidden
+        onChange={handleFileChosen}
+      />
 
-      <Dialog open={addOpen} onClose={handleAddClose} fullWidth maxWidth="xs">
-        <DialogTitle>Add Campus Ambassador</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Use the email the ambassador signs in with, so they can get their referral links.
-          </DialogContentText>
-          <Stack spacing={2} sx={{ mt: 2 }}>
-            <TextField
-              label="Name"
-              required
-              autoFocus
-              value={newAmbassador.name}
-              onChange={setField('name')}
-            />
-            <TextField
-              label="Referral Code"
-              required
-              helperText="8 letters or digits"
-              inputProps={{ maxLength: 8, style: { textTransform: 'uppercase' } }}
-              value={newAmbassador.code}
-              onChange={setField('code')}
-            />
-            <TextField
-              label="Email"
-              type="email"
-              value={newAmbassador.email}
-              onChange={setField('email')}
-            />
-            <TextField
-              label="College"
-              value={newAmbassador.college}
-              onChange={setField('college')}
-            />
-            <TextField label="Phone" value={newAmbassador.phone} onChange={setField('phone')} />
-          </Stack>
+      <Dialog open={addOpen} onOpenChange={(open) => !open && handleAddClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add campus ambassador</DialogTitle>
+            <DialogDescription>
+              Use the email the ambassador signs in with, so they can get their referral links.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-1.5">
+              <Label htmlFor="ca-name">Name *</Label>
+              <Input
+                id="ca-name"
+                autoFocus
+                value={newAmbassador.name}
+                onChange={setField('name')}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="ca-code">Referral code *</Label>
+              <Input
+                id="ca-code"
+                maxLength={8}
+                className="uppercase"
+                value={newAmbassador.code}
+                onChange={setField('code')}
+              />
+              <p className="text-xs text-muted-foreground">8 letters or digits</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="ca-email">Email</Label>
+              <Input
+                id="ca-email"
+                type="email"
+                value={newAmbassador.email}
+                onChange={setField('email')}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="ca-college">College</Label>
+              <Input id="ca-college" value={newAmbassador.college} onChange={setField('college')} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="ca-phone">Phone</Label>
+              <Input id="ca-phone" value={newAmbassador.phone} onChange={setField('phone')} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleAddClose} disabled={adding}>
+              Cancel
+            </Button>
+            <Button onClick={handleAdd} disabled={adding}>
+              {adding && <Spinner />}
+              Add
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleAdd} disabled={adding}>
-            Add
-          </Button>
-          <Button onClick={handleAddClose} disabled={adding}>
-            Cancel
-          </Button>
-        </DialogActions>
       </Dialog>
 
-      <Dialog open={importRows !== null} onClose={handleImportClose} fullWidth maxWidth="sm">
-        <DialogTitle>Import Campus Ambassadors</DialogTitle>
-        <DialogContent>
+      <Dialog open={importRows !== null} onOpenChange={(open) => !open && handleImportClose()}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import campus ambassadors</DialogTitle>
+            <DialogDescription>
+              {importResult
+                ? `Added ${importResult.created} ambassador${importResult.created === 1 ? '' : 's'}.${
+                    importResult.skipped.length > 0
+                      ? ` Skipped ${importResult.skipped.length}.`
+                      : ''
+                  }${importResult.failed.length > 0 ? ` ${importResult.failed.length} failed.` : ''}`
+                : `Found ${importRows?.length} ambassador${importRows?.length === 1 ? '' : 's'} in the file.${
+                    skipCount > 0
+                      ? ` ${skipCount} will be skipped because of the problem shown next to them.`
+                      : ''
+                  }`}
+            </DialogDescription>
+          </DialogHeader>
+
           {importResult ? (
-            <>
-              <DialogContentText>
-                Added {importResult.created} ambassador{importResult.created === 1 ? '' : 's'}.
-                {importResult.skipped.length > 0 && ` Skipped ${importResult.skipped.length}.`}
-                {importResult.failed.length > 0 && ` ${importResult.failed.length} failed.`}
-              </DialogContentText>
-              {[...importResult.failed, ...importResult.skipped].length > 0 && (
-                <Box
-                  component="ul"
-                  sx={{ maxHeight: 200, overflowY: 'auto', pl: 3, fontSize: '0.85rem' }}
-                >
+            [...importResult.failed, ...importResult.skipped].length > 0 && (
+              <ScrollArea className="max-h-52 rounded-lg border">
+                <ul className="space-y-1 p-3 text-sm">
                   {importResult.failed.map((line) => (
-                    <li key={`failed-${line}`}>Failed — {line}</li>
+                    <li key={`failed-${line}`} className="text-destructive">
+                      Failed — {line}
+                    </li>
                   ))}
                   {importResult.skipped.map((line) => (
-                    <li key={`skipped-${line}`}>Skipped — {line}</li>
+                    <li key={`skipped-${line}`} className="text-muted-foreground">
+                      Skipped — {line}
+                    </li>
                   ))}
-                </Box>
-              )}
-            </>
+                </ul>
+              </ScrollArea>
+            )
           ) : (
             <>
-              <DialogContentText>
-                Found {importRows?.length} ambassador{importRows?.length === 1 ? '' : 's'} in the
-                file.
-                {skipCount > 0 &&
-                  ` ${skipCount} will be skipped because of the problem shown next to them.`}
-              </DialogContentText>
-              <Box
-                component="ul"
-                sx={{ maxHeight: 200, overflowY: 'auto', pl: 3, fontSize: '0.85rem' }}
-              >
-                {importRows?.map((row, i) => (
-                  <li key={i}>
-                    {row.code || 'no code'} — {row.name}
-                    {row.email && ` — ${row.email}`}
-                    {row.college && ` — ${row.college}`}
-                    {importConflicts[i] && <strong> (skip: {importConflicts[i]})</strong>}
-                  </li>
-                ))}
-              </Box>
-              {importing && (
-                <LinearProgress
-                  variant="determinate"
-                  value={(importDone / (importRows?.length || 1)) * 100}
-                />
-              )}
+              <ScrollArea className="h-52 rounded-lg border">
+                <ul className="space-y-1 p-3 text-sm">
+                  {importRows?.map((row, i) => (
+                    <li key={i}>
+                      <span className="font-mono text-xs">{row.code || 'no code'}</span> —{' '}
+                      {row.name}
+                      {row.email && ` — ${row.email}`}
+                      {row.college && ` — ${row.college}`}
+                      {importConflicts[i] && (
+                        <strong className="text-destructive"> (skip: {importConflicts[i]})</strong>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+              {importing && <Progress value={(importDone / (importRows?.length || 1)) * 100} />}
             </>
           )}
-        </DialogContent>
-        <DialogActions>
-          {!importResult && (
-            <Button onClick={handleImport} disabled={importing}>
-              {importing ? `Importing ${importDone}/${importRows?.length}` : 'Import'}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleImportClose} disabled={importing}>
+              {importResult ? 'Close' : 'Cancel'}
             </Button>
-          )}
-          <Button onClick={handleImportClose} disabled={importing}>
-            {importResult ? 'Close' : 'Cancel'}
-          </Button>
-        </DialogActions>
+            {!importResult && (
+              <Button onClick={handleImport} disabled={importing}>
+                {importing && <Spinner />}
+                {importing ? `Importing ${importDone}/${importRows?.length}` : 'Import'}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );
