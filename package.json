@@ -2,6 +2,7 @@
   "name": "alfredv2",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "yarn@4.9.1",
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@hello-pangea/dnd": "^18.0.1",
