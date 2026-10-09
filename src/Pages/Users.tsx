@@ -29,6 +29,7 @@ const roles = [
   'CaVolunteer',
   'MerchManage',
   'MECLabsAdmin',
+  'TicketAdmin',
 ];
 
 function getRowId(row: IUser) {
