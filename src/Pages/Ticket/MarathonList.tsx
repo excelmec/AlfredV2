@@ -3,11 +3,14 @@ import dayjs from 'dayjs';
 import { ValidationError } from 'yup';
 import {
   CheckCircleIcon,
+  PaperPlaneTiltIcon,
   PlusIcon,
   UploadSimpleIcon,
   WarningCircleIcon,
 } from '@phosphor-icons/react';
 import { useMarathon } from '../../Hooks/Ticket/useMarathon';
+import { useSendTickets } from 'Hooks/Ticket/useSendTickets';
+import { SendTicketsDialog } from './SendTicketsDialog';
 import { IMarathonEventResponse, IMarathonStats } from '../../Hooks/Ticket/ticketTypes';
 import UserContext from 'Contexts/User/UserContext';
 import { ticketAdminRoles } from 'Hooks/Ticket/ticketRoles';
@@ -156,6 +159,8 @@ export default function MarathonList() {
   const [createOpen, setCreateOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const isTicketAdmin = userData.roles.some((role) => ticketAdminRoles.includes(role));
+  const { sendTickets, sending, sendError, sendResult, resetSend } = useSendTickets('marathon');
+  const [sendTarget, setSendTarget] = useState<IMarathonMerged | null>(null);
 
   useEffect(() => {
     fetchAll();
@@ -194,8 +199,30 @@ export default function MarathonList() {
       { field: 'email_failed', headerName: 'Failed', width: 90, type: 'number' },
       { field: 'bib_collected', headerName: 'Bib collected', width: 120, type: 'number' },
       { field: 'checked_in', headerName: 'Checked in', width: 110, type: 'number' },
+      ...(isTicketAdmin
+        ? [
+            {
+              field: 'send',
+              headerName: 'Send tickets',
+              width: 140,
+              sortable: false,
+              renderCell: ({ row }: { row: IMarathonMerged }) => (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    resetSend();
+                    setSendTarget(row);
+                  }}
+                >
+                  <PaperPlaneTiltIcon /> Send
+                </Button>
+              ),
+            },
+          ]
+        : []),
     ],
-    [],
+    [isTicketAdmin, resetSend],
   );
 
   const handleCreateSubmit = async (data: IValidateCreateProshow) => {
@@ -255,6 +282,18 @@ export default function MarathonList() {
         loading={loading}
         exportFileName="marathon"
         searchPlaceholder="Search marathon events..."
+      />
+
+      <SendTicketsDialog
+        title={sendTarget?.title ?? null}
+        pending={(sendTarget?.created ?? 0) + (sendTarget?.email_failed ?? 0)}
+        sending={sending}
+        error={sendError}
+        result={sendResult}
+        onConfirm={async () => {
+          if (sendTarget && (await sendTickets(sendTarget.id))) fetchAll();
+        }}
+        onClose={() => setSendTarget(null)}
       />
 
       <CreateEventDialog

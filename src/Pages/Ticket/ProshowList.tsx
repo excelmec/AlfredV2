@@ -1,7 +1,9 @@
 import { useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { ValidationError } from 'yup';
-import { PlusIcon } from '@phosphor-icons/react';
+import { PaperPlaneTiltIcon, PlusIcon } from '@phosphor-icons/react';
+import { useSendTickets } from 'Hooks/Ticket/useSendTickets';
+import { SendTicketsDialog } from './SendTicketsDialog';
 import { useProshows } from '../../Hooks/Ticket/useProshows';
 import { IProshowResponse, IProshowStats } from '../../Hooks/Ticket/ticketTypes';
 import UserContext from 'Contexts/User/UserContext';
@@ -137,6 +139,9 @@ export default function ProshowList() {
     useProshows();
 
   const [createOpen, setCreateOpen] = useState(false);
+  const { sendTickets, sending, sendError, sendResult, resetSend } = useSendTickets('proshow');
+  const [sendTarget, setSendTarget] = useState<IProshowMerged | null>(null);
+  const isTicketAdmin = userData.roles.some((role) => ticketAdminRoles.includes(role));
 
   const mergedProshows = useMemo(() => {
     if (proshows.length === 0) return [];
@@ -171,8 +176,30 @@ export default function ProshowList() {
       { field: 'emailed', headerName: 'Emailed', width: 90, type: 'number' },
       { field: 'email_failed', headerName: 'Failed', width: 90, type: 'number' },
       { field: 'scanned', headerName: 'Scanned', width: 90, type: 'number' },
+      ...(isTicketAdmin
+        ? [
+            {
+              field: 'send',
+              headerName: 'Send tickets',
+              width: 140,
+              sortable: false,
+              renderCell: ({ row }: { row: IProshowMerged }) => (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    resetSend();
+                    setSendTarget(row);
+                  }}
+                >
+                  <PaperPlaneTiltIcon /> Send
+                </Button>
+              ),
+            },
+          ]
+        : []),
     ],
-    [],
+    [isTicketAdmin, resetSend],
   );
 
   useEffect(() => {
@@ -220,6 +247,18 @@ export default function ProshowList() {
         loading={loading}
         exportFileName="proshows"
         searchPlaceholder="Search proshows..."
+      />
+
+      <SendTicketsDialog
+        title={sendTarget?.title ?? null}
+        pending={(sendTarget?.created ?? 0) + (sendTarget?.email_failed ?? 0)}
+        sending={sending}
+        error={sendError}
+        result={sendResult}
+        onConfirm={async () => {
+          if (sendTarget && (await sendTickets(sendTarget.id))) fetchStats();
+        }}
+        onClose={() => setSendTarget(null)}
       />
 
       <CreateProshowDialog

@@ -1,4 +1,4 @@
-import { useContext, useState, useCallback, useMemo } from 'react';
+import { useContext, useState, useCallback, useMemo, useRef } from 'react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import {
@@ -10,7 +10,7 @@ import {
 } from './ticketTypes';
 
 export function useMarathon() {
-  const { axiosTicketsPrivate } = useContext(ApiContext);
+  const { axiosTicketsPrivate, accessToken } = useContext(ApiContext);
 
   const [stats, setStats] = useState<IMarathonStats[]>([]);
   const [events, setEvents] = useState<IMarathonEventResponse[]>([]);
@@ -22,7 +22,14 @@ export function useMarathon() {
   const [uploadError, setUploadError] = useState<string>('');
   const [uploadResult, setUploadResult] = useState<IAttendeeUploadResponse | null>(null);
 
+  // Only the newest fetchAll may update state, so an older request that failed with 401
+  // (before the token refreshed) can't overwrite the result of the retry that succeeded.
+  const latestFetch = useRef(0);
+
   const fetchAll = useCallback(async () => {
+    // Wait until the login token is available, otherwise the requests 401 and race on refresh
+    if (!accessToken) return;
+    const fetchId = ++latestFetch.current;
     try {
       setLoading(true);
       setError('');
@@ -30,17 +37,19 @@ export function useMarathon() {
         axiosTicketsPrivate.get<IMarathonStats[]>('/marathon/stats'),
         axiosTicketsPrivate.get<IMarathonEventResponse[]>('/marathon/events'),
       ]);
+      if (fetchId !== latestFetch.current) return;
       setStats(statsRes.data);
       setEvents(eventsRes.data);
       const attendeesRes =
         await axiosTicketsPrivate.get<IMarathonAttendee[]>('/marathon/attendees');
+      if (fetchId !== latestFetch.current) return;
       setAttendees(attendeesRes.data);
     } catch (err) {
-      setError(getErrMsg(err));
+      if (fetchId === latestFetch.current) setError(getErrMsg(err));
     } finally {
-      setLoading(false);
+      if (fetchId === latestFetch.current) setLoading(false);
     }
-  }, [axiosTicketsPrivate]);
+  }, [axiosTicketsPrivate, accessToken]);
 
   const createEvent = useCallback(
     async (data: IMarathonEventCreate) => {
@@ -82,7 +91,8 @@ export function useMarathon() {
         await fetchAll();
         return response.data;
       } catch (err) {
-        setUploadError(getErrMsg(err));
+        const detail = (err as any)?.response?.data?.detail;
+        setUploadError(typeof detail === 'string' ? detail : getErrMsg(err));
         return null;
       } finally {
         setUploading(false);
