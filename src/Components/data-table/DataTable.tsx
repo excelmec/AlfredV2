@@ -7,6 +7,7 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type PaginationState,
   type SortingState,
   type VisibilityState,
 } from '@tanstack/react-table';
@@ -53,6 +54,13 @@ import { TooltipProvider } from '@/Components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { DataColumn } from './types';
 
+export interface ServerPagination {
+  rowCount: number;
+  pageIndex: number;
+  pageSize: number;
+  onPaginationChange: (pagination: { pageIndex: number; pageSize: number }) => void;
+}
+
 interface DataTableProps<R> {
   columns: DataColumn<R>[];
   rows: R[];
@@ -70,6 +78,10 @@ interface DataTableProps<R> {
   /** Initial sort, e.g. `[{ id: 'orderDate', desc: true }]` */
   initialSorting?: SortingState;
   onRowClick?: (row: R) => void;
+  /** Page on the server instead of in the browser. Rows must then be only the current page */
+  serverPagination?: ServerPagination;
+  /** Controlled search, e.g. when searching on the server. Disables the in-browser filter */
+  search?: { value: string; onChange: (value: string) => void };
   /** Extra controls rendered at the right of the toolbar */
   toolbar?: ReactNode;
   emptyMessage?: string;
@@ -119,12 +131,24 @@ export function DataTable<R>({
   initialColumnVisibility,
   initialSorting,
   onRowClick,
+  serverPagination,
+  search,
   toolbar,
   emptyMessage = 'No results found.',
   className,
 }: DataTableProps<R>) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting ?? []);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [localFilter, setLocalFilter] = useState('');
+  const globalFilter = search ? search.value : localFilter;
+  const setGlobalFilter = (value: string) =>
+    search ? search.onChange(value) : setLocalFilter(value);
+  const [clientPagination, setClientPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize,
+  });
+  const pagination: PaginationState = serverPagination
+    ? { pageIndex: serverPagination.pageIndex, pageSize: serverPagination.pageSize }
+    : clientPagination;
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialColumnVisibility ?? {},
   );
@@ -154,17 +178,26 @@ export function DataTable<R>({
     data: rows,
     columns: tableColumns,
     getRowId: getRowId ? (row) => String(getRowId(row)) : undefined,
-    state: { sorting, globalFilter, columnVisibility },
+    state: { sorting, globalFilter, columnVisibility, pagination },
+    manualPagination: !!serverPagination,
+    manualFiltering: !!search,
+    rowCount: serverPagination?.rowCount,
+    onPaginationChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(pagination) : updater;
+      if (serverPagination) serverPagination.onPaginationChange(next);
+      else setClientPagination(next);
+    },
+    autoResetPageIndex: !serverPagination,
     onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (updater) =>
+      setGlobalFilter(typeof updater === 'function' ? updater(globalFilter) : updater),
     globalFilterFn: (row, columnId, filterValue) =>
       plainText(row.getValue(columnId)).toLowerCase().includes(String(filterValue).toLowerCase()),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize } },
   });
 
   const exportCsv = () => {
@@ -187,7 +220,9 @@ export function DataTable<R>({
     URL.revokeObjectURL(url);
   };
 
-  const filteredCount = table.getFilteredRowModel().rows.length;
+  const filteredCount = serverPagination
+    ? serverPagination.rowCount
+    : table.getFilteredRowModel().rows.length;
   const { pageIndex, pageSize: currentPageSize } = table.getState().pagination;
   const from = filteredCount === 0 ? 0 : pageIndex * currentPageSize + 1;
   const to = Math.min((pageIndex + 1) * currentPageSize, filteredCount);

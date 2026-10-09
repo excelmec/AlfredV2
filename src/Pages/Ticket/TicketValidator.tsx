@@ -1,26 +1,24 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  Alert,
-  Button,
-  Chip,
-  CircularProgress,
-} from '@mui/material';
+import { Button } from '@/Components/ui/button';
+import { Badge } from '@/Components/ui/badge';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import { Card } from '@/Components/ui/card';
+import { ScrollArea } from '@/Components/ui/scroll-area';
+import { Spinner } from '@/Components/ui/spinner';
+import { cn } from '@/lib/utils';
 import {
   Html5Qrcode,
   Html5QrcodeCameraScanConfig,
   Html5QrcodeSupportedFormats,
 } from 'html5-qrcode';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
-import CameraswitchIcon from '@mui/icons-material/Cameraswitch';
+import {
+  CameraRotateIcon,
+  CheckCircleIcon,
+  VideoCameraIcon,
+  VideoCameraSlashIcon,
+  WarningCircleIcon,
+  XCircleIcon,
+} from '@phosphor-icons/react';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { getErrMsg } from 'Hooks/errorParser';
 import './TicketValidator.css';
@@ -281,335 +279,187 @@ export default function TicketValidator() {
   };
 
   return (
-    <Box
-      sx={{
-        p: 1,
-        height: 'calc(100vh - 64px)',
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        overflow: 'hidden',
-      }}
-    >
-      <Grid
-        container
-        spacing={1}
-        sx={{
-          flexGrow: 1,
-          minHeight: 0,
-          flexWrap: 'nowrap',
-          flexDirection: { xs: 'column', md: 'row' },
-        }}
-      >
-        <Grid
-          item
-          xs
-          md={8}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: { xs: '55vh', md: 0 },
-            gap: 0.5,
-            flex: { xs: '1 1 auto', md: 1 },
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 1,
-            }}
-          >
-            <Typography variant="h6">Ticket Validator</Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {availableCameras.length > 1 && isScanning && (
-                <Button
-                  variant="outlined"
-                  onClick={switchCamera}
-                  startIcon={<CameraswitchIcon />}
-                  size="small"
-                >
-                  Switch
-                </Button>
-              )}
-              <Button
-                variant={isScanning ? 'outlined' : 'contained'}
-                color={isScanning ? 'error' : 'primary'}
-                onClick={toggleScan}
-                disabled={isInitializing}
-                size="small"
-              >
-                {isInitializing ? 'Starting...' : isScanning ? 'Stop Camera' : 'Start Camera'}
+    <div className="grid min-h-[calc(100dvh-9rem)] gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="flex min-h-0 flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Ticket validator</h2>
+            <p className="text-sm text-muted-foreground">
+              Point the camera at a ticket QR code to validate it.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {availableCameras.length > 1 && isScanning && (
+              <Button variant="outline" onClick={switchCamera}>
+                <CameraRotateIcon /> Switch
               </Button>
-            </Box>
-          </Box>
-
-          {error && <Alert severity="error">{error}</Alert>}
-
-          <Paper
-            elevation={3}
-            sx={{
-              bgcolor: '#000',
-              borderRadius: 1,
-              overflow: 'hidden',
-              position: 'relative',
-              width: { xs: '100%', md: 'auto' },
-              aspectRatio: { xs: '1 / 1', md: 'auto' },
-              flexGrow: { xs: 0, md: 1 },
-              minHeight: { xs: 'auto', md: '300px' },
-            }}
-          >
-            {!isScanning && !isInitializing && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  color: 'white',
-                  zIndex: 1,
-                  gap: 2,
-                }}
-              >
-                <Typography variant="h6">Camera is off</Typography>
-                <Typography variant="body2" color="grey.400">
-                  Click "Start Camera" to begin scanning
-                </Typography>
-              </Box>
             )}
-
-            {isInitializing && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  color: 'white',
-                  zIndex: 1,
-                  gap: 2,
-                }}
-              >
-                <CircularProgress sx={{ color: 'white' }} />
-                <Typography>Initializing camera...</Typography>
-              </Box>
-            )}
-
-            <div id={SCANNER_ELEMENT_ID} style={{ width: '100%', height: '100%' }}></div>
-
-            {/* Full-screen result during scan delay */}
-            {inlineResult && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  zIndex: 10,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  bgcolor: inlineResult.success
-                    ? 'rgba(46, 125, 50, 0.95)'
-                    : 'rgba(211, 47, 47, 0.95)',
-                  color: 'white',
-                  textAlign: 'center',
-                  p: 2,
-                }}
-              >
-                {inlineResult.success ? (
-                  <CheckCircleIcon sx={{ fontSize: 80 }} />
-                ) : (
-                  <ErrorIcon sx={{ fontSize: 80 }} />
-                )}
-                <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>
-                  {inlineResult.success ? 'SUCCESS' : 'FAILED'}
-                </Typography>
-                {inlineResult.ticket_data && (
-                  <>
-                    <Typography variant="h6" sx={{ mt: 1 }}>
-                      {inlineResult.ticket_data.name}
-                    </Typography>
-                    <Chip
-                      label={`Event: ${inlineResult.ticket_data.proshow}`}
-                      sx={{
-                        mt: 1,
-                        bgcolor: 'white',
-                        color: inlineResult.success ? '#2e7d32' : '#d32f2f',
-                        fontWeight: 'bold',
-                      }}
-                    />
-                  </>
-                )}
-                {!inlineResult.success && (
-                  <Typography variant="body1" sx={{ mt: 1, opacity: 0.9 }}>
-                    {inlineResult.message}
-                  </Typography>
-                )}
-                {countdown > 0 && (
-                  <Typography variant="body2" sx={{ mt: 2, opacity: 0.7 }}>
-                    Next scan in {countdown}s
-                  </Typography>
-                )}
-              </Box>
-            )}
-          </Paper>
-
-          {/* Compact bottom result bar */}
-          {currentResult && !inlineResult && (
-            <Paper
-              elevation={2}
-              onClick={dismissResult}
-              sx={{
-                p: 1.5,
-                bgcolor: currentResult.success ? 'success.main' : 'error.main',
-                color: 'white',
-                borderRadius: 1,
-                cursor: 'pointer',
-              }}
+            <Button
+              variant={isScanning ? 'destructive' : 'default'}
+              onClick={toggleScan}
+              disabled={isInitializing}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                {currentResult.success ? (
-                  <CheckCircleIcon sx={{ fontSize: 32 }} />
-                ) : (
-                  <ErrorIcon sx={{ fontSize: 32 }} />
-                )}
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body1" fontWeight="bold" noWrap>
-                      {currentResult.success ? 'SUCCESS' : 'FAILED'}
-                    </Typography>
-                    {currentResult.ticket_data?.proshow && (
-                      <Chip
-                        label={`Event: ${currentResult.ticket_data.proshow}`}
-                        size="small"
-                        sx={{
-                          bgcolor: 'rgba(255,255,255,0.25)',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          height: 22,
-                        }}
-                      />
-                    )}
-                  </Box>
-                  {currentResult.ticket_data && (
-                    <Typography variant="body2" noWrap sx={{ opacity: 0.9 }}>
-                      {currentResult.ticket_data.name} • {currentResult.ticket_data.email}
-                    </Typography>
-                  )}
-                  {!currentResult.success && (
-                    <Typography variant="caption" sx={{ opacity: 0.85 }}>
-                      {currentResult.message}
-                    </Typography>
-                  )}
-                </Box>
-                <Typography variant="caption" sx={{ opacity: 0.6, whiteSpace: 'nowrap' }}>
-                  tap ✕
-                </Typography>
-              </Box>
-            </Paper>
-          )}
-        </Grid>
-
-        <Grid
-          item
-          xs
-          md={4}
-          sx={{
-            minHeight: 0,
-            flex: { xs: '0 0 auto', md: 1 },
-            maxHeight: { xs: '35%', md: '100%' },
-          }}
-        >
-          <Paper
-            elevation={2}
-            sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-          >
-            <Box
-              sx={{ px: 1, py: 0.5, bgcolor: 'grey.200', borderBottom: 1, borderColor: 'divider' }}
-            >
-              <Typography variant="caption" fontWeight="bold">
-                History ({scanHistory.length})
-              </Typography>
-            </Box>
-            <List sx={{ flexGrow: 1, overflowY: 'auto', p: 0 }}>
-              {scanHistory.length === 0 && (
-                <ListItem>
-                  <ListItemText
-                    secondary="Ready to scan tickets..."
-                    sx={{ textAlign: 'center', mt: 2, color: 'text.secondary' }}
-                  />
-                </ListItem>
+              {isInitializing ? (
+                <Spinner />
+              ) : isScanning ? (
+                <VideoCameraSlashIcon />
+              ) : (
+                <VideoCameraIcon />
               )}
-              {scanHistory.map((item, index) => (
-                <div key={item.id}>
-                  <ListItem
-                    dense
-                    sx={{
-                      bgcolor: item.response.success
-                        ? 'rgba(76, 175, 80, 0.08)'
-                        : 'rgba(244, 67, 54, 0.08)',
-                      py: 0.5,
-                    }}
+              {isInitializing ? 'Starting...' : isScanning ? 'Stop camera' : 'Start camera'}
+            </Button>
+          </div>
+        </div>
+
+        {error && (
+          <Alert variant="destructive">
+            <WarningCircleIcon />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="relative aspect-square min-h-[300px] w-full overflow-hidden rounded-xl border bg-black shadow-sm lg:aspect-auto lg:flex-1">
+          {!isScanning && !isInitializing && (
+            <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center gap-1 text-white">
+              <VideoCameraSlashIcon className="mb-2 size-10 opacity-60" />
+              <p className="text-lg font-semibold">Camera is off</p>
+              <p className="text-sm text-neutral-400">Click "Start camera" to begin scanning</p>
+            </div>
+          )}
+
+          {isInitializing && (
+            <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center gap-3 text-white">
+              <Spinner className="size-8" />
+              <p>Initializing camera...</p>
+            </div>
+          )}
+
+          <div id={SCANNER_ELEMENT_ID} style={{ width: '100%', height: '100%' }}></div>
+
+          {/* Full-screen result during scan delay */}
+          {inlineResult && (
+            <div
+              className={cn(
+                'absolute inset-0 z-10 flex flex-col items-center justify-center p-4 text-center text-white',
+                inlineResult.success ? 'bg-emerald-600/95' : 'bg-red-600/95',
+              )}
+            >
+              {inlineResult.success ? (
+                <CheckCircleIcon className="size-20" weight="fill" />
+              ) : (
+                <XCircleIcon className="size-20" weight="fill" />
+              )}
+              <p className="mt-2 text-3xl font-bold tracking-tight">
+                {inlineResult.success ? 'SUCCESS' : 'FAILED'}
+              </p>
+              {inlineResult.ticket_data && (
+                <>
+                  <p className="mt-2 text-xl font-semibold">{inlineResult.ticket_data.name}</p>
+                  <Badge
+                    className={cn(
+                      'mt-2 bg-white px-3 py-1 text-sm font-bold hover:bg-white',
+                      inlineResult.success ? 'text-emerald-700' : 'text-red-700',
+                    )}
                   >
-                    <ListItemText
-                      primary={
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Typography variant="caption" fontWeight="medium">
-                            {item.timestamp.toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })}
-                          </Typography>
-                          {item.response.success ? (
-                            <CheckCircleIcon color="success" fontSize="small" />
-                          ) : (
-                            <ErrorIcon color="error" fontSize="small" />
-                          )}
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="caption" color="text.primary" fontWeight="medium">
-                            {item.response.ticket_data?.name || 'Unknown'}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ display: { xs: 'none', md: 'block' } }}
-                          >
-                            {item.response.message}
-                          </Typography>
-                          {item.response.ticket_data?.proshow && (
-                            <Chip
-                              label={`Event: ${item.response.ticket_data.proshow}`}
-                              size="small"
-                              sx={{ height: 16, fontSize: '0.6rem' }}
-                            />
-                          )}
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                  {index < scanHistory.length - 1 && <Divider />}
+                    Event: {inlineResult.ticket_data.proshow}
+                  </Badge>
+                </>
+              )}
+              {!inlineResult.success && <p className="mt-2 opacity-90">{inlineResult.message}</p>}
+              {countdown > 0 && (
+                <p className="mt-4 text-sm opacity-70">Next scan in {countdown}s</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Compact bottom result bar */}
+        {currentResult && !inlineResult && (
+          <button
+            type="button"
+            onClick={dismissResult}
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl p-3 text-left text-white shadow-sm',
+              currentResult.success ? 'bg-emerald-600' : 'bg-red-600',
+            )}
+          >
+            {currentResult.success ? (
+              <CheckCircleIcon className="size-8 shrink-0" weight="fill" />
+            ) : (
+              <XCircleIcon className="size-8 shrink-0" weight="fill" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-bold">{currentResult.success ? 'SUCCESS' : 'FAILED'}</span>
+                {currentResult.ticket_data?.proshow && (
+                  <Badge className="bg-white/25 text-white hover:bg-white/25">
+                    Event: {currentResult.ticket_data.proshow}
+                  </Badge>
+                )}
+              </div>
+              {currentResult.ticket_data && (
+                <p className="truncate text-sm opacity-90">
+                  {currentResult.ticket_data.name} • {currentResult.ticket_data.email}
+                </p>
+              )}
+              {!currentResult.success && (
+                <p className="text-xs opacity-85">{currentResult.message}</p>
+              )}
+            </div>
+            <span className="text-xs whitespace-nowrap opacity-60">tap to dismiss</span>
+          </button>
+        )}
+      </div>
+
+      <Card className="max-h-[70vh] min-h-0 gap-0 overflow-hidden py-0 lg:max-h-none">
+        <div className="border-b bg-muted/50 px-4 py-2.5 text-sm font-semibold">
+          History ({scanHistory.length})
+        </div>
+        <ScrollArea className="min-h-0 flex-1">
+          {scanHistory.length === 0 && (
+            <p className="p-6 text-center text-sm text-muted-foreground">
+              Ready to scan tickets...
+            </p>
+          )}
+          <ul className="divide-y">
+            {scanHistory.map((item) => (
+              <li
+                key={item.id}
+                className={cn(
+                  'space-y-1 px-4 py-2.5',
+                  item.response.success ? 'bg-emerald-500/5' : 'bg-red-500/5',
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium tabular-nums">
+                    {item.timestamp.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </span>
+                  {item.response.success ? (
+                    <CheckCircleIcon className="size-4 text-emerald-600" weight="fill" />
+                  ) : (
+                    <XCircleIcon className="size-4 text-red-600" weight="fill" />
+                  )}
                 </div>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+                <p className="text-sm font-medium">
+                  {item.response.ticket_data?.name || 'Unknown'}
+                </p>
+                <p className="hidden text-xs text-muted-foreground md:block">
+                  {item.response.message}
+                </p>
+                {item.response.ticket_data?.proshow && (
+                  <Badge variant="secondary" className="text-[0.65rem]">
+                    Event: {item.response.ticket_data.proshow}
+                  </Badge>
+                )}
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
+      </Card>
+    </div>
   );
 }

@@ -1,38 +1,39 @@
-import {
-  Button,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Paper,
-  Chip,
-  TextField,
-  InputAdornment,
-  Box,
-  Alert,
-  AlertTitle,
-  List,
-  ListItem,
-  ListItemText,
-  Grid,
-} from '@mui/material';
 import { useContext, useEffect, useState, useMemo } from 'react';
+import { debounce } from 'lodash';
+import { UploadSimpleIcon, WarningCircleIcon, CheckCircleIcon } from '@phosphor-icons/react';
 import UserContext from 'Contexts/User/UserContext';
 import { ticketAdminRoles } from 'Hooks/Ticket/ticketRoles';
 import { useTickets } from '../../Hooks/Ticket/useTickets';
 import { ITicketUser } from '../../Hooks/Ticket/ticketTypes';
 import { useAttendees } from '../../Hooks/Ticket/useAttendees';
 import { useProshows } from '../../Hooks/Ticket/useProshows';
-
-import SearchIcon from '@mui/icons-material/Search';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import { debounce } from 'lodash';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import type { DataColumn } from '@/Components/data-table/types';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { ScrollArea } from '@/Components/ui/scroll-area';
+import { Spinner } from '@/Components/ui/spinner';
+import { cn } from '@/lib/utils';
 
 function getRowId(row: ITicketUser) {
   return row.email;
 }
+
+const statusClass: Record<string, string> = {
+  SCANNED: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  EMAILED: 'bg-primary/10 text-primary',
+};
 
 export default function TicketUserList() {
   const { userData, userLoading } = useContext(UserContext);
@@ -89,59 +90,34 @@ export default function TicketUserList() {
   }, [fetchProshows]);
 
   const dynamicColumns = useMemo(() => {
-    const baseColumns: GridColDef[] = [
-      {
-        field: 'name',
-        headerName: 'Name',
-        type: 'string',
-        width: 200,
-      },
-      {
-        field: 'email',
-        headerName: 'Email',
-        type: 'string',
-        width: 250,
-      },
+    const baseColumns: DataColumn<ITicketUser>[] = [
+      { field: 'name', headerName: 'Name', type: 'string', width: 180 },
+      { field: 'email', headerName: 'Email', type: 'string', width: 240 },
     ];
 
-    const proshowCols: GridColDef[] = proshows.map((proshow) => ({
+    const proshowCols: DataColumn<ITicketUser>[] = proshows.map((proshow) => ({
       field: `proshow_${proshow.title}`,
       headerName: proshow.title,
-      width: 450,
-      renderCell: (params: GridRenderCellParams<ITicketUser>) => {
-        const userProshow = params.row.proshows?.find((p) => p.title === proshow.title);
-        if (!userProshow) return <Typography variant="caption">-</Typography>;
+      sortable: false,
+      width: 380,
+      renderCell: ({ row }) => {
+        const userProshow = row.proshows?.find((p) => p.title === proshow.title);
+        if (!userProshow) return <span className="text-muted-foreground">-</span>;
 
         return (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              flexWrap: 'wrap',
-              py: 1,
-            }}
-          >
-            <Chip
-              label={userProshow.status}
-              color={
-                userProshow.status === 'SCANNED'
-                  ? 'success'
-                  : userProshow.status === 'EMAILED'
-                    ? 'primary'
-                    : 'default'
-              }
-              size="small"
-            />
-            <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 py-1 text-xs">
+            <Badge variant="secondary" className={cn(statusClass[userProshow.status])}>
+              {userProshow.status}
+            </Badge>
+            <span className="whitespace-nowrap">
               <strong>Emailed:</strong>{' '}
               {userProshow.emailed_at ? new Date(userProshow.emailed_at).toLocaleString() : '-'}
-            </Typography>
-            <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>
+            </span>
+            <span className="whitespace-nowrap">
               <strong>Scanned:</strong>{' '}
               {userProshow.scanned_at ? new Date(userProshow.scanned_at).toLocaleString() : '-'}
-            </Typography>
-          </Box>
+            </span>
+          </div>
         );
       },
     }));
@@ -173,157 +149,143 @@ export default function TicketUserList() {
   }, [ticketList, loading, userData, userLoading, setError]);
 
   if (error) {
-    return (
-      <Typography variant="h5" sx={{ p: 4 }}>
-        {error}
-      </Typography>
-    );
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Grid container alignItems="center" spacing={2} sx={{ width: '90%', mb: 2, pt: 2 }}>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h5" noWrap component="div">
-            Ticket User List
-          </Typography>
-        </Grid>
-        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-          {userData.roles.some((role) => ticketAdminRoles.includes(role)) && (
-            <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
-              Upload Attendees
-              <input type="file" hidden accept=".csv" onChange={handleFileChange} />
+      <PageHeader
+        title="Attendees"
+        description="Everyone with a proshow ticket and the status of each ticket."
+        actions={
+          userData.roles.some((role) => ticketAdminRoles.includes(role)) && (
+            <Button asChild>
+              <label className="cursor-pointer">
+                <UploadSimpleIcon /> Upload attendees
+                <input type="file" hidden accept=".csv" onChange={handleFileChange} />
+              </label>
             </Button>
-          )}
-        </Grid>
-        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <TextField
-            size="small"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPaginationModel((prev) => ({ ...prev, page: 0 })); // Reset to page 0 on search
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ width: 300 }}
-          />
-        </Grid>
-      </Grid>
-
-      <DataGrid
-        getRowId={getRowId}
-        rows={viewableTickets}
-        columns={dynamicColumns}
-        loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        getRowHeight={() => 'auto'}
-        paginationMode="server"
-        rowCount={rowCount}
-        pageSizeOptions={[20]}
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        showCellVerticalBorder
-        showColumnVerticalBorder
+          )
+        }
       />
 
-      <Dialog open={uploadOpen} onClose={handleCloseUpload} maxWidth="md" fullWidth>
-        <DialogTitle>{uploading ? 'Uploading Attendees...' : 'Upload Result'}</DialogTitle>
-        <DialogContent dividers>
+      <DataTable
+        columns={dynamicColumns}
+        rows={viewableTickets}
+        getRowId={getRowId}
+        loading={loading}
+        exportable={false}
+        searchPlaceholder="Search users..."
+        search={{
+          value: searchTerm,
+          onChange: (value) => {
+            setSearchTerm(value);
+            setPaginationModel((prev) => ({ ...prev, page: 0 })); // Reset to page 0 on search
+          },
+        }}
+        serverPagination={{
+          rowCount,
+          pageIndex: paginationModel.page,
+          pageSize: paginationModel.pageSize,
+          onPaginationChange: ({ pageIndex, pageSize }) =>
+            setPaginationModel({ page: pageIndex, pageSize }),
+        }}
+      />
+
+      <Dialog open={uploadOpen} onOpenChange={(open) => !open && handleCloseUpload()}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{uploading ? 'Uploading attendees...' : 'Upload result'}</DialogTitle>
+            <DialogDescription>
+              {uploading
+                ? 'Processing file, please wait...'
+                : 'Summary of the attendees file that was processed.'}
+            </DialogDescription>
+          </DialogHeader>
+
           {uploading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-              <Typography>Processing file, please wait...</Typography>
-            </Box>
+            <div className="flex items-center justify-center gap-2 p-8 text-muted-foreground">
+              <Spinner /> Processing file...
+            </div>
           )}
 
           {!uploading && !uploadResult && !uploadError && (
-            <Typography sx={{ p: 2 }}>Select a file to start uploading.</Typography>
+            <p className="p-2 text-sm text-muted-foreground">Select a file to start uploading.</p>
           )}
 
           {!uploading && uploadError && (
-            <Alert severity="error" sx={{ width: '100%', m: 2 }}>
-              {uploadError}
+            <Alert variant="destructive">
+              <WarningCircleIcon />
+              <AlertDescription>{uploadError}</AlertDescription>
             </Alert>
           )}
 
           {!uploading && uploadResult && (
-            <Box sx={{ p: 2 }}>
-              <Alert severity="success" sx={{ mb: 2 }}>
-                <AlertTitle>Upload Processed</AlertTitle>
-                Processed {uploadResult.total_rows} rows.
+            <div className="grid gap-4">
+              <Alert>
+                <CheckCircleIcon />
+                <AlertTitle>Upload processed</AlertTitle>
+                <AlertDescription>Processed {uploadResult.total_rows} rows.</AlertDescription>
               </Alert>
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={4}>
-                  <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="h6">{uploadResult.total_rows}</Typography>
-                    <Typography variant="caption">Total Rows</Typography>
-                  </Paper>
-                </Grid>
-                <Grid item xs={4}>
-                  <Paper elevation={1} sx={{ p: 2, textAlign: 'center', bgcolor: '#e8f5e9' }}>
-                    <Typography variant="h6" color="success.main">
-                      {uploadResult.successfully_upserted}
-                    </Typography>
-                    <Typography variant="caption">Success</Typography>
-                  </Paper>
-                </Grid>
-                <Grid item xs={4}>
-                  <Paper
-                    elevation={1}
-                    sx={{
-                      p: 2,
-                      textAlign: 'center',
-                      bgcolor: uploadResult.rejected_total > 0 ? '#ffebee' : 'inherit',
-                    }}
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-lg border p-3">
+                  <div className="text-xl font-semibold tabular-nums">
+                    {uploadResult.total_rows}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Total rows</div>
+                </div>
+                <div className="rounded-lg border bg-emerald-500/10 p-3">
+                  <div className="text-xl font-semibold text-emerald-700 tabular-nums dark:text-emerald-300">
+                    {uploadResult.successfully_upserted}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Success</div>
+                </div>
+                <div
+                  className={cn(
+                    'rounded-lg border p-3',
+                    uploadResult.rejected_total > 0 && 'bg-destructive/10',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'text-xl font-semibold tabular-nums',
+                      uploadResult.rejected_total > 0 && 'text-destructive',
+                    )}
                   >
-                    <Typography
-                      variant="h6"
-                      color={uploadResult.rejected_total > 0 ? 'error.main' : 'inherit'}
-                    >
-                      {uploadResult.rejected_total}
-                    </Typography>
-                    <Typography variant="caption">Rejected</Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
+                    {uploadResult.rejected_total}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Rejected</div>
+                </div>
+              </div>
 
               {uploadResult.rejected_preview.length > 0 && (
-                <>
-                  <Typography variant="subtitle1" gutterBottom color="error">
-                    Rejection Preview:
-                  </Typography>
-                  <Paper variant="outlined" sx={{ maxHeight: 200, overflow: 'auto' }}>
-                    <List dense>
+                <div className="grid gap-2">
+                  <h4 className="text-sm font-semibold text-destructive">Rejection preview</h4>
+                  <ScrollArea className="max-h-52 rounded-lg border">
+                    <ul className="divide-y">
                       {uploadResult.rejected_preview.map((item, idx) => (
-                        <ListItem key={idx} divider>
-                          <ListItemText
-                            primary={`Row Error: ${item.error}`}
-                            secondary={`Data: ${JSON.stringify(item.data)}`}
-                            primaryTypographyProps={{ color: 'error', variant: 'body2' }}
-                          />
-                        </ListItem>
+                        <li key={idx} className="p-3 text-sm">
+                          <div className="font-medium text-destructive">
+                            Row error: {item.error}
+                          </div>
+                          <div className="font-mono text-xs break-all text-muted-foreground">
+                            Data: {JSON.stringify(item.data)}
+                          </div>
+                        </li>
                       ))}
-                    </List>
-                  </Paper>
-                </>
+                    </ul>
+                  </ScrollArea>
+                </div>
               )}
-            </Box>
+            </div>
           )}
+
+          <DialogFooter>
+            <Button onClick={handleCloseUpload} disabled={uploading}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseUpload} variant="contained" disabled={uploading}>
-            Close
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );

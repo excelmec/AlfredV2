@@ -1,62 +1,40 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { DataGrid, GridColDef, GridToolbar, GridValueGetterParams } from '@mui/x-data-grid';
-import { useContext, useEffect, useState, useCallback, useMemo, memo } from 'react';
+import { useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import dayjs from 'dayjs';
+import { ValidationError } from 'yup';
+import { PlusIcon } from '@phosphor-icons/react';
 import { useProshows } from '../../Hooks/Ticket/useProshows';
 import { IProshowResponse, IProshowStats } from '../../Hooks/Ticket/ticketTypes';
 import UserContext from 'Contexts/User/UserContext';
 import { ticketAdminRoles } from 'Hooks/Ticket/ticketRoles';
-import { DateTimePicker } from '@mui/x-date-pickers';
-import dayjs from 'dayjs';
 import {
   proshowValidationSchema,
   IValidateCreateProshow,
   defaultDummyProshow,
 } from 'Hooks/Ticket/create-update/proshowValidation';
-import { ValidationError } from 'yup';
+import { DateTimePicker } from '@/Components/datetime-picker';
+import { FormField } from '@/Components/form-layout';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import type { DataColumn } from '@/Components/data-table/types';
+import { Button } from '@/Components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
+import { Spinner } from '@/Components/ui/spinner';
 
-// Merged type for the DataGrid row
+// Merged type for the table row
 type IProshowMerged = IProshowResponse & Partial<Omit<IProshowStats, 'id' | 'proshow_title'>>;
 
 function getRowId(row: IProshowMerged) {
   return row.id;
 }
-
-interface CustomTextFieldProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  errorText?: string;
-  autoFocus?: boolean;
-}
-
-const CustomTextField = memo(function CustomTextField({
-  label,
-  value,
-  onChange,
-  errorText,
-  autoFocus,
-}: CustomTextFieldProps) {
-  return (
-    <TextField
-      autoFocus={autoFocus}
-      margin="dense"
-      label={label}
-      fullWidth
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      error={!!errorText}
-      helperText={errorText}
-    />
-  );
-});
 
 interface CreateProshowDialogProps {
   open: boolean;
@@ -104,59 +82,51 @@ function CreateProshowDialog({ open, onClose, onSubmit, creating }: CreateProsho
     await onSubmit(newProshow);
   };
 
-  // Stable handlers
-  const handleTitleChange = useCallback((value: string) => {
-    setNewProshow((prev) => ({ ...prev, title: value }));
-  }, []);
-
-  const handleLocationChange = useCallback((value: string) => {
-    setNewProshow((prev) => ({ ...prev, location: value }));
-  }, []);
-
   const getError = (field: keyof IValidateCreateProshow) =>
     validationErrors.find((err) => err.path === field)?.message;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create New Proshow</DialogTitle>
-      <DialogContent dividers>
-        <CustomTextField
-          label="Title"
-          value={newProshow.title}
-          onChange={handleTitleChange}
-          errorText={getError('title')}
-          autoFocus
-        />
-        <CustomTextField
-          label="Location"
-          value={newProshow.location}
-          onChange={handleLocationChange}
-          errorText={getError('location')}
-        />
-
-        <DateTimePicker
-          label="Show Time"
-          value={dayjs(newProshow.show_time)}
-          sx={{ width: '100%', marginTop: 2 }}
-          onChange={(e) => {
-            setNewProshow((prev) => ({
-              ...prev,
-              show_time: e ? e.toDate() : new Date(),
-            }));
-          }}
-        />
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create new proshow</DialogTitle>
+          <DialogDescription>Add a proshow that attendees can hold tickets for.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <FormField label="Title" htmlFor="proshow-title" error={getError('title')}>
+            <Input
+              id="proshow-title"
+              autoFocus
+              value={newProshow.title}
+              aria-invalid={!!getError('title')}
+              onChange={(e) => setNewProshow((prev) => ({ ...prev, title: e.target.value }))}
+            />
+          </FormField>
+          <FormField label="Location" htmlFor="proshow-location" error={getError('location')}>
+            <Input
+              id="proshow-location"
+              value={newProshow.location}
+              aria-invalid={!!getError('location')}
+              onChange={(e) => setNewProshow((prev) => ({ ...prev, location: e.target.value }))}
+            />
+          </FormField>
+          <FormField label="Show time" error={getError('show_time')}>
+            <DateTimePicker
+              value={newProshow.show_time}
+              onChange={(value) => setNewProshow((prev) => ({ ...prev, show_time: value }))}
+            />
+          </FormField>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleCreateSubmit} disabled={creating}>
+            {creating && <Spinner />}
+            Create
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button
-          onClick={handleCreateSubmit}
-          disabled={creating}
-          variant="contained"
-          color="primary"
-        >
-          Create
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
@@ -185,7 +155,7 @@ export default function ProshowList() {
     });
   }, [proshows, stats]);
 
-  const columns: GridColDef[] = useMemo(
+  const columns: DataColumn<IProshowMerged>[] = useMemo(
     () => [
       { field: 'title', headerName: 'Title', width: 180 },
       { field: 'location', headerName: 'Location', width: 150 },
@@ -193,8 +163,7 @@ export default function ProshowList() {
         field: 'show_time',
         headerName: 'Show Time',
         width: 180,
-        valueGetter: (params: GridValueGetterParams<IProshowMerged>) =>
-          new Date(params.row.show_time).toLocaleString(),
+        valueGetter: ({ row }) => new Date(row.show_time),
       },
       // Stats Columns
       { field: 'total', headerName: 'Total', width: 90, type: 'number' },
@@ -228,48 +197,29 @@ export default function ProshowList() {
   };
 
   if (error) {
-    return (
-      <Typography variant="h5" sx={{ p: 4 }}>
-        {error}
-      </Typography>
-    );
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Proshows
-      </Typography>
-      <br />
-      {userData.roles.some((role) => ticketAdminRoles.includes(role)) && (
-        <Button variant="contained" size="small" onClick={() => setCreateOpen(true)}>
-          Create Proshow
-        </Button>
-      )}
-      <br />
-      <br />
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
-        rows={mergedProshows}
+      <PageHeader
+        title="Proshows"
+        description="Proshows and how many tickets are created, emailed and scanned."
+        actions={
+          userData.roles.some((role) => ticketAdminRoles.includes(role)) && (
+            <Button onClick={() => setCreateOpen(true)}>
+              <PlusIcon weight="bold" /> Create proshow
+            </Button>
+          )
+        }
+      />
+      <DataTable
         columns={columns}
+        rows={mergedProshows}
+        getRowId={getRowId}
         loading={loading}
-        sx={{
-          width: '95%',
-        }}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
+        exportFileName="proshows"
+        searchPlaceholder="Search proshows..."
       />
 
       <CreateProshowDialog
