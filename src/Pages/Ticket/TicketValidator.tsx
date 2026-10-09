@@ -13,9 +13,7 @@ import {
   Html5QrcodeSupportedFormats,
 } from 'html5-qrcode';
 import {
-  CameraRotateIcon,
   CheckCircleIcon,
-  VideoCameraIcon,
   VideoCameraSlashIcon,
   WarningCircleIcon,
   XCircleIcon,
@@ -48,10 +46,22 @@ interface IScanHistoryItem {
 
 type MarathonStage = 'COLLECTION' | 'CHECKIN';
 
+const STAGE_STORAGE_KEY = 'marathon-scan-stage';
+
+function readSavedStage(): MarathonStage {
+  try {
+    const saved = localStorage.getItem(STAGE_STORAGE_KEY);
+    if (saved === 'COLLECTION' || saved === 'CHECKIN') return saved;
+  } catch {
+    // storage unavailable
+  }
+  return 'CHECKIN';
+}
+
 export default function TicketValidator({ marathon = false }: { marathon?: boolean }) {
   const { axiosTicketsPrivate } = useContext(ApiContext);
-  const [stage, setStage] = useState<MarathonStage>('CHECKIN');
-  const stageRef = useRef<MarathonStage>('CHECKIN');
+  const [stage, setStage] = useState<MarathonStage>(readSavedStage);
+  const stageRef = useRef<MarathonStage>(stage);
   const [scanHistory, setScanHistory] = useState<IScanHistoryItem[]>([]);
   const [currentResult, setCurrentResult] = useState<IScanResponse | null>(null);
   const [inlineResult, setInlineResult] = useState<IScanResponse | null>(null);
@@ -178,40 +188,6 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
     }
   };
 
-  const stopScan = async () => {
-    if (!scannerRef.current) return;
-
-    try {
-      if (scannerRef.current.isScanning) {
-        await scannerRef.current.stop();
-      }
-      scannerRef.current.clear();
-    } catch (err) {
-      console.error('Failed to stop scanner', err);
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  const toggleScan = async () => {
-    if (isScanning) {
-      await stopScan();
-    } else {
-      await startScan();
-    }
-  };
-
-  const switchCamera = async () => {
-    if (availableCameras.length <= 1) return;
-
-    const nextIndex = (currentCameraIndex + 1) % availableCameras.length;
-    setCurrentCameraIndex(nextIndex);
-
-    if (isScanning) {
-      await startScan(nextIndex);
-    }
-  };
-
   async function onScanSuccess(decodedText: string, _decodedResult: any) {
     const now = Date.now();
 
@@ -322,26 +298,33 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
 
   return (
     <div className="grid min-h-[calc(100dvh-9rem)] gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <div className="flex min-h-0 flex-col gap-3">
+      <div className="flex min-h-0 min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">
+            <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
               {marathon ? 'Marathon ticket validator' : 'Ticket validator'}
             </h2>
             <p className="text-sm text-muted-foreground">
               Point the camera at a ticket QR code to validate it.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
             {marathon && (
               <>
                 {(['COLLECTION', 'CHECKIN'] as const).map((value) => (
                   <Button
                     key={value}
+                    size="lg"
+                    className="h-14 text-base font-semibold sm:w-auto sm:min-w-44"
                     variant={stage === value ? 'default' : 'outline'}
                     onClick={() => {
                       setStage(value);
                       stageRef.current = value;
+                      try {
+                        localStorage.setItem(STAGE_STORAGE_KEY, value);
+                      } catch {
+                        // storage unavailable
+                      }
                     }}
                   >
                     {value === 'COLLECTION' ? 'Bib collection' : 'Race check-in'}
@@ -349,25 +332,6 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
                 ))}
               </>
             )}
-            {availableCameras.length > 1 && isScanning && (
-              <Button variant="outline" onClick={switchCamera}>
-                <CameraRotateIcon /> Switch
-              </Button>
-            )}
-            <Button
-              variant={isScanning ? 'destructive' : 'default'}
-              onClick={toggleScan}
-              disabled={isInitializing}
-            >
-              {isInitializing ? (
-                <Spinner />
-              ) : isScanning ? (
-                <VideoCameraSlashIcon />
-              ) : (
-                <VideoCameraIcon />
-              )}
-              {isInitializing ? 'Starting...' : isScanning ? 'Stop camera' : 'Start camera'}
-            </Button>
           </div>
         </div>
 
@@ -378,12 +342,12 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
           </Alert>
         )}
 
-        <div className="relative aspect-square min-h-[300px] w-full overflow-hidden rounded-xl border bg-black shadow-sm lg:aspect-auto lg:flex-1">
+        <div className="relative mx-auto aspect-square max-h-[60dvh] min-h-[260px] w-full overflow-hidden rounded-xl border bg-black shadow-sm lg:mx-0 lg:aspect-auto lg:max-h-none lg:flex-1">
           {!isScanning && !isInitializing && (
             <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center gap-1 text-white">
               <VideoCameraSlashIcon className="mb-2 size-10 opacity-60" />
               <p className="text-lg font-semibold">Camera is off</p>
-              <p className="text-sm text-neutral-400">Click "Start camera" to begin scanning</p>
+              <p className="text-sm text-neutral-400">Allow camera access to begin scanning</p>
             </div>
           )}
 
@@ -432,16 +396,18 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
               )}
             >
               {inlineResult.success ? (
-                <CheckCircleIcon className="size-20" weight="fill" />
+                <CheckCircleIcon className="size-14 sm:size-20" weight="fill" />
               ) : (
-                <XCircleIcon className="size-20" weight="fill" />
+                <XCircleIcon className="size-14 sm:size-20" weight="fill" />
               )}
-              <p className="mt-2 text-3xl font-bold tracking-tight">
+              <p className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
                 {inlineResult.success ? 'SUCCESS' : 'FAILED'}
               </p>
               {inlineResult.ticket_data && (
                 <>
-                  <p className="mt-2 text-xl font-semibold">{inlineResult.ticket_data.name}</p>
+                  <p className="mt-2 text-lg font-semibold break-words sm:text-xl">
+                    {inlineResult.ticket_data.name}
+                  </p>
                   <Badge
                     className={cn(
                       'mt-2 bg-white px-3 py-1 text-sm font-bold hover:bg-white',
@@ -478,7 +444,7 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
               <XCircleIcon className="size-8 shrink-0" weight="fill" />
             )}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-x-2">
                 <span className="font-bold">{currentResult.success ? 'SUCCESS' : 'FAILED'}</span>
                 {currentResult.ticket_data?.proshow && (
                   <Badge className="bg-white/25 text-white hover:bg-white/25">
@@ -495,12 +461,14 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
                 <p className="text-xs opacity-85">{currentResult.message}</p>
               )}
             </div>
-            <span className="text-xs whitespace-nowrap opacity-60">tap to dismiss</span>
+            <span className="hidden text-xs whitespace-nowrap opacity-60 sm:inline">
+              tap to dismiss
+            </span>
           </button>
         )}
       </div>
 
-      <Card className="max-h-[70vh] min-h-0 gap-0 overflow-hidden py-0 lg:max-h-none">
+      <Card className="flex max-h-[45dvh] min-h-0 gap-0 overflow-hidden py-0 lg:max-h-none">
         <div className="border-b bg-muted/50 px-4 py-2.5 text-sm font-semibold">
           History ({scanHistory.length})
         </div>
