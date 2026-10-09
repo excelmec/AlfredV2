@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { CaretRightIcon } from '@phosphor-icons/react';
+import { CaretRightIcon, SidebarSimpleIcon } from '@phosphor-icons/react';
 import UserContext from 'Contexts/User/UserContext';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/Components/ui/collapsible';
 import {
@@ -16,7 +16,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
-  SidebarTrigger,
+  useSidebar,
 } from '@/Components/ui/sidebar';
 import UserLoginAvatarButton from '../Login/UserLoginAvatarButton';
 import { bottomLinks, navGroups, topLinks, type NavLeaf } from './navigation';
@@ -24,6 +24,7 @@ import { bottomLinks, navGroups, topLinks, type NavLeaf } from './navigation';
 export default function AppSidebar() {
   const { userData, userLoading, logout } = useContext(UserContext);
   const { pathname } = useLocation();
+  const { state, toggleSidebar } = useSidebar();
 
   const canSee = (item: NavLeaf) =>
     !item.roles || userData.roles.some((role) => item.roles?.includes(role));
@@ -32,7 +33,7 @@ export default function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-1">
+          <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tooltip="Alfred">
               <NavLink to="/">
                 <img src="/logo.png" alt="Excel" className="size-8 shrink-0 object-contain" />
@@ -42,7 +43,6 @@ export default function AppSidebar() {
                 </div>
               </NavLink>
             </SidebarMenuButton>
-            <SidebarTrigger className="shrink-0 group-data-[collapsible=icon]:hidden" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -101,6 +101,16 @@ export default function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={toggleSidebar}
+              tooltip={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+              className="text-muted-foreground"
+            >
+              <SidebarSimpleIcon />
+              <span>Collapse sidebar</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <UserLoginAvatarButton userLoading={userLoading} userData={userData} logout={logout} />
           </SidebarMenuItem>
