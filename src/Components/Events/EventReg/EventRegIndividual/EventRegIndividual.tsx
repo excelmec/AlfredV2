@@ -1,26 +1,22 @@
-import {
-  DataGrid,
-  GridActionsCellItem,
-  GridColumnVisibilityModel,
-  GridRowParams,
-  GridToolbar,
-} from '@mui/x-data-grid';
+import { useState } from 'react';
+import { EyeIcon } from '@phosphor-icons/react';
 import { IRegistration } from 'Hooks/Event/registrationTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import './EventRegIndividual.css';
 import { IUser } from 'Hooks/useUserList';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
+import { DetailCard } from '@/Components/detail-card';
+import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import {
-  Button,
   Dialog,
-  DialogActions,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  Divider,
-  Grid,
-  Typography,
-} from '@mui/material';
-import { useState } from 'react';
+} from '@/Components/ui/dialog';
 
 export default function EventRegIndividual({
   individualRegsLoading,
@@ -35,7 +31,7 @@ export default function EventRegIndividual({
   checkInIndividual: (registration: IRegistration) => Promise<void>;
   isTeam: boolean;
 }) {
-  const initialColVisibility: GridColumnVisibilityModel = {
+  const initialColVisibility = {
     'user.category': false,
     ambassadorId: false,
     teamId: isTeam,
@@ -44,16 +40,18 @@ export default function EventRegIndividual({
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
-  const muiColumns = [
+  const columns: DataColumn<IRegistration>[] = [
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
       width: 70,
-      getActions: (params: GridRowParams<IRegistration>) => [
-        <GridActionsCellItem
-          icon={<VisibilityIcon color="primary" />}
-          label="View"
+      getActions: (params) => [
+        <RowAction
+          key="view"
+          icon={<EyeIcon />}
+          label="View user"
+          tone="primary"
           onClick={() => {
             setSelectedUser(params.row?.user);
             setUserDetailsOpen(true);
@@ -64,71 +62,62 @@ export default function EventRegIndividual({
     {
       field: 'checkedIn',
       headerName: 'Checked In',
-      type: 'actions',
+      type: 'string',
       width: 95,
-      getActions: (params: GridRowParams<IRegistration>) => [
-        <GridActionsCellItem
-          icon={<input id="test" type="checkbox" defaultChecked={params.row?.checkedIn}></input>}
-          label="Check in"
-          onClick={(event) => {
-            const target = event?.target as HTMLInputElement;
-            if (params.row) {
-              params.row.checkedIn = target.checked;
-              checkInIndividual(params.row);
-            }
-          }}
-        />,
-      ],
+      align: 'center',
+      sortable: false,
+      renderCell: ({ row }) => <CheckInCell row={row} checkIn={checkInIndividual} />,
     },
     ...regIndividualCols,
   ];
 
   return (
     <>
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
+      <DataTable
+        columns={columns}
         rows={eventRegsIndividual}
-        columns={muiColumns}
+        getRowId={getRowId}
         loading={individualRegsLoading}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
-        showCellVerticalBorder
-        showColumnVerticalBorder
-        initialState={{
-          columns: {
-            columnVisibilityModel: initialColVisibility,
-          },
-        }}
+        initialColumnVisibility={initialColVisibility}
+        exportFileName="event-registrations"
+        searchPlaceholder="Search registrations..."
       />
 
-      <Dialog
-        open={userDetailsOpen}
-        onClose={() => setUserDetailsOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>User Details</DialogTitle>
-        <DialogContent>
+      <Dialog open={userDetailsOpen} onOpenChange={setUserDetailsOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>User details</DialogTitle>
+            <DialogDescription>Contact details of the registered user.</DialogDescription>
+          </DialogHeader>
           <UserDetails user={selectedUser} />
+          <DialogFooter>
+            <Button onClick={() => setUserDetailsOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={() => setUserDetailsOpen(false)} variant="contained">
-            Close
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
+  );
+}
+
+function CheckInCell({
+  row,
+  checkIn,
+}: {
+  row: IRegistration;
+  checkIn: (registration: IRegistration) => Promise<void>;
+}) {
+  const [checked, setChecked] = useState(!!row.checkedIn);
+  return (
+    <Checkbox
+      aria-label="Check in"
+      checked={checked}
+      onCheckedChange={(value) => {
+        const next = value === true;
+        setChecked(next);
+        row.checkedIn = next;
+        checkIn(row);
+      }}
+    />
   );
 }
 
@@ -138,50 +127,19 @@ function getRowId(row: IRegistration) {
 
 function UserDetails({ user }: { user: IUser | null }) {
   if (!user) {
-    return <Typography variant="h5">No User selected</Typography>;
+    return <p className="text-sm text-muted-foreground">No user selected</p>;
   }
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Divider />
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">User ID</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{user?.id}</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">Name</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{user?.name}</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">Email</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{user?.email}</Typography>
-      </Grid>
-
-      <Grid item xs={6}>
-        <Typography variant="body2">Mobile</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{user?.mobileNumber}</Typography>
-      </Grid>
-
-      <Grid item xs={6}>
-        <Typography variant="body2">Institution</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{user.institution}</Typography>
-      </Grid>
-
-      <Grid item xs={12}>
-        <Divider />
-      </Grid>
-    </Grid>
+    <DetailCard
+      items={[
+        { label: 'User ID', value: user.id },
+        { label: 'Name', value: user.name },
+        { label: 'Email', value: user.email },
+        { label: 'Mobile', value: user.mobileNumber },
+        { label: 'Institution', value: user.institution },
+      ]}
+      className="border-0 bg-transparent p-0 shadow-none ring-0"
+    />
   );
 }

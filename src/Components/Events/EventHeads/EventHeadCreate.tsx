@@ -1,18 +1,16 @@
-import {
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { useEventHeadCrud } from 'Hooks/Event/eventHeads/useEventHeadCrud';
-import { useEffect } from 'react';
-import './EventHeadLoader.css';
 import { toast } from 'sonner';
+import { useEventHeadCrud } from 'Hooks/Event/eventHeads/useEventHeadCrud';
+import { Button } from '@/Components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { Spinner } from '@/Components/ui/spinner';
+import EventHeadFields from './EventHeadFields';
 
 export default function EventHeadCreateModal({
   open,
@@ -52,98 +50,31 @@ export default function EventHeadCreateModal({
     }
   }
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
-    <Dialog open={open} onClose={setOpen}>
-      <DialogTitle>Create Event Head</DialogTitle>
+    <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent>
-        <div
-          className="event-head-loading-overlay"
-          style={{ display: eventHeadLoading ? 'flex' : 'none' }}
-        >
-          <CircularProgress />
-        </div>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Typography variant="h6">Name</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              variant="outlined"
-              fullWidth
-              size="small"
-              required
-              placeholder="Enter name"
-              disabled={eventHeadLoading}
-              value={eventHead.name}
-              onChange={(e) => {
-                setEventHead({
-                  ...eventHead,
-                  name: e.target.value,
-                });
-              }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="h6">Email</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              variant="outlined"
-              fullWidth
-              size="small"
-              required
-              placeholder="Enter email"
-              disabled={eventHeadLoading}
-              value={eventHead.email}
-              onChange={(e) => {
-                setEventHead({
-                  ...eventHead,
-                  email: e.target.value,
-                });
-              }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="h6">Phone Number</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              variant="outlined"
-              fullWidth
-              size="small"
-              required
-              placeholder="Enter phone number"
-              disabled={eventHeadLoading}
-              value={eventHead.phoneNumber}
-              onChange={(e) => {
-                setEventHead({
-                  ...eventHead,
-                  phoneNumber: e.target.value,
-                });
-              }}
-            />
-          </Grid>
-          {error && (
-            <Grid item xs={12}>
-              <Typography variant="h6" color="error">
-                {error}
-              </Typography>
-            </Grid>
-          )}
-        </Grid>
+        <DialogHeader>
+          <DialogTitle>Create event head</DialogTitle>
+          <DialogDescription>
+            Add a person who can manage registrations for events.
+          </DialogDescription>
+        </DialogHeader>
+        <EventHeadFields
+          eventHead={eventHead}
+          setEventHead={setEventHead}
+          disabled={eventHeadLoading}
+          error={error}
+        />
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={eventHeadLoading}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={eventHeadLoading}>
+            {eventHeadLoading && <Spinner />}
+            Create
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button autoFocus onClick={handleSave} disabled={eventHeadLoading}>
-          Create
-        </Button>
-        <Button onClick={handleClose} autoFocus disabled={eventHeadLoading}>
-          Cancel
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

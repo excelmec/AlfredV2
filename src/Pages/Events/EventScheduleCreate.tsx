@@ -1,11 +1,14 @@
-import { Box, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import lodash from 'lodash';
 import CreateSchedule from 'Components/Events/EventSchedule/CreateSchedule';
 import EventEditToolBar from 'Components/Events/EventSchedule/CreateScheduleToolBar';
-import { defaultDummyEvent } from 'Hooks/Event/create-update/eventScheduleValidation';
-import lodash from 'lodash';
-import { useEffect, useState } from 'react';
-import { IValidateCreateEventSchedule } from 'Hooks/Event/create-update/eventScheduleValidation';
+import {
+  defaultDummyEvent,
+  IValidateCreateEventSchedule,
+} from 'Hooks/Event/create-update/eventScheduleValidation';
 import { useScheduleList } from 'Hooks/Event/useScheduleList';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
 
 export default function EventScheduleCreate() {
   const {
@@ -29,25 +32,12 @@ export default function EventScheduleCreate() {
   }, [newEvent]);
 
   if (creatingScheduleError) {
-    return <Typography variant="h5">{creatingScheduleError}</Typography>;
+    return <PageError>{creatingScheduleError}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
-        <Typography variant="h5" noWrap>
-          Add Event Schedule details
-        </Typography>
-      </Box>
-      <br />
+      <PageHeader title="Add event schedule" description="Schedule a round for an event." />
 
       <EventEditToolBar
         saveChanges={createSchedule}

@@ -1,24 +1,21 @@
-import {
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
-
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import './EventRegContainer.css';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon } from '@phosphor-icons/react';
 import { IRegistration, ITeam } from 'Hooks/Event/registrationTypes';
-import EventRegIndividual from './EventRegIndividual/EventRegIndividual';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { IEvent } from 'Hooks/Event/eventTypes';
+import EventRegIndividual from './EventRegIndividual/EventRegIndividual';
 import EventRegTeams from './EventRegTeams/EventRegTeams';
-import { useNavigate } from 'react-router-dom';
-import { StyledTableCell } from 'Components/Commons/TableCell';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Skeleton } from '@/Components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/Components/ui/table';
 
 export default function EventRegContainer({
   individualRegsLoading,
@@ -45,10 +42,16 @@ export default function EventRegContainer({
   eventRegsTeam: ITeam[];
   teamRegsLoading: boolean;
 }) {
+  const navigate = useNavigate();
+
   return (
-    <Box className="event-reg-wrapper" component={Paper} elevation={2}>
-      <ToolBar />
-      <br />
+    <div className="grid gap-6">
+      <div>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeftIcon /> Back
+        </Button>
+      </div>
+
       <RegStatistics
         individualRegsLoading={individualRegsLoading}
         eventRegsIndividual={eventRegsIndividual}
@@ -56,38 +59,53 @@ export default function EventRegContainer({
         eventRegsTeam={eventRegsTeam}
         teamRegsLoading={teamRegsLoading}
       />
-      <br />
-      <Grid container spacing={2} justifyContent="center" className="event-reg-table-grid">
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Registration list (User wise)</Typography>
-        </Grid>
-        <Grid item xs={12} className="event-reg-table-wrapper">
-          <EventRegIndividual
-            individualRegsLoading={individualRegsLoading}
-            eventRegsIndividual={eventRegsIndividual}
-            regIndividualCols={regIndividualCols}
-            checkInIndividual={checkInIndividual}
-            isTeam={event?.isTeam ?? false}
+
+      <section className="grid gap-3">
+        <h3 className="text-lg font-semibold tracking-tight">Registrations (user wise)</h3>
+        <EventRegIndividual
+          individualRegsLoading={individualRegsLoading}
+          eventRegsIndividual={eventRegsIndividual}
+          regIndividualCols={regIndividualCols}
+          checkInIndividual={checkInIndividual}
+          isTeam={event?.isTeam ?? false}
+        />
+      </section>
+
+      {event?.isTeam && (
+        <section className="grid gap-3">
+          <h3 className="text-lg font-semibold tracking-tight">Registrations (team wise)</h3>
+          <EventRegTeams
+            institutionMap={institutionMap}
+            teamCols={teamCols}
+            eventRegsTeam={eventRegsTeam}
+            teamRegsLoading={teamRegsLoading}
           />
-        </Grid>
-        {event?.isTeam && (
-          <>
-            <Grid item xs={12}>
-              <Typography variant="h5">Event Registration list (Team wise)</Typography>
-            </Grid>
-            <Grid item xs={12} className="event-reg-table-wrapper">
-              <EventRegTeams
-                institutionMap={institutionMap}
-                teamCols={teamCols}
-                eventRegsTeam={eventRegsTeam}
-                teamRegsLoading={teamRegsLoading}
-              />
-            </Grid>
-          </>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: number | string;
+  loading: boolean;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardDescription>{label}</CardDescription>
+        {loading ? (
+          <Skeleton className="h-8 w-16" />
+        ) : (
+          <CardTitle className="text-3xl tabular-nums">{value}</CardTitle>
         )}
-      </Grid>
-      <br />
-    </Box>
+      </CardHeader>
+    </Card>
   );
 }
 
@@ -111,108 +129,59 @@ function RegStatistics({
   eventRegsIndividual.forEach((reg) => {
     const institutionName = reg.user?.institution;
     if (institutionName) {
-      const regsFromInsituteCount = regsFromCollegeMap.get(institutionName);
-
-      if (regsFromInsituteCount) {
-        regsFromCollegeMap.set(institutionName, regsFromInsituteCount + 1);
-      } else {
-        regsFromCollegeMap.set(institutionName, 1);
-      }
+      regsFromCollegeMap.set(institutionName, (regsFromCollegeMap.get(institutionName) ?? 0) + 1);
     }
   });
 
-  if (individualRegsLoading || teamRegsLoading) {
-    return (
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="event-reg-statistics-grid"
-      >
-        <Grid item xs={12}>
-          <Typography variant="h5">Statistics</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Loading...</Typography>
-        </Grid>
-      </Grid>
-    );
-  }
+  const loading = individualRegsLoading || teamRegsLoading;
+  const institutions = Array.from(regsFromCollegeMap).sort((a, b) => b[1] - a[1]);
 
   return (
-    <Grid
-      container
-      spacing={2}
-      justifyContent="center"
-      alignItems="center"
-      className="event-reg-statistics-grid"
-    >
-      <Grid item xs={12}>
-        <Typography variant="h5">Statistics</Typography>
-      </Grid>
-      <Grid item xs={3}>
-        <Typography>Total Registrations</Typography>
-      </Grid>
-      <Grid item xs={9}>
-        <Typography>{eventRegsIndividual.length}</Typography>
-      </Grid>
+    <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Total registrations"
+          value={eventRegsIndividual.length}
+          loading={loading}
+        />
+        {event?.isTeam && (
+          <StatCard label="Total teams" value={eventRegsTeam?.length ?? 0} loading={loading} />
+        )}
+        <StatCard
+          label="Checked in"
+          value={eventRegsIndividual.filter((r) => r.checkedIn).length}
+          loading={loading}
+        />
+        <StatCard label="Institutions" value={regsFromCollegeMap.size} loading={loading} />
+      </div>
 
-      {event?.isTeam && (
-        <>
-          <Grid item xs={3}>
-            <Typography>Total Teams</Typography>
-          </Grid>
-          <Grid item xs={9}>
-            <Typography>{eventRegsTeam?.length}</Typography>
-          </Grid>
-        </>
-      )}
-      {regsFromCollegeMap.size > 0 && (
-        <>
-          <Grid item xs={3}>
-            <Typography>Institution wise Registrations</Typography>
-          </Grid>
-          <Grid item xs={9} container>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <StyledTableCell>Institution</StyledTableCell>
-                  <StyledTableCell>Count</StyledTableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Array.from(regsFromCollegeMap).map(([college, count]) => (
-                  <TableRow key={college}>
-                    <StyledTableCell>{college}</StyledTableCell>
-                    <StyledTableCell>{count}</StyledTableCell>
+      {!loading && institutions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Institution wise registrations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-72 overflow-y-auto rounded-lg border">
+              <Table>
+                <TableHeader className="sticky top-0 bg-muted">
+                  <TableRow>
+                    <TableHead>Institution</TableHead>
+                    <TableHead className="w-24 text-right">Count</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Grid>
-        </>
+                </TableHeader>
+                <TableBody>
+                  {institutions.map(([college, count]) => (
+                    <TableRow key={college}>
+                      <TableCell>{college}</TableCell>
+                      <TableCell className="text-right tabular-nums">{count}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       )}
-    </Grid>
-  );
-}
-
-function ToolBar() {
-  const navigate = useNavigate();
-  return (
-    <Box className="event-reg-toolbar" component={Paper} elevation={2} borderRadius={0} zIndex={5}>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<ArrowBackIcon />}
-        className="toolbutton"
-        onClick={() => {
-          navigate(-1);
-        }}
-      >
-        Back
-      </Button>
-      <Box sx={{ flexGrow: 1 }} />
-    </Box>
+    </div>
   );
 }

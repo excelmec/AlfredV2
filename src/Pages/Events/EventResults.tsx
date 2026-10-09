@@ -1,25 +1,8 @@
-import {
-  Autocomplete,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  IconButton,
-  Paper,
-  TextField,
-  Typography,
-} from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon, PencilSimpleIcon, PlusIcon, TrashIcon } from '@phosphor-icons/react';
 import { useEventDesc } from '../../Hooks/Event/useEventDesc';
 import UserContext from 'Contexts/User/UserContext';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import {
   allEventEditRoles,
   allEventViewRoles,
@@ -30,6 +13,30 @@ import { defaultResult, IValidateResult } from 'Hooks/Event/results/resultValida
 import { IResult } from 'Hooks/Event/eventTypes';
 import { useEventRegList } from 'Hooks/Event/registrations/useEventReg';
 import { IRegistration, ITeam } from 'Hooks/Event/registrationTypes';
+import { Combobox } from '@/Components/combobox';
+import { ConfirmDialog } from '@/Components/confirm-dialog';
+import { PageHeader } from '@/Components/page-header';
+import { PageError, PageLoading } from '@/Components/page-state';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent } from '@/Components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { ScrollArea } from '@/Components/ui/scroll-area';
+import { Spinner } from '@/Components/ui/spinner';
+
+function excelIdOf(reg: IRegistration): number {
+  const raw: any = reg.excelId;
+  return Number(typeof raw === 'object' && raw !== null && 'id' in raw ? raw.id : raw) || 0;
+}
 
 export default function EventResults() {
   const { event, fetchEvent, loading, error, setError } = useEventDesc();
@@ -46,13 +53,7 @@ export default function EventResults() {
     setError: setCrudError,
   } = useEventResultsCrud();
 
-  const {
-    fetchEventRegList,
-    eventRegsIndividual,
-    eventRegsTeam,
-    individualRegsLoading,
-    teamRegsLoading,
-  } = useEventRegList();
+  const { fetchEventRegList, eventRegsIndividual, eventRegsTeam } = useEventRegList();
 
   const [openDialog, setOpenDialog] = useState(false);
   const [editingResult, setEditingResult] = useState<IResult | null>(null);
@@ -62,6 +63,7 @@ export default function EventResults() {
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [resultToDelete, setResultToDelete] = useState<number | null>(null);
   const [canEdit, setCanEdit] = useState(false);
+  const [participantKey, setParticipantKey] = useState('');
 
   useEffect(() => {
     if (!Number.isInteger(Number(id))) {
@@ -95,6 +97,7 @@ export default function EventResults() {
   }, [event, loading, userData]);
 
   const handleOpenDialog = (result?: IResult) => {
+    setParticipantKey('');
     if (result) {
       setEditingResult(result);
       setFormData({
@@ -169,371 +172,283 @@ export default function EventResults() {
     }));
   };
 
-  const handleRegistrationSelect = (_event: any, newValue: IRegistration | ITeam | null) => {
-    if (!newValue) return;
-
-    if ('user' in newValue) {
-      const reg = newValue as IRegistration;
-      const excelIdVal =
-        typeof reg.excelId === 'object' && reg.excelId !== null && 'id' in reg.excelId
-          ? (reg.excelId as any).id
-          : reg.excelId;
-
-      setFormData((prev) => ({
-        ...prev,
-        excelId: Number(excelIdVal) || 0,
-        name: reg.user.name,
-        teamId: reg.teamId?.id ?? reg.user.id,
-        teamName: reg.user.name,
-        teamMembers: reg.user.name,
+  const participantOptions = event?.isTeam
+    ? eventRegsTeam.map((team) => ({
+        value: String(team.id),
+        label: team.name,
+        description: `Team ID: ${team.id}`,
+      }))
+    : eventRegsIndividual.map((reg) => ({
+        value: String(excelIdOf(reg)),
+        label: reg.user?.name ?? String(excelIdOf(reg)),
+        description: `Excel ID: ${excelIdOf(reg)}`,
       }));
-    } else {
-      const team = newValue as ITeam;
-      const firstMemberExcelId = team.registrations[0]?.excelId;
-      const excelIdVal =
-        typeof firstMemberExcelId === 'object' &&
-        firstMemberExcelId !== null &&
-        'id' in firstMemberExcelId
-          ? (firstMemberExcelId as any).id
-          : firstMemberExcelId;
 
+  const handleRegistrationSelect = (key: string) => {
+    setParticipantKey(key);
+
+    if (event?.isTeam) {
+      const team = eventRegsTeam.find((t: ITeam) => String(t.id) === key);
+      if (!team) return;
       setFormData((prev) => ({
         ...prev,
-        excelId: Number(excelIdVal) || 0,
+        excelId: excelIdOf(team.registrations[0]),
         name: team.name,
         teamId: team.id,
         teamName: team.name,
         teamMembers: team.registrations.map((r) => r.user.name).join(', '),
       }));
+    } else {
+      const reg = eventRegsIndividual.find((r) => String(excelIdOf(r)) === key);
+      if (!reg) return;
+      setFormData((prev) => ({
+        ...prev,
+        excelId: excelIdOf(reg),
+        name: reg.user.name,
+        teamId: reg.teamId?.id ?? reg.user.id,
+        teamName: reg.user.name,
+        teamMembers: reg.user.name,
+      }));
     }
   };
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   if (loading || !event) {
-    return <Typography variant="h5">Loading...</Typography>;
+    return <PageLoading />;
   }
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        height: '100%',
-        flexDirection: 'column',
-        alignItems: 'center',
-        width: '100%',
-      }}
-    >
-      <br />
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
-        <Typography variant="h5" noWrap>
-          Event Results: {event.name}
-        </Typography>
-      </Box>
-      <br />
-
-      <Box
-        sx={{
-          width: '90%',
-          marginBottom: '20px',
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-        component={Paper}
-        elevation={2}
-      >
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            padding: '10px 30px',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-          component={Paper}
-          elevation={2}
-          borderRadius={0}
-          zIndex={5}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<ArrowBackIcon />}
-            onClick={() => {
-              navigate(-1);
-            }}
-          >
-            Back
-          </Button>
-          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-            {canEdit && (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenDialog()}
-              >
-                Add Result
-              </Button>
-            )}
-          </Box>
-          {canEdit && (
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => {
-                setDeleteConfirmationText('');
-                setDeleteAllConfirmationOpen(true);
-              }}
-            >
-              Delete All
+    <>
+      <PageHeader
+        title={`Results: ${event.name}`}
+        description="Declare and manage the winners of this event."
+        actions={
+          <>
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              <ArrowLeftIcon /> Back
             </Button>
-          )}
-        </Box>
-
-        <Box sx={{ padding: 3 }}>
-          {crudError && (
-            <Typography color="error" variant="body1" sx={{ mb: 2 }}>
-              {crudError}
-            </Typography>
-          )}
-
-          <Grid container spacing={2}>
-            {event.results && event.results.length > 0 ? (
-              event.results.map((res) => (
-                <Grid item xs={12} key={res.id}>
-                  <Paper elevation={1} sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={1}>
-                        <Typography variant="h6">{res.position}</Typography>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <Typography variant="body1">
-                          <strong>{res.teamName}</strong>
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={4}>
-                        <Typography variant="body2">{res.teamMembers}</Typography>
-                      </Grid>
-                      <Grid item xs={2}>
-                        <Typography variant="caption">
-                          ID: {res.excelId} | Team: {res.teamId}
-                        </Typography>
-                      </Grid>
-                      {canEdit && (
-                        <Grid item xs={2} sx={{ textAlign: 'right' }}>
-                          <IconButton
-                            color="primary"
-                            onClick={() => handleOpenDialog(res)}
-                            size="small"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            color="error"
-                            onClick={() => {
-                              setResultToDelete(res.id);
-                              setDeleteConfirmationOpen(true);
-                            }}
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Grid>
-                      )}
-                    </Grid>
-                  </Paper>
-                </Grid>
-              ))
-            ) : (
-              <Grid item xs={12}>
-                <Typography align="center">No results declared yet.</Typography>
-              </Grid>
-            )}
-          </Grid>
-        </Box>
-
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>{editingResult ? 'Edit Result' : 'Add Result'}</DialogTitle>
-          <DialogContent>
-            {crudError && (
-              <Typography color="error" variant="body2" sx={{ mb: 2 }}>
-                {crudError}
-              </Typography>
-            )}
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <Autocomplete
-                  options={
-                    (event.isTeam ? eventRegsTeam : eventRegsIndividual) as (
-                      | ITeam
-                      | IRegistration
-                    )[]
-                  }
-                  getOptionLabel={(option) => {
-                    if ('user' in option) {
-                      const excelIdVal =
-                        typeof option.excelId === 'object' &&
-                        option.excelId !== null &&
-                        'id' in option.excelId
-                          ? (option.excelId as any).id
-                          : option.excelId;
-                      return `${option.user.name} (${excelIdVal})`;
-                    } else {
-                      // ITeam
-                      return `${option.name} (ID: ${option.id})`;
-                    }
+            {canEdit && (
+              <>
+                <Button onClick={() => handleOpenDialog()}>
+                  <PlusIcon weight="bold" /> Add result
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setDeleteConfirmationText('');
+                    setDeleteAllConfirmationOpen(true);
                   }}
-                  onChange={handleRegistrationSelect}
-                  loading={event.isTeam ? teamRegsLoading : individualRegsLoading}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={event.isTeam ? 'Select Team' : 'Select Participant'}
-                      placeholder="Search..."
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  )}
-                />
-              </Grid>
+                >
+                  <TrashIcon /> Delete all
+                </Button>
+              </>
+            )}
+          </>
+        }
+      />
 
-              <Grid item xs={6}>
-                <TextField
-                  label="Position"
-                  name="position"
-                  type="number"
-                  fullWidth
-                  value={formData.position}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
+      {crudError && !openDialog && (
+        <p className="text-sm font-medium text-destructive">{crudError}</p>
+      )}
+
+      <div className="grid gap-3">
+        {event.results && event.results.length > 0 ? (
+          event.results.map((res) => (
+            <Card key={res.id} className="py-0">
+              <CardContent className="flex flex-wrap items-center gap-4 p-4">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary tabular-nums">
+                  {res.position}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-semibold">{res.teamName}</div>
+                  <div className="truncate text-sm text-muted-foreground">{res.teamMembers}</div>
+                </div>
+                <Badge variant="secondary">
+                  ID {res.excelId} · Team {res.teamId}
+                </Badge>
+                {canEdit && (
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Edit result"
+                      className="text-primary hover:bg-primary/10 hover:text-primary"
+                      onClick={() => handleOpenDialog(res)}
+                    >
+                      <PencilSimpleIcon />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Delete result"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => {
+                        setResultToDelete(res.id);
+                        setDeleteConfirmationOpen(true);
+                      }}
+                    >
+                      <TrashIcon />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+              No results declared yet.
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Dialog open={openDialog} onOpenChange={(open) => !open && handleCloseDialog()}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingResult ? 'Edit result' : 'Add result'}</DialogTitle>
+            <DialogDescription>
+              Pick a {event.isTeam ? 'team' : 'participant'} to prefill the fields, or enter them
+              manually.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-3">
+            <div className="grid gap-4 p-0.5">
+              {crudError && <p className="text-sm font-medium text-destructive">{crudError}</p>}
+              <div className="grid gap-1.5">
+                <Label>{event.isTeam ? 'Select team' : 'Select participant'}</Label>
+                <Combobox
+                  options={participantOptions}
+                  value={participantKey}
+                  onChange={handleRegistrationSelect}
+                  placeholder="Search..."
+                  searchPlaceholder="Search..."
                 />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Excel ID"
-                  name="excelId"
-                  type="number"
-                  fullWidth
-                  value={formData.excelId}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Team ID"
-                  name="teamId"
-                  type="number"
-                  fullWidth
-                  value={formData.teamId}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Name"
-                  name="name"
-                  fullWidth
-                  value={formData.name}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Team Name"
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="res-position">Position</Label>
+                  <Input
+                    id="res-position"
+                    name="position"
+                    type="number"
+                    value={formData.position}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="res-excel-id">Excel ID</Label>
+                  <Input
+                    id="res-excel-id"
+                    name="excelId"
+                    type="number"
+                    value={formData.excelId}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="res-team-id">Team ID</Label>
+                  <Input
+                    id="res-team-id"
+                    name="teamId"
+                    type="number"
+                    value={formData.teamId ?? ''}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="res-name">Name</Label>
+                  <Input id="res-name" name="name" value={formData.name} onChange={handleChange} />
+                </div>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="res-team-name">Team name</Label>
+                <Input
+                  id="res-team-name"
                   name="teamName"
-                  fullWidth
-                  value={formData.teamName}
+                  value={formData.teamName ?? ''}
                   onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Team Members"
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="res-team-members">Team members</Label>
+                <Input
+                  id="res-team-members"
                   name="teamMembers"
-                  fullWidth
-                  value={formData.teamMembers}
+                  value={formData.teamMembers ?? ''}
                   onChange={handleChange}
                   placeholder="e.g. Peter Griffin, Brian Griffin"
-                  helperText="Enter team members separated by commas"
-                  InputLabelProps={{ shrink: true }}
                 />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={handleSaveResult} variant="contained" disabled={crudLoading}>
+                <p className="text-xs text-muted-foreground">
+                  Enter team members separated by commas
+                </p>
+              </div>
+            </div>
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseDialog}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveResult} disabled={crudLoading}>
+              {crudLoading && <Spinner />}
               {crudLoading ? 'Saving...' : 'Save'}
             </Button>
-          </DialogActions>
-        </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteConfirmationOpen} onClose={() => setDeleteConfirmationOpen(false)}>
-          <DialogTitle>Delete Result</DialogTitle>
-          <DialogContent>
-            <Typography>Are you sure you want to delete this result?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteConfirmationOpen(false)}>Cancel</Button>
-            <Button onClick={handleDeleteResult} color="error" variant="contained">
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+      <ConfirmDialog
+        open={deleteConfirmationOpen}
+        title="Delete result"
+        description="Are you sure you want to delete this result?"
+        confirmLabel="Delete"
+        destructive
+        loading={crudLoading}
+        onCancel={() => setDeleteConfirmationOpen(false)}
+        onConfirm={handleDeleteResult}
+      />
 
-        {/* Delete All Confirmation Dialog */}
-        <Dialog
-          open={deleteAllConfirmationOpen}
-          onClose={() => setDeleteAllConfirmationOpen(false)}
-        >
-          <DialogTitle>Delete All Results</DialogTitle>
-          <DialogContent>
-            <Typography color="error" gutterBottom>
+      <Dialog
+        open={deleteAllConfirmationOpen}
+        onOpenChange={(open) => !open && setDeleteAllConfirmationOpen(false)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete all results</DialogTitle>
+            <DialogDescription>
               Are you sure you want to delete ALL results for this event? This action cannot be
               undone.
-            </Typography>
-            <Typography variant="body2" gutterBottom>
-              Please type <strong>delete</strong> to confirm.
-            </Typography>
-            <TextField
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-1.5">
+            <Label htmlFor="delete-confirm">
+              Type <strong>delete</strong> to confirm
+            </Label>
+            <Input
+              id="delete-confirm"
               autoFocus
-              margin="dense"
-              label="Confirmation Text"
-              fullWidth
-              variant="outlined"
               value={deleteConfirmationText}
               onChange={(e) => setDeleteConfirmationText(e.target.value)}
             />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteAllConfirmationOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleDeleteAllResults}
-              color="error"
-              variant="contained"
-              disabled={deleteConfirmationText !== 'delete'}
-            >
-              Delete All
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteAllConfirmationOpen(false)}>
+              Cancel
             </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Box>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAllResults}
+              disabled={deleteConfirmationText !== 'delete' || crudLoading}
+            >
+              {crudLoading && <Spinner />}
+              Delete all
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

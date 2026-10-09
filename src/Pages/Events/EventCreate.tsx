@@ -1,10 +1,11 @@
-import { Box, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import lodash from 'lodash';
 import EventEdit from 'Components/Events/EventCreateUpdate/EventEdit/EventEdit';
 import EventEditToolBar from 'Components/Events/EventCreateUpdate/ToolBar/EventEditToolBar';
 import { defaultDummyEvent } from 'Hooks/Event/create-update/eventValidation';
 import { useEventCreate } from 'Hooks/Event/create-update/useEventCreate';
-import lodash from 'lodash';
-import { useEffect, useState } from 'react';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
 
 export default function EventCreatePage() {
   const {
@@ -18,33 +19,6 @@ export default function EventCreatePage() {
   } = useEventCreate();
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
-  // const [currentIconFile, setCurrentIconFile] = useState<File | undefined>();
-
-  // async function initNewEvent() {
-  // 	if (!event) return;
-
-  // 	const imageRes = await axios.get(event.icon, {
-  // 		responseType: 'blob',
-  // 	});
-
-  // 	const icon = new File([imageRes.data], 'icon.png', {
-  // 		type: imageRes.headers['content-type'] ?? 'image/png',
-  // 	});
-
-  // 	setNewEvent({
-  // 		...event,
-  // 		icon,
-  // 	});
-
-  // 	setCurrentIconFile(icon);
-  // }
-
-  // useEffect(() => {
-  // 	if (!event) return;
-
-  // 	initNewEvent();
-  // 	// eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [event]);
 
   useEffect(() => {
     if (lodash.isEqual(defaultDummyEvent, newEvent)) {
@@ -55,25 +29,12 @@ export default function EventCreatePage() {
   }, [newEvent]);
 
   if (creatingEventError) {
-    return <Typography variant="h5">{creatingEventError}</Typography>;
+    return <PageError>{creatingEventError}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
-        <Typography variant="h5" noWrap>
-          Create New Event
-        </Typography>
-      </Box>
-      <br />
+      <PageHeader title="Create event" description="Fill in the details of the new event." />
 
       <EventEditToolBar
         saveChanges={createEvent}

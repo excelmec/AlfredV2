@@ -1,11 +1,13 @@
-import { Typography } from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { useEffect } from 'react';
-import { TypeSafeColDef } from 'Hooks/gridColumType';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
+import { EyeIcon } from '@phosphor-icons/react';
+import { TypeSafeColDef } from 'Hooks/gridColumType';
 import { IEventWithStats } from 'Hooks/Event/eventStatsTypes';
 import { useEventStatistics } from 'Hooks/Event/statistics/useEventStatistics';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
 
 function getRowId(row: IEventWithStats) {
   return row.id;
@@ -15,28 +17,25 @@ export default function EventStatsPage() {
   const { eventStatsArray, fetchEventStatistics, loading, error, eventStatsCols } =
     useEventStatistics();
 
-  // const [showEventsNotNeedingReg, setShowEventsNotNeedingReg] =
-  // 	useState(false);
-
   const navigate = useNavigate();
 
-  const muiColumns: TypeSafeColDef<IEventWithStats>[] = [
+  const columns: TypeSafeColDef<IEventWithStats>[] = [
+    ...eventStatsCols,
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 150,
-      getActions: (params: GridRowParams<IEventWithStats>) => [
-        <GridActionsCellItem
-          icon={<VisibilityIcon color="primary" />}
-          label="View"
-          onClick={() => {
-            navigate(`/events/registrations/view/${params.row.id}`);
-          }}
+      width: 80,
+      getActions: (params) => [
+        <RowAction
+          key="view"
+          icon={<EyeIcon />}
+          label="View registrations"
+          tone="primary"
+          onClick={() => navigate(`/events/registrations/view/${params.row.id}`)}
         />,
       ],
     },
-    ...eventStatsCols,
   ];
 
   useEffect(() => {
@@ -46,80 +45,22 @@ export default function EventStatsPage() {
   }, []);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
-
-  // function CustomToolbar() {
-  // 	return (
-  // 		<>
-  // 			<GridToolbarContainer>
-  // 				<GridToolbar showQuickFilter />
-  // 			</GridToolbarContainer>
-  // 			<div
-  // 				style={{
-  // 					display: 'flex',
-  // 					justifyContent: 'flex-start',
-  // 					fontSize: '0.8rem !important',
-  // 					padding: '0.2rem 1rem',
-  // 				}}
-  // 			>
-  // 				<FormControlLabel
-  // 					control={
-  // 						<Checkbox
-  // 							checked={showEventsNotNeedingReg}
-  // 							size='small'
-  // 							onChange={() => {
-  // 								setShowEventsNotNeedingReg(
-  // 									!showEventsNotNeedingReg
-  // 								);
-  // 							}}
-  // 						/>
-  // 					}
-  // 					label='Show events not needing registration'
-  // 				/>
-  // 			</div>
-  // 		</>
-  // 	);
-  // }
-
-  // This needed further clarification so disabled for now
-  const filteredEventStatsArray = eventStatsArray.filter((event) => {
-    return true;
-
-    // if (showEventsNotNeedingReg) {
-    // 	return true;
-    // }
-    // return event.needRegistration === true;
-  });
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Event Registration Statistics
-      </Typography>
-      <br />
-      <DataGrid
-        density="compact"
+      <PageHeader
+        title="Registration statistics"
+        description="Individual and team registrations for every event."
+      />
+      <DataTable
+        columns={columns}
+        rows={eventStatsArray}
         getRowId={getRowId}
-        rows={filteredEventStatsArray}
-        columns={muiColumns}
         loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
+        exportFileName="event-registration-statistics"
+        searchPlaceholder="Search events..."
       />
     </>
   );

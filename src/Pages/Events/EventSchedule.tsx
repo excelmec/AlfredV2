@@ -1,29 +1,35 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Typography,
-  TextField,
-  Box,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { useContext, useEffect, useState } from 'react';
-import { IScheduleItem } from '../../Hooks/Event/eventTypes';
 import { useNavigate } from 'react-router-dom';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
+import { PencilSimpleIcon, PlusIcon, TrashIcon } from '@phosphor-icons/react';
+import { IScheduleItem } from '../../Hooks/Event/eventTypes';
 import UserContext from 'Contexts/User/UserContext';
 import { allEventEditRoles, allEventViewRoles } from 'Hooks/Event/eventRoles';
 import { useScheduleList } from 'Hooks/Event/useScheduleList';
-import { DateTimePicker } from '@mui/x-date-pickers';
-import dayjs from 'dayjs';
+import { ConfirmDialog } from '@/Components/confirm-dialog';
+import { DateTimePicker } from '@/Components/datetime-picker';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
+import { Button } from '@/Components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
 
 function getRowId(row: IScheduleItem) {
   return row.id;
@@ -50,11 +56,12 @@ export default function EventSchedule() {
   const [editRoundId, setEditRoundId] = useState('');
   const [editDatetime, setEditDatetime] = useState<Date>(new Date());
   const [editDay, setEditDay] = useState<number>(1);
+  const [itemToDelete, setItemToDelete] = useState<IScheduleItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleEditClick = (params: GridRowParams) => {
-    const event = params.row as IScheduleItem;
+  const handleEditClick = (event: IScheduleItem) => {
     setSelectedEvent(event);
     setEditRound(event.round);
     setEditRoundId(event.roundId.toString());
@@ -86,30 +93,38 @@ export default function EventSchedule() {
     handleCloseModal();
   };
 
-  const handleDeleteClick = async (params: GridRowParams) => {
-    const event = params.row as IScheduleItem;
-    await deleteScheduleItem(event.eventId, event.roundId);
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      setDeleting(true);
+      await deleteScheduleItem(itemToDelete.eventId, itemToDelete.roundId);
+    } finally {
+      setDeleting(false);
+      setItemToDelete(null);
+    }
   };
 
-  const muiColumns = [
+  const tableColumns: DataColumn<IScheduleItem>[] = [
     ...columns,
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 150,
-      getActions: (params: GridRowParams) => [
-        <GridActionsCellItem
-          icon={<EditIcon />}
+      width: 100,
+      getActions: (params) => [
+        <RowAction
+          key="edit"
+          icon={<PencilSimpleIcon />}
           label="Edit"
-          color="secondary"
-          onClick={() => handleEditClick(params)}
+          tone="primary"
+          onClick={() => handleEditClick(params.row)}
         />,
-        <GridActionsCellItem
-          icon={<DeleteIcon />}
+        <RowAction
+          key="delete"
+          icon={<TrashIcon />}
           label="Delete"
-          color="error"
-          onClick={() => handleDeleteClick(params)}
+          tone="destructive"
+          onClick={() => setItemToDelete(params.row)}
         />,
       ],
     },
@@ -141,102 +156,99 @@ export default function EventSchedule() {
   }, [eventList, loading, userData]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Event Schedule
-      </Typography>
-      <br />
-      <Button size="small" variant="contained" onClick={() => navigate('/events/schedule/create')}>
-        Create New Schedule
-      </Button>
-      <br />
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
+      <PageHeader
+        title="Event schedule"
+        description="Rounds and timings across all festival days."
+        actions={
+          <Button onClick={() => navigate('/events/schedule/create')}>
+            <PlusIcon weight="bold" /> Create schedule
+          </Button>
+        }
+      />
+      <DataTable
+        columns={tableColumns}
         rows={viewableEvents}
-        columns={muiColumns}
+        getRowId={getRowId}
         loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
-        showCellVerticalBorder
-        showColumnVerticalBorder
+        exportFileName="event-schedule"
+        searchPlaceholder="Search schedule..."
       />
 
-      <Dialog open={editModalOpen} onClose={handleCloseModal}>
-        <DialogTitle>Edit Schedule Item</DialogTitle>
+      <Dialog open={editModalOpen} onOpenChange={(open) => !open && handleCloseModal()}>
         <DialogContent>
-          <DialogContentText>
-            Modify the round information for this schedule item.
-            {selectedEvent && (
-              <Typography variant="subtitle1" sx={{ my: 1, color: 'text.secondary' }}>
-                Current Event: {selectedEvent.name}
-              </Typography>
-            )}
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Round Text"
-            fullWidth
-            value={editRound}
-            onChange={(e) => setEditRound(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Round ID"
-            fullWidth
-            value={editRoundId}
-            onChange={(e) => setEditRoundId(e.target.value)}
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="day-select-label">Day</InputLabel>
-            <Select
-              labelId="day-select-label"
-              value={editDay}
-              label="Day"
-              onChange={(e) => setEditDay(Number(e.target.value))}
-            >
-              <MenuItem value={1}>1</MenuItem>
-              <MenuItem value={2}>2</MenuItem>
-              <MenuItem value={3}>3</MenuItem>
-            </Select>
-          </FormControl>
-          <Box sx={{ mt: 2 }}>
-            <DateTimePicker
-              label="Date & Time"
-              value={dayjs(editDatetime)}
-              onChange={(newValue) => {
-                if (newValue) setEditDatetime(dayjs(newValue).toDate());
-              }}
-              sx={{ width: '100%' }}
-            />
-          </Box>
+          <DialogHeader>
+            <DialogTitle>Edit schedule item</DialogTitle>
+            <DialogDescription>
+              Modify the round information for this schedule item.
+              {selectedEvent && (
+                <span className="mt-1 block font-medium text-foreground">
+                  Event: {selectedEvent.name}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-1.5">
+              <Label htmlFor="edit-round">Round text</Label>
+              <Input
+                id="edit-round"
+                autoFocus
+                value={editRound}
+                onChange={(e) => setEditRound(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="edit-round-id">Round ID</Label>
+              <Input
+                id="edit-round-id"
+                value={editRoundId}
+                onChange={(e) => setEditRoundId(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Day</Label>
+              <Select value={String(editDay)} onValueChange={(v) => setEditDay(Number(v))}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3].map((d) => (
+                    <SelectItem key={d} value={String(d)}>
+                      Day {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Date &amp; time</Label>
+              <DateTimePicker value={editDatetime} onChange={setEditDatetime} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>Save</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal}>Cancel</Button>
-          <Button onClick={handleSaveEdit} variant="contained">
-            Save
-          </Button>
-        </DialogActions>
       </Dialog>
+
+      <ConfirmDialog
+        open={itemToDelete !== null}
+        title="Delete schedule item"
+        description={`Delete "${itemToDelete?.round}" of ${itemToDelete?.name}?`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onCancel={() => setItemToDelete(null)}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }

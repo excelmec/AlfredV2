@@ -1,12 +1,13 @@
-import { Box, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import lodash from 'lodash';
 import EventEdit from 'Components/Events/EventCreateUpdate/EventEdit/EventEdit';
 import EventEditToolBar from 'Components/Events/EventCreateUpdate/ToolBar/EventEditToolBar';
 import { useEventDesc } from 'Hooks/Event/useEventDesc';
 import { useEventEdit } from 'Hooks/Event/create-update/useEventEdit';
-import axios from 'axios';
-import lodash from 'lodash';
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { PageHeader } from '@/Components/page-header';
+import { PageError, PageLoading } from '@/Components/page-state';
 
 export default function EventEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -89,33 +90,20 @@ export default function EventEditPage() {
   }, [newEvent, currentIconFile, event]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   if (loading) {
-    return <Typography variant="h5">Loading...</Typography>;
+    return <PageLoading />;
   }
 
   if (!event) {
-    return <Typography variant="h5">{'Something went wrong :('}</Typography>;
+    return <PageError>{'Something went wrong :('}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
-        <Typography variant="h5" noWrap>
-          Edit Event
-        </Typography>
-      </Box>
-      <br />
+      <PageHeader title="Edit event" description={event.name} />
 
       <EventEditToolBar
         saveChanges={updateEvent}

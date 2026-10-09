@@ -1,8 +1,9 @@
-import { useEventRegList } from 'Hooks/Event/registrations/useEventReg';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useEventRegList } from 'Hooks/Event/registrations/useEventReg';
 import EventRegContainer from 'Components/Events/EventReg/EventRegContainer';
-import { Box, Typography } from '@mui/material';
+import { PageHeader } from '@/Components/page-header';
+import { PageError, PageLoading } from '@/Components/page-state';
 
 export default function EventRegistrationsListPage() {
   const { eventId: eventIdStr } = useParams<{ eventId: string }>();
@@ -42,22 +43,19 @@ export default function EventRegistrationsListPage() {
   }, [eventIdStr]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   if (eventLoading) {
-    return <Typography variant="h5">Loading...</Typography>;
+    return <PageLoading />;
   }
 
   return (
     <>
-      <br />
-      <Box>
-        <Typography variant="h4" noWrap component="h4">
-          {`Registration list for ${event?.name}`}
-        </Typography>
-      </Box>
-      <br />
+      <PageHeader
+        title={`Registrations for ${event?.name ?? 'event'}`}
+        description="Check people in and review who has registered."
+      />
       <EventRegContainer
         event={event}
         institutionMap={institutionMap}

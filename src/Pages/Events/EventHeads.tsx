@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Button, Typography } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { PencilSimpleIcon, PlusIcon, TrashIcon } from '@phosphor-icons/react';
+import { toast } from 'sonner';
 import ProtectedRoute from '../../Components/Protected/ProtectedRoute';
-import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
-
 import { useEventHeadsList } from 'Hooks/Event/eventHeads/useEventHeadsList';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import { IEventHead } from 'Hooks/Event/eventTypes';
 import EventHeadCreateModal from 'Components/Events/EventHeads/EventHeadCreate';
-import { useEventHeadCrud } from 'Hooks/Event/eventHeads/useEventHeadCrud';
-import { toast } from 'sonner';
 import EventHeadEditModal from 'Components/Events/EventHeads/EventHeadEdit';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEventHeadCrud } from 'Hooks/Event/eventHeads/useEventHeadCrud';
+import { ConfirmDialog } from '@/Components/confirm-dialog';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
+import { Button } from '@/Components/ui/button';
 
 export default function EventHeadsPage() {
   return (
@@ -37,41 +40,46 @@ export function EventHeads() {
   const [editHeadModalOpen, setEditHeadModalOpen] = useState<boolean>(false);
   const [editHeadId, setEditHeadId] = useState<number>(0);
 
-  const muiColumns = [
+  const [headToDelete, setHeadToDelete] = useState<IEventHead | null>(null);
+
+  const tableColumns: DataColumn<IEventHead>[] = [
     ...columns,
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 150,
-      getActions: (params: GridRowParams<IEventHead>) => {
-        return [
-          <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            color="secondary"
-            onClick={() => {
-              setEditHeadId(params.row.id);
-              setEditHeadModalOpen(true);
-            }}
-          />,
-          <GridActionsCellItem
-            icon={<DeleteIcon color="error" />}
-            label="Delete"
-            onClick={async () => {
-              if (window.confirm('Are you sure you want to delete this event head?')) {
-                const success = await deleteEventHead(params.row.id, params.row.name);
-                if (success) {
-                  fetchEventHeadsList();
-                  toast.success('Event head deleted successfully');
-                }
-              }
-            }}
-          />,
-        ];
-      },
+      width: 100,
+      getActions: (params) => [
+        <RowAction
+          key="edit"
+          icon={<PencilSimpleIcon />}
+          label="Edit"
+          tone="primary"
+          onClick={() => {
+            setEditHeadId(params.row.id);
+            setEditHeadModalOpen(true);
+          }}
+        />,
+        <RowAction
+          key="delete"
+          icon={<TrashIcon />}
+          label="Delete"
+          tone="destructive"
+          onClick={() => setHeadToDelete(params.row)}
+        />,
+      ],
     },
   ];
+
+  async function handleDelete() {
+    if (!headToDelete) return;
+    const success = await deleteEventHead(headToDelete.id, headToDelete.name);
+    setHeadToDelete(null);
+    if (success) {
+      fetchEventHeadsList();
+      toast.success('Event head deleted successfully');
+    }
+  }
 
   useEffect(() => {
     fetchEventHeadsList();
@@ -89,44 +97,27 @@ export function EventHeads() {
   }, [location.pathname]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Event Heads List
-      </Typography>
-      <br />
-      <Button variant="contained" onClick={() => setCreateHeadModalOpen(true)}>
-        Create Event Head
-      </Button>
-      <br />
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
+      <PageHeader
+        title="Event heads"
+        description="People who manage registrations for events."
+        actions={
+          <Button onClick={() => setCreateHeadModalOpen(true)}>
+            <PlusIcon weight="bold" /> Create event head
+          </Button>
+        }
+      />
+      <DataTable
+        columns={tableColumns}
         rows={eventHeadsList}
-        columns={muiColumns}
-        editMode="row"
+        getRowId={getRowId}
         loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
-        showCellVerticalBorder
-        showColumnVerticalBorder
+        exportFileName="event-heads"
+        searchPlaceholder="Search event heads..."
       />
 
       <EventHeadCreateModal
@@ -143,6 +134,16 @@ export function EventHeads() {
           eventHeadId={editHeadId}
         />
       )}
+
+      <ConfirmDialog
+        open={headToDelete !== null}
+        title="Delete event head"
+        description={`Are you sure you want to delete ${headToDelete?.name ?? 'this event head'}?`}
+        confirmLabel="Delete"
+        destructive
+        onCancel={() => setHeadToDelete(null)}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }

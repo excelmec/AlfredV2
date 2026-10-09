@@ -8,6 +8,7 @@ import {
   useReactTable,
   type ColumnDef,
   type SortingState,
+  type VisibilityState,
 } from '@tanstack/react-table';
 import {
   ArrowDownIcon,
@@ -16,12 +17,21 @@ import {
   CaretRightIcon,
   CaretDoubleLeftIcon,
   CaretDoubleRightIcon,
+  ColumnsIcon,
   DownloadSimpleIcon,
   MagnifyingGlassIcon,
   TrayIcon,
 } from '@phosphor-icons/react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 import { Input } from '@/Components/ui/input';
 import {
   Select,
@@ -55,6 +65,8 @@ interface DataTableProps<R> {
   exportable?: boolean;
   exportFileName?: string;
   pageSize?: number;
+  /** Columns to hide initially, keyed by field. Users can toggle them from the Columns menu */
+  initialColumnVisibility?: Record<string, boolean>;
   onRowClick?: (row: R) => void;
   /** Extra controls rendered at the right of the toolbar */
   toolbar?: ReactNode;
@@ -102,6 +114,7 @@ export function DataTable<R>({
   exportable = true,
   exportFileName = 'export',
   pageSize = 10,
+  initialColumnVisibility,
   onRowClick,
   toolbar,
   emptyMessage = 'No results found.',
@@ -109,6 +122,10 @@ export function DataTable<R>({
 }: DataTableProps<R>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    initialColumnVisibility ?? {},
+  );
+  const visibleColumns = columns.filter((c) => columnVisibility[c.field] !== false);
 
   const cellValue = (col: DataColumn<R>, row: R) => {
     const raw = (row as any)?.[col.field];
@@ -134,7 +151,8 @@ export function DataTable<R>({
     data: rows,
     columns: tableColumns,
     getRowId: getRowId ? (row) => String(getRowId(row)) : undefined,
-    state: { sorting, globalFilter },
+    state: { sorting, globalFilter, columnVisibility },
+    onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) =>
@@ -147,7 +165,7 @@ export function DataTable<R>({
   });
 
   const exportCsv = () => {
-    const dataCols = columns.filter((c) => c.type !== 'actions');
+    const dataCols = visibleColumns.filter((c) => c.type !== 'actions');
     const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const lines = [
       dataCols.map((c) => escape(c.headerName ?? c.field)).join(','),
@@ -189,6 +207,33 @@ export function DataTable<R>({
             )}
             <div className="ml-auto flex items-center gap-2">
               {toolbar}
+              {columns.length > 5 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <ColumnsIcon /> Columns
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
+                    <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {columns
+                      .filter((c) => c.type !== 'actions')
+                      .map((c) => (
+                        <DropdownMenuCheckboxItem
+                          key={c.field}
+                          checked={columnVisibility[c.field] !== false}
+                          onCheckedChange={(checked) =>
+                            setColumnVisibility((prev) => ({ ...prev, [c.field]: !!checked }))
+                          }
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          {c.headerName ?? c.field}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               {exportable && (
                 <Button
                   variant="outline"
@@ -250,7 +295,7 @@ export function DataTable<R>({
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i} className="hover:bg-transparent">
-                    {columns.map((col) => (
+                    {visibleColumns.map((col) => (
                       <TableCell key={col.field}>
                         <Skeleton className="h-4 w-full max-w-[140px]" />
                       </TableCell>
@@ -259,7 +304,7 @@ export function DataTable<R>({
                 ))
               ) : table.getRowModel().rows.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={columns.length} className="h-40 text-center">
+                  <TableCell colSpan={visibleColumns.length} className="h-40 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <TrayIcon className="size-8 opacity-60" />
                       <span className="text-sm">{emptyMessage}</span>
@@ -273,7 +318,7 @@ export function DataTable<R>({
                     onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                     className={cn(onRowClick && 'cursor-pointer')}
                   >
-                    {columns.map((col) => {
+                    {visibleColumns.map((col) => {
                       const raw = cellValue(col, row.original);
                       let content: ReactNode;
                       if (col.type === 'actions') {

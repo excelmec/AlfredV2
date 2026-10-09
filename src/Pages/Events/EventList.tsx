@@ -1,26 +1,22 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Typography,
-} from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
 import { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { EyeIcon, PencilSimpleIcon, PlusIcon, TrashIcon } from '@phosphor-icons/react';
+import { toast } from 'sonner';
 import { useEventList } from '../../Hooks/Event/useEventsList';
 import { IEventListItem } from '../../Hooks/Event/eventTypes';
-import { useNavigate } from 'react-router-dom';
-import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
 import UserContext from 'Contexts/User/UserContext';
 import {
   allEventEditRoles,
   allEventViewRoles,
   specificEventViewRoles,
 } from 'Hooks/Event/eventRoles';
+import { ConfirmDialog } from '@/Components/confirm-dialog';
+import { PageHeader } from '@/Components/page-header';
+import { PageError } from '@/Components/page-state';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
+import { Button } from '@/Components/ui/button';
 
 function getRowId(row: IEventListItem) {
   return row.id;
@@ -48,37 +44,34 @@ export default function EventListPage() {
     Pick<IEventListItem, 'id' | 'name'> | undefined
   >();
 
-  const muiColumns = [
+  const tableColumns: DataColumn<IEventListItem>[] = [
     ...columns,
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 150,
-      getActions: (params: GridRowParams) => [
-        <GridActionsCellItem
-          icon={<VisibilityIcon color="primary" />}
+      width: 120,
+      getActions: (params) => [
+        <RowAction
+          key="view"
+          icon={<EyeIcon />}
           label="View"
-          onClick={() => {
-            navigate(`/events/view/${params.row.id}`);
-          }}
+          tone="primary"
+          onClick={() => navigate(`/events/view/${params.row.id}`)}
         />,
-        <GridActionsCellItem
-          icon={<EditIcon />}
+        <RowAction
+          key="edit"
+          icon={<PencilSimpleIcon />}
           label="Edit"
-          color="secondary"
-          onClick={() => {
-            navigate(`/events/edit/${params.row.id}`);
-          }}
+          onClick={() => navigate(`/events/edit/${params.row.id}`)}
         />,
-        <GridActionsCellItem
-          icon={<DeleteIcon color="error" />}
+        <RowAction
+          key="delete"
+          icon={<TrashIcon />}
           label="Delete"
+          tone="destructive"
           onClick={() => {
-            setEventToDelete({
-              id: params.row.id,
-              name: params.row.name,
-            });
+            setEventToDelete({ id: params.row.id, name: params.row.name });
             confirmDelete();
           }}
         />,
@@ -90,7 +83,7 @@ export default function EventListPage() {
     if (userData.roles.some((role) => allEventEditRoles.includes(role))) {
       setDeleteOpen(true);
     } else {
-      alert('You do not have permission to perform this action.');
+      toast.error('You do not have permission to perform this action.');
     }
   }
 
@@ -143,67 +136,39 @@ export default function EventListPage() {
   }, [eventList, loading, userData]);
 
   if (error) {
-    return <Typography variant="h5">{error}</Typography>;
+    return <PageError>{error}</PageError>;
   }
 
   return (
     <>
-      <br />
-      <Typography variant="h5" noWrap component="div">
-        Event List
-      </Typography>
-      <br />
-      <Button size="small" variant="contained" onClick={() => navigate('/events/create')}>
-        Create New Event
-      </Button>
-      <br />
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
+      <PageHeader
+        title="Events"
+        description="All events you have access to."
+        actions={
+          <Button onClick={() => navigate('/events/create')}>
+            <PlusIcon weight="bold" /> Create event
+          </Button>
+        }
+      />
+      <DataTable
+        columns={tableColumns}
         rows={viewableEvents}
-        columns={muiColumns}
+        getRowId={getRowId}
         loading={loading}
-        sx={{
-          width: '90%',
-        }}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
-        showCellVerticalBorder
-        showColumnVerticalBorder
+        exportFileName="events"
+        searchPlaceholder="Search events..."
       />
 
-      <Dialog open={deleteOpen} onClose={handleDeleteClose}>
-        <DialogTitle>Delete Event with ID: {eventToDelete?.id}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Would you like to delete Event: {eventToDelete?.name}?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            autoFocus
-            onClick={() => {
-              handleDelete(eventToDelete?.id as number, eventToDelete?.name as string);
-            }}
-            disabled={eventIsDeleting}
-          >
-            Delete
-          </Button>
-          <Button onClick={handleDeleteClose} autoFocus disabled={eventIsDeleting}>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteOpen}
+        title={`Delete event #${eventToDelete?.id ?? ''}`}
+        description={`Would you like to delete event: ${eventToDelete?.name ?? ''}?`}
+        confirmLabel="Delete"
+        destructive
+        loading={eventIsDeleting}
+        onConfirm={() => handleDelete(eventToDelete?.id as number, eventToDelete?.name as string)}
+        onCancel={handleDeleteClose}
+      />
     </>
   );
 }

@@ -1,12 +1,7 @@
-import { Box, Button, Paper } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-
-import '../EventCreateUpdate/ToolBar/EventEditToolBar.css';
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TupdateFnReturn } from 'Hooks/errorParser';
+import SaveToolbar from '@/Components/save-toolbar';
 
 export default function EventEditToolBar({
   saveChanges,
@@ -18,15 +13,6 @@ export default function EventEditToolBar({
   savingEvent: boolean;
 }) {
   const navigate = useNavigate();
-
-  async function showUnsavedChangesPopup() {
-    return window.confirm('You have unsaved changes. Do you want to exit?');
-  }
-
-  const handler = (event: BeforeUnloadEvent) => {
-    event.preventDefault();
-    event.returnValue = '';
-  };
 
   async function saveEvent() {
     try {
@@ -52,7 +38,7 @@ export default function EventEditToolBar({
 
         firstErrorElem.scrollIntoView({
           behavior: 'smooth',
-          block: 'start',
+          block: 'center',
         });
 
         return;
@@ -63,51 +49,7 @@ export default function EventEditToolBar({
     }
   }
 
-  useEffect(() => {
-    if (hasUnsavedChanges) {
-      window.addEventListener('beforeunload', handler);
-    } else {
-      window.removeEventListener('beforeunload', handler);
-    }
-
-    return () => {
-      window.removeEventListener('beforeunload', handler);
-    };
-  }, [hasUnsavedChanges]);
-
   return (
-    <Box className="event-edit-toolbar" component={Paper} elevation={2} borderRadius={0} zIndex={5}>
-      <Box sx={{ flexGrow: 1 }} />
-
-      <Button
-        variant="contained"
-        color="secondary"
-        startIcon={<SaveIcon />}
-        className="toolbutton"
-        onClick={saveEvent}
-        disabled={savingEvent}
-      >
-        {savingEvent ? 'Saving...' : 'Save'}
-      </Button>
-      <Button
-        variant="contained"
-        color="error"
-        startIcon={<CancelIcon />}
-        className="toolbutton"
-        disabled={savingEvent}
-        onClick={async () => {
-          if (hasUnsavedChanges) {
-            const confirmExit = await showUnsavedChangesPopup();
-            console.log(confirmExit);
-            if (!confirmExit) return;
-          }
-
-          console.log('navigating');
-          navigate(-1);
-        }}
-      >
-        Cancel
-      </Button>
-    </Box>
+    <SaveToolbar onSave={saveEvent} hasUnsavedChanges={hasUnsavedChanges} saving={savingEvent} />
   );
 }

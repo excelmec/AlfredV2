@@ -1,27 +1,23 @@
-import {
-  Grid,
-  Box,
-  Typography,
-  Paper,
-  TextField,
-  TextFieldProps,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
-  Button,
-  Autocomplete,
-} from '@mui/material';
-import { DateTimePicker } from '@mui/x-date-pickers';
-import dayjs from 'dayjs';
-import { ChangeEventHandler, useEffect } from 'react';
-import { IValidateCreateEventSchedule } from 'Hooks/Event/create-update/eventScheduleValidation';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ValidationError } from 'yup';
 import { debounce } from 'lodash';
+import { IValidateCreateEventSchedule } from 'Hooks/Event/create-update/eventScheduleValidation';
 import { TRoundId } from 'Hooks/Event/scheduleTypes';
 import { useEventList } from 'Hooks/Event/useEventsList';
-import { useNavigate } from 'react-router-dom';
-import { IEventListItem } from 'Hooks/Event/eventTypes';
-import { StyledTableCell } from 'Components/Commons/TableCell';
+import { Combobox } from '@/Components/combobox';
+import { DateTimePicker } from '@/Components/datetime-picker';
+import { FormField, FormSection } from '@/Components/form-layout';
+import { PageError } from '@/Components/page-state';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
 
 interface IEventEditProps {
   newEvent: IValidateCreateEventSchedule;
@@ -32,97 +28,8 @@ interface IEventEditProps {
   validationErrors: ValidationError[];
 }
 
-type TextFieldKeys = Exclude<keyof IValidateCreateEventSchedule, 'datetime'>;
-
 const day = [1, 2, 3];
 const roundId = [0, 1, 2];
-
-function EventIdChoose({
-  eventList,
-  eventListLoading,
-  newEvent,
-  setNewEvent,
-  navigate,
-}: {
-  eventList: IEventListItem[];
-  eventListLoading: boolean;
-  newEvent: IValidateCreateEventSchedule;
-  setNewEvent: React.Dispatch<React.SetStateAction<IValidateCreateEventSchedule>>;
-  navigate: ReturnType<typeof useNavigate>;
-}) {
-  if (eventListLoading) {
-    return <Typography>Events Loading...</Typography>;
-  }
-
-  if (Array.isArray(eventList) && eventList.length === 0) {
-    return (
-      <>
-        <Typography>Please Create an Event first to assign rounds to it</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            navigate('/events/create');
-          }}
-        >
-          Create Event
-        </Button>
-      </>
-    );
-  }
-
-  return (
-    <Autocomplete
-      sx={{ width: '100%' }}
-      options={eventList}
-      autoHighlight
-      getOptionLabel={(option: IEventListItem) => option.name}
-      onChange={(event, newValue) => {
-        if (newValue) {
-          setNewEvent((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              eventId: newValue.id,
-            };
-          });
-        }
-      }}
-      disabled={eventListLoading}
-      value={eventList.find((event) => event.id === newEvent.eventId) || null}
-      renderOption={(props, event) => (
-        <Box component="li" {...props}>
-          <StyledTableCell
-            sx={{
-              width: '50%',
-              overflow: 'hidden',
-            }}
-          >
-            {event.id}
-          </StyledTableCell>
-          <StyledTableCell
-            sx={{
-              width: '50%',
-              overflow: 'hidden',
-            }}
-          >
-            {event.name}
-          </StyledTableCell>
-        </Box>
-      )}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="Choose an Event"
-          inputProps={{
-            ...params.inputProps,
-            autoComplete: 'new-password',
-          }}
-        />
-      )}
-    />
-  );
-}
 
 export default function EventEdit({
   newEvent,
@@ -151,138 +58,105 @@ export default function EventEdit({
 
   if (eventListError) {
     return (
-      <>
-        <Typography variant="h4">{'Something went wrong while fetching events'}</Typography>
-        <Typography variant="h5">{eventListError}</Typography>
-      </>
+      <PageError title="Something went wrong while fetching events">{eventListError}</PageError>
     );
   }
 
-  function CustomTextField({
-    fieldName,
-    TextFieldProps,
-  }: {
-    fieldName: TextFieldKeys;
-    TextFieldProps?: TextFieldProps;
-  }) {
-    function handleTextChange(e: React.ChangeEvent<HTMLInputElement> | SelectChangeEvent<string>) {
-      const value = e.target.value;
-      setNewEvent((prev) => {
-        if (!prev) return prev;
-
-        if (fieldName === 'eventId' || fieldName === 'day') {
-          return { ...prev, [fieldName]: Number(value) };
-        }
-        if (fieldName === 'roundId') {
-          return { ...prev, [fieldName]: Number(value) as TRoundId };
-        }
-        // For 'round' field
-        return { ...prev, [fieldName]: value };
-      });
-    }
-
-    if (fieldName === 'day' || fieldName === 'roundId') {
-      return (
-        <Select
-          value={newEvent[fieldName] as number}
-          onChange={
-            handleTextChange as (event: SelectChangeEvent<number>, child: React.ReactNode) => void
-          }
-          fullWidth
-          error={validationErrors.some((error) => error.path === fieldName)}
-        >
-          {(fieldName === 'day' ? day : roundId).map((value) => (
-            <MenuItem key={value} value={value}>
-              {value}
-            </MenuItem>
-          ))}
-        </Select>
-      );
-    }
-
-    return (
-      <TextField
-        value={newEvent[fieldName]}
-        name={fieldName}
-        onChange={handleTextChange as ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>}
-        fullWidth
-        error={validationErrors.some((error) => error.path === fieldName)}
-        helperText={validationErrors.find((error) => error.path === fieldName)?.message ?? ''}
-        {...TextFieldProps}
-      />
-    );
-  }
+  const errorOf = (field: string) =>
+    validationErrors.find((error) => error.path === field)?.message;
 
   return (
-    <Box className="event-edit-container" component={Paper} elevation={1} borderRadius={0}>
-      <div className="event-edit-overlay" style={{ display: savingEvent ? 'block' : 'none' }}></div>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="event-edit-grid"
-      >
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Schedule details</Typography>
-        </Grid>
+    <fieldset disabled={savingEvent} className="min-w-0 disabled:opacity-70">
+      <FormSection title="Event schedule details" description="Add a round to an event's schedule.">
+        <FormField label="Event" error={errorOf('eventId')}>
+          {eventListLoading ? (
+            <p className="text-sm text-muted-foreground">Events loading...</p>
+          ) : Array.isArray(eventList) && eventList.length === 0 ? (
+            <div className="grid gap-2">
+              <p className="text-sm text-muted-foreground">
+                Please create an event first to assign rounds to it.
+              </p>
+              <Button
+                variant="outline"
+                className="w-fit"
+                onClick={() => navigate('/events/create')}
+              >
+                Create event
+              </Button>
+            </div>
+          ) : (
+            <Combobox
+              options={eventList.map((event) => ({
+                value: String(event.id),
+                label: event.name,
+                description: `ID ${event.id}`,
+              }))}
+              value={newEvent.eventId ? String(newEvent.eventId) : ''}
+              onChange={(v) => setNewEvent((prev) => ({ ...prev, eventId: Number(v) }))}
+              placeholder="Choose an event"
+              searchPlaceholder="Search events..."
+            />
+          )}
+        </FormField>
 
-        <Grid item xs={6}>
-          <Typography>Event</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <EventIdChoose
-            eventList={eventList}
-            eventListLoading={eventListLoading}
-            newEvent={newEvent}
-            setNewEvent={setNewEvent}
-            navigate={navigate}
-          />
-        </Grid>
+        <FormField label="Day" error={errorOf('day')}>
+          <Select
+            value={String(newEvent.day)}
+            onValueChange={(v) =>
+              setNewEvent((prev) => ({ ...prev, day: Number(v) as typeof prev.day }))
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {day.map((value) => (
+                <SelectItem key={value} value={String(value)}>
+                  Day {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
 
-        <Grid item xs={6}>
-          <Typography>Day</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          {CustomTextField({
-            fieldName: 'day',
-            TextFieldProps: { type: 'number' },
-          })}
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>DateTime</Typography>
-        </Grid>
-        <Grid item xs={6}>
+        <FormField label="Date & time" error={errorOf('datetime')}>
           <DateTimePicker
-            value={dayjs(newEvent.datetime)}
-            sx={{ width: '100%' }}
-            onChange={(e) => {
-              setNewEvent((prev) => ({
-                ...prev,
-                datetime: e ? new Date(e.toLocaleString()) : new Date(),
-              }));
-            }}
+            value={newEvent.datetime}
+            onChange={(value) => setNewEvent((prev) => ({ ...prev, datetime: value }))}
+            invalid={!!errorOf('datetime')}
           />
-        </Grid>
+        </FormField>
 
-        <Grid item xs={6}>
-          <Typography>Round ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          {CustomTextField({
-            fieldName: 'roundId',
-            TextFieldProps: { type: 'number' },
-          })}
-        </Grid>
+        <FormField label="Round ID" error={errorOf('roundId')}>
+          <Select
+            value={String(newEvent.roundId)}
+            onValueChange={(v) =>
+              setNewEvent((prev) => ({ ...prev, roundId: Number(v) as TRoundId }))
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {roundId.map((value) => (
+                <SelectItem key={value} value={String(value)}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
 
-        <Grid item xs={6}>
-          <Typography>Round Text</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          {CustomTextField({ fieldName: 'round' })}
-        </Grid>
-      </Grid>
-    </Box>
+        <FormField label="Round text" htmlFor="field-round" error={errorOf('round')}>
+          <Input
+            id="field-round"
+            name="round"
+            value={newEvent.round}
+            aria-invalid={!!errorOf('round')}
+            onChange={(e) => setNewEvent((prev) => ({ ...prev, round: e.target.value }))}
+          />
+        </FormField>
+      </FormSection>
+    </fieldset>
   );
 }

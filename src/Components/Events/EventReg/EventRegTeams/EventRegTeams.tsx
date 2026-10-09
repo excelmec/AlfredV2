@@ -1,20 +1,21 @@
-import { DataGrid, GridActionsCellItem, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import { useState } from 'react';
+import { EyeIcon } from '@phosphor-icons/react';
 import { ITeam } from 'Hooks/Event/registrationTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-
-import './EventRegTeams.css';
-import { useState } from 'react';
+import { DataTable } from '@/Components/data-table/DataTable';
+import { RowAction } from '@/Components/data-table/RowAction';
+import type { DataColumn } from '@/Components/data-table/types';
+import { DetailCard } from '@/Components/detail-card';
+import { Button } from '@/Components/ui/button';
 import {
-  Button,
   Dialog,
-  DialogActions,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  Divider,
-  Grid,
-  Typography,
-} from '@mui/material';
+} from '@/Components/ui/dialog';
+import { ScrollArea } from '@/Components/ui/scroll-area';
 
 export default function EventRegTeams({
   institutionMap,
@@ -31,16 +32,18 @@ export default function EventRegTeams({
   const [teamDetailsOpen, setTeamDetailsOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<ITeam | null>(null);
 
-  const muiColumns = [
+  const columns: DataColumn<ITeam>[] = [
     {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
       width: 70,
-      getActions: (params: GridRowParams<ITeam>) => [
-        <GridActionsCellItem
-          icon={<VisibilityIcon color="primary" />}
-          label="View"
+      getActions: (params) => [
+        <RowAction
+          key="view"
+          icon={<EyeIcon />}
+          label="View team"
+          tone="primary"
           onClick={() => {
             setSelectedTeam(params.row);
             setTeamDetailsOpen(true);
@@ -53,50 +56,29 @@ export default function EventRegTeams({
 
   return (
     <>
-      <DataGrid
-        density="compact"
-        getRowId={getRowId}
+      <DataTable
+        columns={columns}
         rows={eventRegsTeam}
-        columns={muiColumns}
+        getRowId={getRowId}
         loading={teamRegsLoading}
-        autoPageSize
-        slots={{ toolbar: GridToolbar }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-            printOptions: {
-              hideFooter: true,
-              hideHeader: true,
-              hideToolbar: true,
-            },
-          },
-        }}
-        showCellVerticalBorder
-        showColumnVerticalBorder
-        initialState={{
-          columns: {
-            columnVisibilityModel: {
-              ambassadorId: false,
-            },
-          },
-        }}
+        initialColumnVisibility={{ ambassadorId: false }}
+        exportFileName="event-teams"
+        searchPlaceholder="Search teams..."
       />
 
-      <Dialog
-        open={teamDetailsOpen}
-        onClose={() => setTeamDetailsOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Team Details</DialogTitle>
-        <DialogContent>
-          <TeamDetails team={selectedTeam} institutionMap={institutionMap} />
+      <Dialog open={teamDetailsOpen} onOpenChange={setTeamDetailsOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Team details</DialogTitle>
+            <DialogDescription>Members and contact details of the team.</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-3">
+            <TeamDetails team={selectedTeam} institutionMap={institutionMap} />
+          </ScrollArea>
+          <DialogFooter>
+            <Button onClick={() => setTeamDetailsOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={() => setTeamDetailsOpen(false)} variant="contained">
-            Close
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );
@@ -114,72 +96,34 @@ function TeamDetails({
   institutionMap: Map<number, string>;
 }) {
   if (!team) {
-    return <Typography variant="h5">No team selected</Typography>;
+    return <p className="text-sm text-muted-foreground">No team selected</p>;
   }
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={6}>
-        <Typography variant="body2">Team Name</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{team.name}</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">Ambassador ID</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{team.ambassadorId?.toString()}</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">Member Count</Typography>
-      </Grid>
-      <Grid item xs={6}>
-        <Typography variant="body2">{team.registrations.length.toString()}</Typography>
-      </Grid>
+    <div className="grid gap-4">
+      <DetailCard
+        items={[
+          { label: 'Team name', value: team.name },
+          { label: 'Ambassador ID', value: team.ambassadorId?.toString() },
+          { label: 'Member count', value: team.registrations.length.toString() },
+        ]}
+        columns={3}
+      />
       {team.registrations.map((reg, index) => (
-        <>
-          <Grid item xs={12} key={`${reg.excelId.toString()}-divider`}>
-            <Divider />
-          </Grid>
-          <Grid item xs={12} key={`${reg.excelId.toString()}-header`}>
-            <Typography variant="h6">Member {index + 1}</Typography>
-          </Grid>
-          <Grid item xs={6} key={`${reg.excelId.toString()}-name`}>
-            <Typography variant="body2">Name</Typography>
-          </Grid>
-          <Grid item xs={6} key={`${reg.excelId.toString()}-name-value`}>
-            <Typography variant="body2">{reg.user?.name}</Typography>
-          </Grid>
-          <Grid item xs={6} key={`${reg.excelId.toString()}-email`}>
-            <Typography variant="body2">Email</Typography>
-          </Grid>
-          <Grid item xs={6} key={`${reg.excelId.toString()}-email-value`}>
-            <Typography variant="body2">{reg.user?.email}</Typography>
-          </Grid>
-
-          {/* mobile */}
-          <Grid item xs={6} key={`${reg.excelId.toString()}-mobile`}>
-            <Typography variant="body2">Mobile</Typography>
-          </Grid>
-          <Grid item xs={6} key={`${reg.excelId.toString()}-mobile-value`}>
-            <Typography variant="body2">{reg.user?.mobileNumber}</Typography>
-          </Grid>
-
-          <Grid item xs={6} key={`${reg.excelId.toString()}-institution`}>
-            <Typography variant="body2">Institution</Typography>
-          </Grid>
-          <Grid item xs={6} key={`${reg.excelId.toString()}-institution-value`}>
-            <Typography variant="body2">
-              {institutionMap.get(reg.user?.institutionId ?? 0)}
-            </Typography>
-          </Grid>
-        </>
+        <DetailCard
+          key={reg.excelId.toString()}
+          title={`Member ${index + 1}`}
+          items={[
+            { label: 'Name', value: reg.user?.name },
+            { label: 'Email', value: reg.user?.email },
+            { label: 'Mobile', value: reg.user?.mobileNumber },
+            {
+              label: 'Institution',
+              value: institutionMap.get(reg.user?.institutionId ?? 0),
+            },
+          ]}
+        />
       ))}
-
-      <Grid item xs={12}>
-        <Divider />
-      </Grid>
-    </Grid>
+    </div>
   );
 }

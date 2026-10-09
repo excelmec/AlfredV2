@@ -9,7 +9,7 @@ import {
 } from 'Hooks/errorParser';
 import { IScheduleItem } from './eventTypes';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
-import { GridValueGetterParams } from '@/Components/data-table/types';
+import { GridValueFormatterParams } from '@/Components/data-table/types';
 import {
   createEventScheduleValidationSchema,
   defaultDummyEvent,
@@ -143,8 +143,8 @@ export function useScheduleList() {
       headerName: 'DateTime',
       type: 'string',
       width: 150,
-      valueGetter: (params: GridValueGetterParams<IScheduleItem>) => {
-        return params.row.datetime.toLocaleString([], {
+      valueFormatter: (params: GridValueFormatterParams<Date>) => {
+        return params.value.toLocaleString([], {
           year: '2-digit',
           month: 'numeric',
           day: 'numeric',

@@ -1,13 +1,12 @@
-import { Box, Button, Paper } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EditIcon from '@mui/icons-material/Edit';
-import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
-import GroupsIcon from '@mui/icons-material/Groups';
-import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
-import { Link as RouterLink } from 'react-router-dom';
-
-import './ToolBar.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeftIcon,
+  HandHeartIcon,
+  MedalIcon,
+  PencilSimpleIcon,
+  UsersThreeIcon,
+} from '@phosphor-icons/react';
+import { Button } from '@/Components/ui/button';
 
 // Optional: when unset, the link to the forms dashboard is hidden
 const formsBaseUrl = import.meta.env.REACT_APP_FORMS_BASE_URL;
@@ -21,67 +20,36 @@ export default function ToolBar({
 }) {
   const navigate = useNavigate();
   return (
-    <Box className="event-desc-toolbar" component={Paper} elevation={2} borderRadius={0} zIndex={5}>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<ArrowBackIcon />}
-        className="toolbutton"
-        onClick={() => {
-          navigate('/events');
-        }}
-      >
-        Back
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="outline" onClick={() => navigate('/events')}>
+        <ArrowLeftIcon /> Back
       </Button>
-      <Box sx={{ flexGrow: 1 }} />
+      <div className="flex-1" />
 
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<GroupsIcon />}
-        className="toolbutton"
-        to={`/events/registrations/view/${eventId}`}
-        component={RouterLink}
-      >
-        Registrations
+      <Button variant="outline" asChild>
+        <Link to={`/events/registrations/view/${eventId}`}>
+          <UsersThreeIcon /> Registrations
+        </Link>
       </Button>
 
       {needVolunteerForm && formsBaseUrl && (
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<VolunteerActivismIcon />}
-          className="toolbutton"
-          href={`${formsBaseUrl}/dashboard/events/new?kind=volunteer&eventId=${eventId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Volunteer Form
+        <Button variant="outline" asChild>
+          <a
+            href={`${formsBaseUrl}/dashboard/events/new?kind=volunteer&eventId=${eventId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <HandHeartIcon /> Volunteer form
+          </a>
         </Button>
       )}
 
-      <Button
-        variant="contained"
-        color={'primary'}
-        startIcon={<MilitaryTechIcon />}
-        className="toolbutton"
-        onClick={() => {
-          navigate(`/events/results/${eventId}`);
-        }}
-      >
-        Results
+      <Button variant="outline" onClick={() => navigate(`/events/results/${eventId}`)}>
+        <MedalIcon /> Results
       </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<EditIcon />}
-        className="toolbutton"
-        onClick={() => {
-          navigate(`/events/edit/${eventId}`);
-        }}
-      >
-        Edit
+      <Button onClick={() => navigate(`/events/edit/${eventId}`)}>
+        <PencilSimpleIcon /> Edit
       </Button>
-    </Box>
+    </div>
   );
 }

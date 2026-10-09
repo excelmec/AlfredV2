@@ -1,288 +1,130 @@
-import { Grid, Box, Typography, Paper, Divider } from '@mui/material';
-import { IEvent } from 'Hooks/Event/eventTypes';
+import type { ReactNode } from 'react';
+import { IEvent, IEventHead } from 'Hooks/Event/eventTypes';
+import { DetailCard } from '@/Components/detail-card';
+import { Badge } from '@/Components/ui/badge';
 
-import './EventData.css';
+const dateTimeFormat: Intl.DateTimeFormatOptions = {
+  year: '2-digit',
+  month: 'numeric',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+};
+
+function YesNo({ value }: { value?: boolean }) {
+  return value ? (
+    <Badge className="bg-primary/10 text-primary" variant="secondary">
+      Yes
+    </Badge>
+  ) : (
+    <Badge variant="outline" className="text-muted-foreground">
+      No
+    </Badge>
+  );
+}
+
+function HeadInfo({ head }: { head?: IEventHead | null }): ReactNode {
+  if (!head) return null;
+  return (
+    <div className="space-y-0.5">
+      <div>{head.name}</div>
+      <div className="text-xs font-normal text-muted-foreground">{head.phoneNumber}</div>
+      <div className="text-xs font-normal text-muted-foreground">{head.email}</div>
+    </div>
+  );
+}
 
 export default function EventData({ event }: { event: IEvent }) {
   return (
-    <Box className="event-data-container" component={Paper} elevation={1} borderRadius={0}>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="center"
-        alignItems="center"
-        className="event-data-grid"
-      >
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Basic Details</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>ID</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event.id}</Typography>
-        </Grid>
+    <div className="grid gap-6 xl:grid-cols-2">
+      <DetailCard
+        title="Basic details"
+        items={[
+          { label: 'ID', value: event.id },
+          { label: 'Name', value: event.name },
+          {
+            label: 'Icon',
+            value: event.icon ? (
+              <img
+                src={event.icon}
+                referrerPolicy="no-referrer"
+                className="size-16 rounded-lg border object-contain"
+                alt="Event logo"
+              />
+            ) : (
+              <span className="text-muted-foreground">No icon uploaded</span>
+            ),
+          },
+          { label: 'Event type', value: event.eventType },
+          { label: 'Category', value: event.category },
+          { label: 'Venue', value: event.venue },
+        ]}
+      />
 
-        <Grid item xs={6}>
-          <Typography>Name</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.name}</Typography>
-        </Grid>
+      <DetailCard
+        title="Timeline"
+        items={[
+          {
+            label: 'Day',
+            value: event.day !== undefined && event.day !== null ? event.day : 'Not specified',
+          },
+          { label: 'Date & time', value: event.datetime?.toLocaleString([], dateTimeFormat) },
+          { label: 'Status', value: event.eventStatus },
+          {
+            label: 'Results published',
+            value: <YesNo value={!!event.results && event.results.length > 0} />,
+          },
+          { label: 'Number of rounds', value: event.numberOfRounds },
+          { label: 'Current round', value: event.currentRound },
+          { label: 'Registrations open', value: <YesNo value={event.registrationOpen} /> },
+          {
+            label: 'Registrations end',
+            value: event.registrationEndDate?.toLocaleString([], dateTimeFormat),
+          },
+        ]}
+      />
 
-        <Grid item xs={6}>
-          <Typography>Icon</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          {event?.icon ? (
-            <img
-              src={event?.icon}
-              referrerPolicy="no-referrer"
-              style={{
-                maxWidth: '70px',
-                maxHeight: '70px',
-                objectFit: 'contain',
-              }}
-              alt="Event Logo"
-            />
-          ) : (
-            <Typography>No Icon Uploaded</Typography>
-          )}
-        </Grid>
+      <DetailCard
+        title="Prize and fee"
+        items={[
+          { label: 'Entry fee', value: event.entryFee },
+          { label: 'Prize money', value: event.prizeMoney },
+          {
+            label: 'Referral points (campus ambassador)',
+            value: event.referralPoints ?? 'Default (0)',
+          },
+        ]}
+      />
 
-        <Grid item xs={6}>
-          <Typography>Event Type</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.eventType}</Typography>
-        </Grid>
+      <DetailCard
+        title="Event heads"
+        items={[
+          { label: 'Event head 1', value: <HeadInfo head={event.eventHead1} /> },
+          { label: 'Event head 2', value: <HeadInfo head={event.eventHead2} /> },
+        ]}
+      />
 
-        <Grid item xs={6}>
-          <Typography>Event Category</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.category}</Typography>
-        </Grid>
+      <DetailCard
+        title="Registration"
+        items={[
+          { label: 'Needs registration', value: <YesNo value={event.needRegistration} /> },
+          { label: 'Volunteer call form needed', value: <YesNo value={event.needVolunteerForm} /> },
+          { label: 'Team event', value: <YesNo value={event.isTeam} /> },
+          ...(event.isTeam ? [{ label: 'Team size', value: event.teamSize }] : []),
+          { label: 'Register button', value: event.button },
+          { label: 'Registration link', value: event.registrationLink },
+        ]}
+      />
 
-        <Grid item xs={6}>
-          <Typography>Event Venue</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.venue}</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Timeline Details</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Event Day</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>
-            {event?.day !== undefined && event?.day !== null ? event?.day : 'Not Specified'}
-          </Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Event DateTime</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>
-            {event?.datetime.toLocaleString([], {
-              year: '2-digit',
-              month: 'numeric',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: 'numeric',
-            })}
-          </Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Event Status</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.eventStatus}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Results Published</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.results && event.results.length > 0 ? 'YES' : 'NO'}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Number of Rounds</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.numberOfRounds}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Current Round</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.currentRound}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Registrations Open?</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.registrationOpen ? 'YES' : 'NO'}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Registrations End DateTime</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>
-            {event?.registrationEndDate?.toLocaleString([], {
-              year: '2-digit',
-              month: 'numeric',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: 'numeric',
-            })}
-          </Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Prize and Fee</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>Entry Fee</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.entryFee}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Prize Money</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.prizeMoney}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Referral Points (Campus Ambassador)</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.referralPoints ?? 'Default (0)'}</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Heads Details</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Event Head 1</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.eventHead1?.name}</Typography>
-          <Typography>{event?.eventHead1?.phoneNumber}</Typography>
-          <Typography>{event?.eventHead1?.email}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Event Head 2</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.eventHead2?.name}</Typography>
-          <Typography>{event?.eventHead2?.phoneNumber}</Typography>
-          <Typography>{event?.eventHead2?.email}</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Registration Details</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Needs Registration?</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.needRegistration ? 'YES' : 'NO'}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Volunteer Call Form Needed?</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.needVolunteerForm ? 'YES' : 'NO'}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Is Team?</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.isTeam ? 'YES' : 'NO'}</Typography>
-        </Grid>
-
-        {event?.isTeam && (
-          <>
-            <Grid item xs={6}>
-              <Typography>Team Size</Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography>{event?.teamSize}</Typography>
-            </Grid>
-          </>
-        )}
-
-        <Grid item xs={6}>
-          <Typography>Register Button</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.button}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Registration Link</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.registrationLink}</Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Divider />
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h5">Event Information Details</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>About</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.about}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Format</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.format}</Typography>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Typography>Rules</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography>{event?.rules}</Typography>
-        </Grid>
-      </Grid>
-    </Box>
+      <DetailCard
+        title="Information"
+        columns={1}
+        items={[
+          { label: 'About', value: <p className="whitespace-pre-wrap">{event.about}</p> },
+          { label: 'Format', value: <p className="whitespace-pre-wrap">{event.format}</p> },
+          { label: 'Rules', value: <p className="whitespace-pre-wrap">{event.rules}</p> },
+        ]}
+      />
+    </div>
   );
 }
