@@ -1,21 +1,31 @@
+import { CaretUpDownIcon, SignInIcon, SignOutIcon } from '@phosphor-icons/react';
+import { UserDatatype } from 'Contexts/User/UserContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/Components/ui/avatar';
+import { Button } from '@/Components/ui/button';
 import {
-  Avatar,
-  Button,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-} from '@mui/material';
-import { UserDatatype } from '../../../Contexts/User/UserContext';
-import { useState } from 'react';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import { SidebarMenuButton, useSidebar } from '@/Components/ui/sidebar';
+import { Skeleton } from '@/Components/ui/skeleton';
 
 interface UserLoginAvatarButtonProps {
   userLoading: boolean;
   userData: UserDatatype;
   logout: () => void;
+}
+
+function initials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
 }
 
 export default function UserLoginAvatarButton({
@@ -24,14 +34,7 @@ export default function UserLoginAvatarButton({
   logout,
 }: UserLoginAvatarButtonProps) {
   const authRedirUrl = import.meta.env.REACT_APP_AUTH_REDIR_URL;
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<any>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const { isMobile } = useSidebar();
 
   if (!authRedirUrl) {
     throw new Error('REACT_APP_AUTH_REDIR_URL not set');
@@ -39,9 +42,10 @@ export default function UserLoginAvatarButton({
 
   if (userLoading) {
     return (
-      <Button variant="contained" size="medium" disabled sx={{ ml: 2, mr: 2 }}>
-        Loading...
-      </Button>
+      <div className="flex items-center gap-2 p-2">
+        <Skeleton className="size-8 rounded-full" />
+        <Skeleton className="h-4 flex-1" />
+      </div>
     );
   }
 
@@ -51,48 +55,54 @@ export default function UserLoginAvatarButton({
     loginUrl.searchParams.append('redirect_to', currentUrl.toString());
 
     return (
-      <Button
-        variant="contained"
-        size="medium"
-        sx={{ m: 2 }}
-        LinkComponent="a"
-        href={loginUrl.toString()}
-      >
-        Login
+      <Button asChild className="w-full">
+        <a href={loginUrl.toString()}>
+          <SignInIcon weight="bold" />
+          <span className="group-data-[collapsible=icon]:hidden">Login</span>
+        </a>
       </Button>
     );
   }
 
   return (
-    <List>
-      <ListItem onClick={handleClick}>
-        <ListItemButton>
-          <ListItemIcon>
-            <Avatar
-              imgProps={{ referrerPolicy: 'no-referrer' }}
-              alt={userData.name}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuButton
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        >
+          <Avatar className="size-8">
+            <AvatarImage
               src={userData.profilePictureUrl}
+              alt={userData.name}
+              referrerPolicy="no-referrer"
             />
-          </ListItemIcon>
-          <ListItemText primary={userData.name} />
-        </ListItemButton>
-      </ListItem>
-      <Menu
-        id="dash-logout-menu"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
+            <AvatarFallback>{initials(userData.name)}</AvatarFallback>
+          </Avatar>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">{userData.name}</span>
+            <span className="truncate text-xs text-muted-foreground">{userData.email}</span>
+          </div>
+          <CaretUpDownIcon className="ml-auto size-4" />
+        </SidebarMenuButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
+        side={isMobile ? 'bottom' : 'right'}
+        align="end"
+        sideOffset={8}
       >
-        <MenuItem onClick={logout}>Logout</MenuItem>
-      </Menu>
-    </List>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-semibold">{userData.name}</span>
+            <span className="text-xs text-muted-foreground">{userData.email}</span>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onClick={logout}>
+          <SignOutIcon /> Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

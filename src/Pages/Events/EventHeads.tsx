@@ -9,7 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { IEventHead } from 'Hooks/Event/eventTypes';
 import EventHeadCreateModal from 'Components/Events/EventHeads/EventHeadCreate';
 import { useEventHeadCrud } from 'Hooks/Event/eventHeads/useEventHeadCrud';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import EventHeadEditModal from 'Components/Events/EventHeads/EventHeadEdit';
 import { useLocation, useNavigate } from 'react-router-dom';
 

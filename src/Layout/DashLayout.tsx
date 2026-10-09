@@ -1,52 +1,31 @@
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
-import IconButton from '@mui/material/IconButton';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-import { Outlet } from 'react-router-dom';
-import './DashLayout.css';
-import { Paper } from '@mui/material';
-import Sidebar from '../Components/Dashboard/Sidebar/Sidebar';
-import { useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { Toaster } from '@/Components/ui/sonner';
+import { Separator } from '@/Components/ui/separator';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/Components/ui/sidebar';
+import { ThemeToggle } from '@/Components/theme-toggle';
+import AppSidebar from 'Components/Dashboard/Sidebar/Sidebar';
+import { sectionTitleForPath } from 'Components/Dashboard/Sidebar/navigation';
 
 export default function DashLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+  const { pathname } = useLocation();
 
   return (
-    <Box className="dash-wrapper">
-      <Box className="dash-header" component={Paper} elevation={1} borderRadius={0}>
-        <IconButton
-          className="dash-menu-icon"
-          size="medium"
-          onClick={() => {
-            setSidebarOpen(!sidebarOpen);
-          }}
-        >
-          {sidebarOpen ? <CloseIcon /> : <MenuIcon />}
-        </IconButton>
-        <Typography variant="h6" noWrap component="div">
-          Excel Admin Dashboard
-        </Typography>
-      </Box>
-      <Box className="dash-body">
-        <Box className="dash-sidebar-wrapper" data-open={sidebarOpen}>
-          <Sidebar />
-        </Box>
-        <Box
-          className="dash-sidebar-overlay"
-          data-open={sidebarOpen}
-          onClick={() => {
-            setSidebarOpen(!sidebarOpen);
-          }}
-        />
-        <Box className="dash-content">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="min-w-0">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />
+          <h1 className="text-sm font-semibold tracking-tight">{sectionTitleForPath(pathname)}</h1>
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
+          </div>
+        </header>
+        <main className="flex min-w-0 flex-1 flex-col gap-6 p-4 md:p-6">
           <Outlet />
-        </Box>
-        <ToastContainer />
-      </Box>
-    </Box>
+        </main>
+      </SidebarInset>
+      <Toaster richColors closeButton position="top-right" />
+    </SidebarProvider>
   );
 }

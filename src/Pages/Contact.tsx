@@ -1,9 +1,5 @@
-import { Typography } from '@mui/material';
+import { PageHeader } from '@/Components/page-header';
 
-export default function Home() {
-  return (
-    <Typography variant="h3" noWrap component="div">
-      Contact
-    </Typography>
-  );
+export default function Contact() {
+  return <PageHeader title="Contact" />;
 }

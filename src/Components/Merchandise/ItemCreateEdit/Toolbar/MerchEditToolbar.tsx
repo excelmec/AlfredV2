@@ -5,7 +5,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import './MerchEditToolbar.css';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { TupdateFnReturn } from 'Hooks/errorParser';
 
 type SaveChangesWithParam = {

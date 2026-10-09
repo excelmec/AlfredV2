@@ -12,7 +12,7 @@ import {
 import { useEventHeadCrud } from 'Hooks/Event/eventHeads/useEventHeadCrud';
 import { useEffect } from 'react';
 import './EventHeadLoader.css';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 export default function EventHeadEditModal({
   open,

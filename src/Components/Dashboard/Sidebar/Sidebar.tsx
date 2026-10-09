@@ -1,261 +1,123 @@
-import Box from '@mui/material/Box';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Collapse from '@mui/material/Collapse';
-
-import UserLoginAvatarButton from '../Login/UserLoginAvatarButton';
-
-import GroupIcon from '@mui/icons-material/Group';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import ContactsOutlinedIcon from '@mui/icons-material/ContactsOutlined';
-import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
-import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
-import EventIcon from '@mui/icons-material/Event';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ScheduleIcon from '@mui/icons-material/Schedule';
-import StoreIcon from '@mui/icons-material/Store';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import BookOnlineIcon from '@mui/icons-material/BookOnline';
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
-
+import { useContext } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useContext, useEffect, useState } from 'react';
-import UserContext from '../../../Contexts/User/UserContext';
-import './Sidebar.css';
-import { Paper } from '@mui/material';
-import { ticketScanRoles } from 'Hooks/Ticket/ticketRoles';
+import { CaretRightIcon } from '@phosphor-icons/react';
+import UserContext from 'Contexts/User/UserContext';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/Components/ui/collapsible';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarRail,
+} from '@/Components/ui/sidebar';
+import UserLoginAvatarButton from '../Login/UserLoginAvatarButton';
+import { bottomLinks, navGroups, topLinks, type NavLeaf } from './navigation';
 
-export default function Sidebar() {
+export default function AppSidebar() {
   const { userData, userLoading, logout } = useContext(UserContext);
+  const { pathname } = useLocation();
 
-  const [caOpen, setCaOpen] = useState(false);
-  const [eventsOpen, setEventsOpen] = useState(false);
-  const [merchOpen, setMerchOpen] = useState(false);
-  const [ticketsOpen, setTicketsOpen] = useState(false);
-
-  const location = useLocation();
-  const [activeLink, setActiveLink] = useState<'none' | 'ca' | 'events' | 'merch' | 'ticket'>(
-    'none',
-  );
-
-  useEffect(() => {
-    if (location.pathname.startsWith('/ca')) {
-      setActiveLink('ca');
-    } else if (location.pathname.startsWith('/events')) {
-      setActiveLink('events');
-    } else if (location.pathname.startsWith('/merch')) {
-      setActiveLink('merch');
-    } else if (location.pathname.startsWith('/ticket')) {
-      setActiveLink('ticket');
-    } else {
-      setActiveLink('none');
-    }
-  }, [location]);
+  const canSee = (item: NavLeaf) =>
+    !item.roles || userData.roles.some((role) => item.roles?.includes(role));
 
   return (
-    <Box className="dash-sidebar" component={Paper} elevation={1} borderRadius={0}>
-      <List>
-        <ListItemLink to="/" text="Home" icon={<HomeOutlinedIcon />} />
-        <ListItemLink to="/users" text="Users" icon={<InfoOutlinedIcon />} />
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild tooltip="Alfred">
+              <NavLink to="/">
+                <img src="/logo.png" alt="Excel" className="size-8 shrink-0 object-contain" />
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-bold tracking-tight">Alfred</span>
+                  <span className="truncate text-xs text-muted-foreground">Excel Admin</span>
+                </div>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-        {/* CA */}
-        <ListItemButton
-          className={`list-item-link ${activeLink === 'ca' ? 'active' : ''}`}
-          onClick={() => {
-            setCaOpen(!caOpen);
-          }}
-        >
-          <ListItemIcon>
-            <CampaignOutlinedIcon />
-          </ListItemIcon>
-          <ListItemText primary="Campus Ambassador" />
-          {caOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-        <Collapse in={caOpen} timeout="auto" unmountOnExit>
-          <List disablePadding={true}>
-            <ListItemLink
-              to="/ca/list"
-              text="CA List"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink to="/ca/team" text="Team List" leftBorder icon={<GroupIcon />} />
-          </List>
-        </Collapse>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarMenu>
+            {topLinks.map((item) => (
+              <NavItem key={item.to} item={item} pathname={pathname} />
+            ))}
 
-        {/* Events */}
-        <ListItemButton
-          className={`list-item-link ${activeLink === 'events' ? 'active' : ''}`}
-          onClick={() => {
-            setEventsOpen(!eventsOpen);
-          }}
-        >
-          <ListItemIcon>
-            <EventIcon />
-          </ListItemIcon>
-          <ListItemText primary="Events" />
-          {eventsOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-        <Collapse in={eventsOpen} timeout="auto" unmountOnExit>
-          <List disablePadding={true}>
-            <ListItemLink
-              to="/events"
-              text="List Events"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/events/heads"
-              text="Event Heads"
-              leftBorder
-              icon={<SupportAgentIcon />}
-            />
-            <ListItemLink
-              to="/events/registrations/statistics"
-              text="Event Registration Statistics"
-              leftBorder
-              icon={<TrendingUpIcon />}
-            />
-            <ListItemLink
-              to="/events/schedule"
-              text="Event Schedule"
-              leftBorder
-              icon={<ScheduleIcon />}
-            />
-          </List>
-        </Collapse>
+            {navGroups.map((group) => {
+              const visible = group.items.filter(canSee);
+              if (visible.length === 0) return null;
+              const active = pathname.startsWith(group.prefix);
+              return (
+                <Collapsible
+                  key={group.prefix}
+                  asChild
+                  defaultOpen={active}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton tooltip={group.title} isActive={active}>
+                        <group.icon />
+                        <span>{group.title}</span>
+                        <CaretRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {visible.map((item) => (
+                          <SidebarMenuSubItem key={item.to}>
+                            <SidebarMenuSubButton asChild isActive={pathname === item.to}>
+                              <NavLink to={item.to} end>
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            })}
 
-        {/* Merch */}
-        <ListItemButton
-          className={`list-item-link ${activeLink === 'merch' ? 'active' : ''}`}
-          onClick={() => {
-            setMerchOpen(!merchOpen);
-          }}
-        >
-          <ListItemIcon>
-            <StoreIcon />
-          </ListItemIcon>
-          <ListItemText primary="Merchandise" />
-          {merchOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-        <Collapse in={merchOpen} timeout="auto" unmountOnExit>
-          <List disablePadding={true}>
-            <ListItemLink
-              to="/merch/items"
-              text="List Items"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/merch/confirmed_delivery_orders"
-              text="List Confirmed Delivery Orders"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/merch/confirmed_pickup_orders"
-              text="List Confirmed Pickup Orders"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/merch/preorders"
-              text="List Pre-orders"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/merch/missing_stock"
-              text="List Missing Stock"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/merch/order/testpayment"
-              text="Test Payment"
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-          </List>
-        </Collapse>
+            {bottomLinks.map((item) => (
+              <NavItem key={item.to} item={item} pathname={pathname} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
 
-        {/* Ticket */}
-        <ListItemButton
-          className={`list-item-link ${activeLink === 'ticket' ? 'active' : ''}`}
-          onClick={() => {
-            setTicketsOpen(!ticketsOpen);
-          }}
-        >
-          <ListItemIcon>
-            <BookOnlineIcon />
-          </ListItemIcon>
-          <ListItemText primary="Tickets" />
-          {ticketsOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-        <Collapse in={ticketsOpen} timeout="auto" unmountOnExit>
-          <List disablePadding={true}>
-            <ListItemLink
-              to="/tickets/proshows"
-              text="Proshows"
-              leftBorder
-              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/tickets"
-              text="Attendees"
-              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
-              leftBorder
-              icon={<FormatListNumberedIcon />}
-            />
-            <ListItemLink
-              to="/tickets/scan"
-              text="Scan"
-              leftBorder
-              havePermissions={userData.roles.some((role) => ticketScanRoles.includes(role))}
-              icon={<QrCodeScannerIcon />}
-            />
-          </List>
-        </Collapse>
-
-        <ListItemLink to="/contact" text="Contact" icon={<ContactsOutlinedIcon />} />
-      </List>
-
-      <Box sx={{ flexGrow: 1 }}></Box>
-      <UserLoginAvatarButton userLoading={userLoading} userData={userData} logout={logout} />
-    </Box>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <UserLoginAvatarButton userLoading={userLoading} userData={userData} logout={logout} />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   );
 }
 
-interface ListItemLinkProps {
-  icon?: React.ReactElement;
-  text: string;
-  to: string;
-  disablePadding?: boolean;
-  leftBorder?: true;
-  havePermissions?: boolean;
-}
-
-function ListItemLink(props: ListItemLinkProps) {
-  const { icon, text, to, disablePadding = true, leftBorder = false } = props;
-  if (props.havePermissions === false) return <ListItem disablePadding={disablePadding}></ListItem>;
+function NavItem({ item, pathname }: { item: NavLeaf; pathname: string }) {
   return (
-    <ListItem disablePadding={disablePadding}>
-      <ListItemButton
-        component={NavLink}
-        to={to}
-        end
-        className={`list-item-link ${leftBorder ? 'left-border' : ''}`}
-      >
-        <ListItemIcon>{icon}</ListItemIcon>
-        <ListItemText primary={text} />
-      </ListItemButton>
-    </ListItem>
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.to}>
+        <NavLink to={item.to} end>
+          <item.icon />
+          <span>{item.title}</span>
+        </NavLink>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }

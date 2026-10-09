@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { ApiContext } from 'Contexts/Api/ApiContext';
 import { useContext, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const MerchItemDelete = (parameters: {
   id: number | undefined;

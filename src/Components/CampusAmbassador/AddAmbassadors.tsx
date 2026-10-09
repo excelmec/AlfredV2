@@ -11,7 +11,7 @@ import {
   TextField,
 } from '@mui/material';
 import { ChangeEvent, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { getErrMsg } from 'Hooks/errorParser';
 import { CaListRes } from 'Hooks/CampusAmbassador/useCaList';
 import { NewAmbassador, caCodePattern, parseCaCsv } from 'Hooks/CampusAmbassador/parseCaCsv';

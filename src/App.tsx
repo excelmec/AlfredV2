@@ -1,7 +1,7 @@
-import { CssBaseline } from '@mui/material';
 import React from 'react';
 import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from '@/Components/theme-provider';
 import UserState from 'Contexts/User/UserState';
 import { ApiState, merchBaseUrl, ticketsBaseUrl } from 'Contexts/Api/ApiState';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -57,8 +57,7 @@ function withKeys(routes: React.ReactElement[]): React.ReactElement[] {
 
 function App() {
   return (
-    <div className="App">
-      <CssBaseline />
+    <ThemeProvider>
       <ApiState>
         <UserState>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -86,7 +85,7 @@ function App() {
           </LocalizationProvider>
         </UserState>
       </ApiState>
-    </div>
+    </ThemeProvider>
   );
 }
 
