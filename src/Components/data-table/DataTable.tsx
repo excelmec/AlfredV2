@@ -192,6 +192,9 @@ export function DataTable<R>({
     onSortingChange: setSorting,
     onGlobalFilterChange: (updater) =>
       setGlobalFilter(typeof updater === 'function' ? updater(globalFilter) : updater),
+    // Default only searches columns whose first row is a string/number, which skips columns
+    // that start with null (e.g. a bib number nobody has been assigned yet)
+    getColumnCanGlobalFilter: (column) => column.columnDef.enableGlobalFilter !== false,
     globalFilterFn: (row, columnId, filterValue) =>
       plainText(row.getValue(columnId)).toLowerCase().includes(String(filterValue).toLowerCase()),
     getCoreRowModel: getCoreRowModel(),

@@ -1,4 +1,6 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { Input } from '@/Components/ui/input';
 import { useMarathon } from '../../Hooks/Ticket/useMarathon';
 import { IMarathonAttendee } from '../../Hooks/Ticket/ticketTypes';
 import { PageHeader } from '@/Components/page-header';
@@ -12,8 +14,64 @@ function getRowId(row: IMarathonAttendee) {
 
 const toDate = (value: string | null) => (value ? new Date(value) : null);
 
+function BibCell({
+  row,
+  onSave,
+}: {
+  row: IMarathonAttendee;
+  onSave: (ticketId: string, bib: string) => Promise<string | null>;
+}) {
+  const [value, setValue] = useState(row.bib_number ?? '');
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    setValue(row.bib_number ?? '');
+  }, [row.bib_number]);
+
+  const save = async () => {
+    if (value === (row.bib_number ?? '')) return;
+    if (value && !/^\d{3}$/.test(value)) {
+      setErr('Must be 3 digits');
+      toast.error('Bib number must be exactly 3 digits');
+      return;
+    }
+    const message = await onSave(row.ticket_id, value);
+    if (message) {
+      setErr(message);
+      toast.error(message);
+      setValue(row.bib_number ?? '');
+    } else {
+      setErr('');
+    }
+  };
+
+  return (
+    <Input
+      value={value}
+      inputMode="numeric"
+      maxLength={3}
+      placeholder="—"
+      title={err}
+      aria-invalid={!!err}
+      onChange={(e) => {
+        setErr('');
+        setValue(e.target.value.replace(/\D/g, '').slice(0, 3));
+      }}
+      onBlur={save}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+        if (e.key === 'Escape') {
+          setValue(row.bib_number ?? '');
+          setErr('');
+        }
+      }}
+      className="h-8 w-20 text-center"
+    />
+  );
+}
+
 export default function MarathonAttendees() {
-  const { attendees, loading, error, fetchAll } = useMarathon();
+  const { attendees, loading, error, fetchAll, updateBib } = useMarathon();
 
   useEffect(() => {
     fetchAll();
@@ -38,13 +96,19 @@ export default function MarathonAttendees() {
         valueGetter: ({ row }) => toDate(row.bib_collected_at),
       },
       {
+        field: 'bib_number',
+        headerName: 'Bib no.',
+        width: 120,
+        renderCell: ({ row }) => <BibCell row={row} onSave={updateBib} />,
+      },
+      {
         field: 'checked_in_at',
         headerName: 'Checked in',
         width: 180,
         valueGetter: ({ row }) => toDate(row.checked_in_at),
       },
     ],
-    [],
+    [updateBib],
   );
 
   if (error) {

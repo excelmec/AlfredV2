@@ -3,6 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Card } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
 import { ScrollArea } from '@/Components/ui/scroll-area';
 import { Spinner } from '@/Components/ui/spinner';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ interface ITicketData {
   email: string;
   proshow: string;
   stage?: string;
+  bib_number?: string;
 }
 
 interface IScanResponse {
@@ -59,6 +61,8 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
   const [currentCameraIndex, setCurrentCameraIndex] = useState<number>(0);
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(0);
+  const [pendingToken, setPendingToken] = useState<string | null>(null);
+  const [bibInput, setBibInput] = useState<string>('');
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastScannedTextRef = useRef<string | null>(null);
@@ -226,11 +230,23 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
     lastScannedTextRef.current = decodedText;
     lastScanTimeRef.current = now;
 
+    // Bib collection needs a bib number: hold the scan until the operator enters it
+    if (marathon && stageRef.current === 'COLLECTION') {
+      setBibInput('');
+      setPendingToken(decodedText);
+      return;
+    }
+
+    await submitScan(decodedText);
+  }
+
+  async function submitScan(decodedText: string, bibNumber?: string) {
     try {
       const response = marathon
         ? await axiosTicketsPrivate.post<IScanResponse>('/marathon/validate', {
             token: decodedText,
             stage: stageRef.current,
+            ...(bibNumber ? { bib_number: bibNumber } : {}),
           })
         : await axiosTicketsPrivate.post<IScanResponse>('/validate', {
             token: decodedText,
@@ -253,6 +269,22 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
   }
 
   function onScanFailure(_error: any) {}
+
+  const confirmBib = async () => {
+    if (!pendingToken || !/^\d{3}$/.test(bibInput)) return;
+    const token = pendingToken;
+    const bib = bibInput;
+    setPendingToken(null);
+    setBibInput('');
+    await submitScan(token, bib);
+  };
+
+  const cancelBib = () => {
+    setPendingToken(null);
+    setBibInput('');
+    lastScannedTextRef.current = null;
+    processingRef.current = false;
+  };
 
   const processResult = (result: IScanResponse, qrCode: string) => {
     setInlineResult(result);
@@ -364,6 +396,33 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
 
           <div id={SCANNER_ELEMENT_ID} style={{ width: '100%', height: '100%' }}></div>
 
+          {/* Bib number prompt after scanning a collection QR */}
+          {pendingToken && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/85 p-4 text-center text-white">
+              <p className="text-xl font-semibold">Enter bib number</p>
+              <Input
+                autoFocus
+                inputMode="numeric"
+                maxLength={3}
+                placeholder="000"
+                value={bibInput}
+                onChange={(e) => setBibInput(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') confirmBib();
+                }}
+                className="h-14 w-40 text-center text-3xl tracking-widest text-white"
+              />
+              <div className="flex gap-2">
+                <Button variant="outline" className="text-foreground" onClick={cancelBib}>
+                  Cancel
+                </Button>
+                <Button onClick={confirmBib} disabled={!/^\d{3}$/.test(bibInput)}>
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Full-screen result during scan delay */}
           {inlineResult && (
             <div
@@ -390,6 +449,8 @@ export default function TicketValidator({ marathon = false }: { marathon?: boole
                     )}
                   >
                     Event: {inlineResult.ticket_data.proshow}
+                    {inlineResult.ticket_data.bib_number &&
+                      ` • Bib ${inlineResult.ticket_data.bib_number}`}
                   </Badge>
                 </>
               )}

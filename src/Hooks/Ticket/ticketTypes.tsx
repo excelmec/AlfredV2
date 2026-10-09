@@ -88,6 +88,7 @@ export interface IMarathonAttendee {
   status: string;
   emailed_at: string | null;
   bib_collected_at: string | null;
+  bib_number: string | null;
   checked_in_at: string | null;
 }
 
