@@ -26,14 +26,7 @@ export interface CaTeam extends CaTeamEvents {
 }
 
 export function useCaTeamList() {
-  const [caTeamList, setCaTeamList] = useState<
-    (
-      | CaTeam
-      | {
-          ambassadors: CaAccounts[];
-        }
-    )[]
-  >([]);
+  const [caTeamList, setCaTeamList] = useState<CaTeam[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -53,14 +46,14 @@ export function useCaTeamList() {
       caListAccountsRes.data?.forEach((caAccount) => {
         caAccountsMap.set(caAccount.ambassadorId, caAccount);
       });
-      const caTeamList = response.data.map((caTeam) => {
+      const caTeamList = response.data.map((caTeam): CaTeam => {
         return {
           ...caTeam,
           ambassadors: caTeam.ambassadors?.map((ambassador) => {
             return {
               ...ambassador,
               ...caAccountsMap.get(ambassador?.ambassadorId),
-            };
+            } as CaTeam['ambassadors'][number];
           }),
         };
       });

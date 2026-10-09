@@ -2,7 +2,7 @@ import { Button, TextField, Typography } from '@mui/material';
 import useRazorpay from 'react-razorpay';
 import { useEffect, useState } from 'react';
 
-const rzpKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
+const rzpKey = import.meta.env.REACT_APP_RAZORPAY_KEY_ID;
 
 export default function TestOrderPaymentPage() {
   const [orderId, setOrderId] = useState('');

@@ -7,18 +7,18 @@ interface IApiStateProps {
   children: React.ReactNode;
 }
 
-const accBaseUrl = process.env.REACT_APP_ACC_BACKEND_BASE_URL;
-const eventsBaseUrl = process.env.REACT_APP_EVENTS_BACKEND_BASE_URL;
+const accBaseUrl = import.meta.env.REACT_APP_ACC_BACKEND_BASE_URL;
+const eventsBaseUrl = import.meta.env.REACT_APP_EVENTS_BACKEND_BASE_URL;
 
 /**
  * Not setting this will disable the merch API in the dashboard
  */
-export const merchBaseUrl = process.env.REACT_APP_MERCH_BACKEND_BASE_URL;
+export const merchBaseUrl = import.meta.env.REACT_APP_MERCH_BACKEND_BASE_URL;
 
 /**
  * Not setting this will disable the tickets API in the dashboard
  */
-export const ticketsBaseUrl = process.env.REACT_APP_TICKETS_BACKEND_BASE_URL;
+export const ticketsBaseUrl = import.meta.env.REACT_APP_TICKETS_BACKEND_BASE_URL;
 
 export function ApiState({ children }: IApiStateProps) {
   if (!accBaseUrl) {

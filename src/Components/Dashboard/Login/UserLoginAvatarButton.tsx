@@ -23,7 +23,7 @@ export default function UserLoginAvatarButton({
   userData,
   logout,
 }: UserLoginAvatarButtonProps) {
-  const authRedirUrl = process.env.REACT_APP_AUTH_REDIR_URL;
+  const authRedirUrl = import.meta.env.REACT_APP_AUTH_REDIR_URL;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<any>) => {

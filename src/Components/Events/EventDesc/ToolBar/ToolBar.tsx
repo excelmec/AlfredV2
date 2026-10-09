@@ -10,7 +10,7 @@ import './ToolBar.css';
 import { useNavigate } from 'react-router-dom';
 
 // Optional: when unset, the link to the forms dashboard is hidden
-const formsBaseUrl = process.env.REACT_APP_FORMS_BASE_URL;
+const formsBaseUrl = import.meta.env.REACT_APP_FORMS_BASE_URL;
 
 export default function ToolBar({
   eventId,

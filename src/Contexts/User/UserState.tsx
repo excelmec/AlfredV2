@@ -34,7 +34,7 @@ function UserState({ children }: IUserStateProps) {
           role: string | UserRoles[];
         }
 
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
           console.log('[debug] decoded JWT claims:', userProfile);
         }
 

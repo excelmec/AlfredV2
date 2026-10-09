@@ -4,10 +4,10 @@ AlfredV2 is a revamped version, rewritten in React of the existing Alfred repo (
 
 ### Development
 
-- This is built using create-react-app with typescript and yarn
+- This is built using Vite + React with TypeScript and yarn
 - use `yarn install` to install dependencies
 - create a `.env` file according to `.env.example` file
-- start dev with `yarn start`
+- start dev with `yarn dev` (or `yarn start`)
 
 ### Todo
 
