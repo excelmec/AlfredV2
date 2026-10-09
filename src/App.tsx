@@ -1,6 +1,5 @@
 import { CssBaseline } from '@mui/material';
 import React from 'react';
-import 'App.css';
 import DashLayout from 'Layout/DashLayout';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import UserState from 'Contexts/User/UserState';
