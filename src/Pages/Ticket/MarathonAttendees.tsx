@@ -2,6 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Input } from '@/Components/ui/input';
 import { Switch } from '@/Components/ui/switch';
+import { Button } from '@/Components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
+import type { SortingState } from '@tanstack/react-table';
 import { useMarathon } from '../../Hooks/Ticket/useMarathon';
 import { IMarathonAttendee } from '../../Hooks/Ticket/ticketTypes';
 import { PageHeader } from '@/Components/page-header';
@@ -13,7 +22,72 @@ function getRowId(row: IMarathonAttendee) {
   return row.ticket_id;
 }
 
-const toDate = (value: string | null) => (value ? new Date(value) : null);
+const toDate = (value: string | null) => (value ? new Date(value) : undefined);
+
+// yyyy-mm-dd in local time, matching what <input type="date"> produces
+const localDay = (value: string | null) => {
+  if (!value) return '';
+  const d = new Date(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+type StatusFilter = 'all' | 'yes' | 'no';
+
+const sortOptions: { value: string; label: string; sort: SortingState }[] = [
+  { value: 'default', label: 'Default order', sort: [] },
+  { value: 'name-asc', label: 'Name A → Z', sort: [{ id: 'name', desc: false }] },
+  { value: 'name-desc', label: 'Name Z → A', sort: [{ id: 'name', desc: true }] },
+  { value: 'bib-asc', label: 'Bib no. low → high', sort: [{ id: 'bib_number', desc: false }] },
+  { value: 'bib-desc', label: 'Bib no. high → low', sort: [{ id: 'bib_number', desc: true }] },
+  {
+    value: 'collected-desc',
+    label: 'Bib collected: latest first',
+    sort: [{ id: 'bib_collected_at', desc: true }],
+  },
+  {
+    value: 'collected-asc',
+    label: 'Bib collected: earliest first',
+    sort: [{ id: 'bib_collected_at', desc: false }],
+  },
+  {
+    value: 'checkin-desc',
+    label: 'Checked in: latest first',
+    sort: [{ id: 'checked_in_at', desc: true }],
+  },
+  {
+    value: 'checkin-asc',
+    label: 'Checked in: earliest first',
+    sort: [{ id: 'checked_in_at', desc: false }],
+  },
+];
+
+function StatusSelect({
+  value,
+  onChange,
+  yes,
+  no,
+  label,
+}: {
+  value: StatusFilter;
+  onChange: (v: StatusFilter) => void;
+  yes: string;
+  no: string;
+  label: string;
+}) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as StatusFilter)}>
+      <SelectTrigger size="sm" className="w-[170px]" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{label}: all</SelectItem>
+        <SelectItem value="yes">{yes}</SelectItem>
+        <SelectItem value="no">{no}</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
 
 function BibCell({
   row,
@@ -119,6 +193,47 @@ export default function MarathonAttendees() {
     fetchAll();
   }, [fetchAll]);
 
+  const [bibFilter, setBibFilter] = useState<StatusFilter>('all');
+  const [collectedFilter, setCollectedFilter] = useState<StatusFilter>('all');
+  const [collectedDate, setCollectedDate] = useState('');
+  const [checkedInFilter, setCheckedInFilter] = useState<StatusFilter>('all');
+  const [checkedInDate, setCheckedInDate] = useState('');
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const filtersActive =
+    bibFilter !== 'all' ||
+    collectedFilter !== 'all' ||
+    !!collectedDate ||
+    checkedInFilter !== 'all' ||
+    !!checkedInDate;
+
+  const resetFilters = () => {
+    setBibFilter('all');
+    setCollectedFilter('all');
+    setCollectedDate('');
+    setCheckedInFilter('all');
+    setCheckedInDate('');
+  };
+
+  const filteredRows = useMemo(
+    () =>
+      attendees.filter((r) => {
+        if (bibFilter === 'yes' && !r.bib_number) return false;
+        if (bibFilter === 'no' && r.bib_number) return false;
+        if (collectedFilter === 'yes' && !r.bib_collected_at) return false;
+        if (collectedFilter === 'no' && r.bib_collected_at) return false;
+        if (collectedDate && localDay(r.bib_collected_at) !== collectedDate) return false;
+        if (checkedInFilter === 'yes' && !r.checked_in_at) return false;
+        if (checkedInFilter === 'no' && r.checked_in_at) return false;
+        if (checkedInDate && localDay(r.checked_in_at) !== checkedInDate) return false;
+        return true;
+      }),
+    [attendees, bibFilter, collectedFilter, collectedDate, checkedInFilter, checkedInDate],
+  );
+
+  const sortValue =
+    sortOptions.find((o) => JSON.stringify(o.sort) === JSON.stringify(sorting))?.value ?? 'custom';
+
   const columns: DataColumn<IMarathonAttendee>[] = useMemo(
     () => [
       { field: 'name', headerName: 'Name', width: 200 },
@@ -149,6 +264,7 @@ export default function MarathonAttendees() {
         field: 'bib_number',
         headerName: 'Bib no.',
         width: 120,
+        valueGetter: ({ row }) => row.bib_number ?? undefined,
         renderCell: ({ row }) => <BibCell row={row} onSave={updateBib} />,
       },
       {
@@ -181,7 +297,70 @@ export default function MarathonAttendees() {
       />
       <DataTable
         columns={columns}
-        rows={attendees}
+        rows={filteredRows}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        toolbar={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <StatusSelect
+              label="Bib no."
+              value={bibFilter}
+              onChange={setBibFilter}
+              yes="Bib assigned"
+              no="Bib unassigned"
+            />
+            <StatusSelect
+              label="Bib collection"
+              value={collectedFilter}
+              onChange={setCollectedFilter}
+              yes="Bib collected"
+              no="Not collected"
+            />
+            <Input
+              type="date"
+              value={collectedDate}
+              onChange={(e) => setCollectedDate(e.target.value)}
+              aria-label="Bib collected on"
+              title="Bib collected on"
+              className="h-8 w-[150px]"
+            />
+            <StatusSelect
+              label="Check-in"
+              value={checkedInFilter}
+              onChange={setCheckedInFilter}
+              yes="Checked in"
+              no="Not checked in"
+            />
+            <Input
+              type="date"
+              value={checkedInDate}
+              onChange={(e) => setCheckedInDate(e.target.value)}
+              aria-label="Checked in on"
+              title="Checked in on"
+              className="h-8 w-[150px]"
+            />
+            {filtersActive && (
+              <Button variant="ghost" size="sm" onClick={resetFilters}>
+                Clear filters
+              </Button>
+            )}
+            <Select
+              value={sortValue}
+              onValueChange={(v) => setSorting(sortOptions.find((o) => o.value === v)?.sort ?? [])}
+            >
+              <SelectTrigger size="sm" className="w-[210px]" aria-label="Sort by">
+                <SelectValue placeholder="Custom sort" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
         getRowId={getRowId}
         loading={loading}
         exportFileName="marathon-attendees"

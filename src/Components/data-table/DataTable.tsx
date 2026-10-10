@@ -77,6 +77,9 @@ interface DataTableProps<R> {
   initialColumnVisibility?: Record<string, boolean>;
   /** Initial sort, e.g. `[{ id: 'orderDate', desc: true }]` */
   initialSorting?: SortingState;
+  /** Controlled sort, e.g. to drive it from a toolbar dropdown. Overrides `initialSorting` */
+  sorting?: SortingState;
+  onSortingChange?: (sorting: SortingState) => void;
   onRowClick?: (row: R) => void;
   /** Page on the server instead of in the browser. Rows must then be only the current page */
   serverPagination?: ServerPagination;
@@ -130,6 +133,8 @@ export function DataTable<R>({
   pageSize = 10,
   initialColumnVisibility,
   initialSorting,
+  sorting: controlledSorting,
+  onSortingChange,
   onRowClick,
   serverPagination,
   search,
@@ -137,7 +142,13 @@ export function DataTable<R>({
   emptyMessage = 'No results found.',
   className,
 }: DataTableProps<R>) {
-  const [sorting, setSorting] = useState<SortingState>(initialSorting ?? []);
+  const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting ?? []);
+  const sorting = controlledSorting ?? localSorting;
+  const setSorting = (updater: SortingState | ((prev: SortingState) => SortingState)) => {
+    const next = typeof updater === 'function' ? updater(sorting) : updater;
+    if (onSortingChange) onSortingChange(next);
+    if (controlledSorting === undefined) setLocalSorting(next);
+  };
   const [localFilter, setLocalFilter] = useState('');
   const globalFilter = search ? search.value : localFilter;
   const setGlobalFilter = (value: string) =>
