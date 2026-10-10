@@ -121,6 +121,36 @@ export function useMarathon() {
     [axiosTicketsPrivate],
   );
 
+  const updateScanStatus = useCallback(
+    async (
+      ticketId: string,
+      changes: { bib_collected?: boolean; checked_in?: boolean },
+    ): Promise<string | null> => {
+      try {
+        const { data } = await axiosTicketsPrivate.patch<{
+          bib_collected_at: string | null;
+          checked_in_at: string | null;
+        }>(`/marathon/attendees/${ticketId}/status`, changes);
+        setAttendees((prev) =>
+          prev.map((a) =>
+            a.ticket_id === ticketId
+              ? {
+                  ...a,
+                  bib_collected_at: data.bib_collected_at,
+                  checked_in_at: data.checked_in_at,
+                }
+              : a,
+          ),
+        );
+        return null;
+      } catch (err) {
+        const detail = (err as any)?.response?.data?.detail;
+        return typeof detail === 'string' ? detail : getErrMsg(err);
+      }
+    },
+    [axiosTicketsPrivate],
+  );
+
   const clearUploadResult = useCallback(() => {
     setUploadResult(null);
     setUploadError('');
@@ -141,6 +171,7 @@ export function useMarathon() {
       createEvent,
       uploadAttendees,
       updateBib,
+      updateScanStatus,
       clearUploadResult,
     }),
     [
@@ -157,6 +188,7 @@ export function useMarathon() {
       createEvent,
       uploadAttendees,
       updateBib,
+      updateScanStatus,
       clearUploadResult,
     ],
   );

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Input } from '@/Components/ui/input';
+import { Switch } from '@/Components/ui/switch';
 import { useMarathon } from '../../Hooks/Ticket/useMarathon';
 import { IMarathonAttendee } from '../../Hooks/Ticket/ticketTypes';
 import { PageHeader } from '@/Components/page-header';
@@ -70,8 +71,49 @@ function BibCell({
   );
 }
 
+function ScanStatusCell({
+  row,
+  field,
+  label,
+  onChange,
+}: {
+  row: IMarathonAttendee;
+  field: 'bib_collected' | 'checked_in';
+  label: string;
+  onChange: (
+    ticketId: string,
+    changes: { bib_collected?: boolean; checked_in?: boolean },
+  ) => Promise<string | null>;
+}) {
+  const [saving, setSaving] = useState(false);
+  const at = field === 'bib_collected' ? row.bib_collected_at : row.checked_in_at;
+
+  const toggle = async (checked: boolean) => {
+    setSaving(true);
+    const message = await onChange(row.ticket_id, { [field]: checked });
+    setSaving(false);
+    if (message) toast.error(message);
+    else toast.success(`${row.name}: ${label} ${checked ? 'marked' : 'cleared'}`);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Switch
+        size="sm"
+        checked={!!at}
+        disabled={saving}
+        onCheckedChange={toggle}
+        aria-label={`${label} for ${row.name}`}
+      />
+      <span className="text-xs text-muted-foreground">
+        {at ? new Date(at).toLocaleString() : 'No'}
+      </span>
+    </div>
+  );
+}
+
 export default function MarathonAttendees() {
-  const { attendees, loading, error, fetchAll, updateBib } = useMarathon();
+  const { attendees, loading, error, fetchAll, updateBib, updateScanStatus } = useMarathon();
 
   useEffect(() => {
     fetchAll();
@@ -92,8 +134,16 @@ export default function MarathonAttendees() {
       {
         field: 'bib_collected_at',
         headerName: 'Bib collected',
-        width: 180,
+        width: 260,
         valueGetter: ({ row }) => toDate(row.bib_collected_at),
+        renderCell: ({ row }) => (
+          <ScanStatusCell
+            row={row}
+            field="bib_collected"
+            label="Bib collection"
+            onChange={updateScanStatus}
+          />
+        ),
       },
       {
         field: 'bib_number',
@@ -104,11 +154,19 @@ export default function MarathonAttendees() {
       {
         field: 'checked_in_at',
         headerName: 'Checked in',
-        width: 180,
+        width: 260,
         valueGetter: ({ row }) => toDate(row.checked_in_at),
+        renderCell: ({ row }) => (
+          <ScanStatusCell
+            row={row}
+            field="checked_in"
+            label="Check-in"
+            onChange={updateScanStatus}
+          />
+        ),
       },
     ],
-    [updateBib],
+    [updateBib, updateScanStatus],
   );
 
   if (error) {
