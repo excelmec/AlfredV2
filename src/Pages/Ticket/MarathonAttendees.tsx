@@ -38,6 +38,22 @@ const sortOptions: { value: string; label: string; sort: SortingState }[] = [
   { value: 'default', label: 'Default order', sort: [] },
   { value: 'name-asc', label: 'Name A → Z', sort: [{ id: 'name', desc: false }] },
   { value: 'name-desc', label: 'Name Z → A', sort: [{ id: 'name', desc: true }] },
+  {
+    value: 'bib-unassigned-first',
+    label: 'Bib: unassigned first',
+    sort: [
+      { id: 'bib_assigned', desc: false },
+      { id: 'name', desc: false },
+    ],
+  },
+  {
+    value: 'bib-assigned-first',
+    label: 'Bib: assigned first',
+    sort: [
+      { id: 'bib_assigned', desc: true },
+      { id: 'bib_number', desc: false },
+    ],
+  },
   { value: 'bib-asc', label: 'Bib no. low → high', sort: [{ id: 'bib_number', desc: false }] },
   { value: 'bib-desc', label: 'Bib no. high → low', sort: [{ id: 'bib_number', desc: true }] },
   {
@@ -261,6 +277,12 @@ export default function MarathonAttendees() {
         ),
       },
       {
+        field: 'bib_assigned',
+        headerName: 'Bib assigned',
+        width: 120,
+        valueGetter: ({ row }) => !!row.bib_number,
+      },
+      {
         field: 'bib_number',
         headerName: 'Bib no.',
         width: 120,
@@ -298,6 +320,7 @@ export default function MarathonAttendees() {
       <DataTable
         columns={columns}
         rows={filteredRows}
+        initialColumnVisibility={{ bib_assigned: false }}
         sorting={sorting}
         onSortingChange={setSorting}
         toolbar={
