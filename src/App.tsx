@@ -23,6 +23,7 @@ const EventDescPage = lazy(() => import('Pages/Events/EventDesc'));
 const CaTeamListPage = lazy(() => import('Pages/CampusAmbassador/CaTeamList'));
 const CaTeamView = lazy(() => import('Pages/CampusAmbassador/CaTeamView'));
 const CaViewPage = lazy(() => import('Pages/CampusAmbassador/CaView'));
+const GameRewardsPage = lazy(() => import('Pages/CampusAmbassador/GameRewards'));
 const EventEditPage = lazy(() => import('Pages/Events/EventEdit'));
 const EventCreatePage = lazy(() => import('Pages/Events/EventCreate'));
 const ErrorPage = lazy(() => import('Pages/Error'));
@@ -108,6 +109,15 @@ function UserRoutes() {
 function CampusAmbassadorRoutes() {
   return [
     <Route key="/ca" path="/ca" element={<Navigate to="/ca/list" replace />} />,
+    <Route
+      key="/ca/game-rewards"
+      path="/ca/game-rewards"
+      element={
+        <ProtectedRoute allowedRoles={['Admin']}>
+          <GameRewardsPage />
+        </ProtectedRoute>
+      }
+    />,
     <Route
       key="/ca/:ambassadorId"
       path="/ca/:ambassadorId"

@@ -5,6 +5,7 @@ import {
   ChartLineUpIcon,
   ClockIcon,
   CreditCardIcon,
+  GameControllerIcon,
   HeadsetIcon,
   ListNumbersIcon,
   MegaphoneIcon,
@@ -49,6 +50,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: 'CA List', to: '/ca/list', icon: ListNumbersIcon },
       { title: 'Team List', to: '/ca/team', icon: UsersThreeIcon },
+      { title: 'Game Rewards', to: '/ca/game-rewards', icon: GameControllerIcon, roles: ['Admin'] },
     ],
   },
   {

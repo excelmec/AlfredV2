@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EyeIcon } from '@phosphor-icons/react';
+import { EyeIcon, LinkIcon } from '@phosphor-icons/react';
+import { toast } from 'sonner';
 import { CaListRes, useCaList } from 'Hooks/CampusAmbassador/useCaList';
 import { TypeSafeColDef } from 'Hooks/gridColumType';
 import AddAmbassadors from 'Components/CampusAmbassador/AddAmbassadors';
@@ -31,8 +32,22 @@ export default function CaListPage() {
       field: 'actions',
       headerName: 'Actions',
       type: 'actions',
-      width: 80,
+      width: 120,
       getActions: (params) => [
+        <RowAction
+          key="copy-play-link"
+          icon={<LinkIcon />}
+          label="Copy Excel Play referral link"
+          disabled={!params.row.code}
+          onClick={() => {
+            const url = new URL('https://play.excelmec.org/');
+            url.searchParams.set('referral', params.row.code!);
+            void navigator.clipboard.writeText(url.toString()).then(
+              () => toast.success('Excel Play referral link copied'),
+              () => toast.error('Could not copy the referral link'),
+            );
+          }}
+        />,
         <RowAction
           key="view"
           icon={<EyeIcon />}
