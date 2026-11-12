@@ -45,8 +45,9 @@ export default function EventEditPage() {
           responseType: 'blob',
         });
 
+        const contentType = imageRes.headers['content-type'];
         icon = new File([imageRes.data], 'icon.png', {
-          type: imageRes.headers['content-type'] ?? 'image/png',
+          type: typeof contentType === 'string' ? contentType : 'image/png',
         });
       }
     } catch (error) {
