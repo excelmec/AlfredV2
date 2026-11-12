@@ -391,6 +391,15 @@ export default function OrderDataView({
               <CardTitle>Customer</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
+              {order.isSelfPickup && (
+                order.pickupPhoneNumber ? (
+                  <InfoRow icon={<PhoneIcon />} copy={order.pickupPhoneNumber} copyLabel="Pickup contact">
+                    <span>Pickup contact: <a href={`tel:${order.pickupPhoneNumber}`} className="hover:underline">{order.pickupPhoneNumber}</a></span>
+                  </InfoRow>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Pickup contact was not provided for this order.</p>
+                )
+              )}
               <InfoRow icon={<UserIcon />}>
                 <span className="font-medium">{order.user?.name}</span>
               </InfoRow>

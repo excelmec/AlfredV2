@@ -77,6 +77,15 @@ export function useOrderList() {
       valueGetter: (params: GridRenderCellParams<IOrder>) => params.row?.user?.name,
     },
     {
+      field: 'pickupPhoneNumber',
+      headerName: 'Pickup contact',
+      type: 'string',
+      width: 160,
+      valueGetter: (params: GridRenderCellParams<IOrder>) => params.row.isSelfPickup
+        ? params.row.pickupPhoneNumber || 'Not provided'
+        : '',
+    },
+    {
       field: 'trackingId',
       headerName: 'Tracking ID',
       type: 'string',

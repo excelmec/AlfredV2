@@ -31,6 +31,7 @@ export interface IOrder {
   orderDate: Date;
   trackingId?: string;
   isSelfPickup: boolean;
+  pickupPhoneNumber: string | null;
 
   orderStatus: EOrderStatus;
   paymentStatus: EPaymentStatus;
